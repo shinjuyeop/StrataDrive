@@ -1,0 +1,363 @@
+{
+  "parent": "cebce257cc2cd456a229467f47d19101ee0cad336833e6627d29ecf640c52683",
+  "head_sha256": "ce981bbc61dd6c39a4045dac1ca48ecf69f28d14368f3ce5f5a94259831f8d8f",
+  "counts": {
+    "archive-train": {
+      "all": {
+        "baseline": {
+          "tp": 419,
+          "fp": 1,
+          "fn": 42,
+          "frames": 1461,
+          "rider_tp": 268,
+          "rider_fn": 24,
+          "pedestrian_tp": 151,
+          "pedestrian_fn": 18
+        },
+        "candidate": {
+          "tp": 434,
+          "fp": 128,
+          "fn": 27,
+          "frames": 1461,
+          "rider_tp": 281,
+          "rider_fn": 11,
+          "pedestrian_tp": 153,
+          "pedestrian_fn": 16
+        }
+      }
+    },
+    "pairs-train": {
+      "all": {
+        "baseline": {
+          "tp": 72,
+          "fp": 1,
+          "fn": 22,
+          "frames": 120,
+          "pedestrian_tp": 24,
+          "pedestrian_fn": 22,
+          "pedestrian_miss_has_eligible_query": 19,
+          "rider_tp": 48,
+          "pedestrian_miss_no_box_iou50": 3
+        },
+        "candidate": {
+          "tp": 79,
+          "fp": 10,
+          "fn": 15,
+          "frames": 120,
+          "pedestrian_tp": 31,
+          "rider_tp": 48,
+          "pedestrian_fn": 15,
+          "pedestrian_miss_has_eligible_query": 12,
+          "pedestrian_miss_no_box_iou50": 3
+        }
+      },
+      "clear": {
+        "baseline": {
+          "tp": 14,
+          "fp": 1,
+          "fn": 2,
+          "frames": 24,
+          "pedestrian_tp": 14,
+          "pedestrian_fn": 2,
+          "pedestrian_miss_has_eligible_query": 2
+        },
+        "candidate": {
+          "tp": 16,
+          "fp": 3,
+          "fn": 0,
+          "frames": 24,
+          "pedestrian_tp": 16
+        }
+      },
+      "car": {
+        "baseline": {
+          "tp": 9,
+          "fp": 0,
+          "fn": 7,
+          "frames": 24,
+          "pedestrian_tp": 9,
+          "pedestrian_fn": 7,
+          "pedestrian_miss_has_eligible_query": 7
+        },
+        "candidate": {
+          "tp": 11,
+          "fp": 3,
+          "fn": 5,
+          "frames": 24,
+          "pedestrian_tp": 11,
+          "pedestrian_fn": 5,
+          "pedestrian_miss_has_eligible_query": 5
+        }
+      },
+      "car_only": {
+        "baseline": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "frames": 24
+        },
+        "candidate": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "frames": 24
+        }
+      },
+      "cycle": {
+        "baseline": {
+          "tp": 25,
+          "fp": 0,
+          "fn": 13,
+          "frames": 24,
+          "pedestrian_fn": 13,
+          "pedestrian_miss_has_eligible_query": 10,
+          "rider_tp": 24,
+          "pedestrian_tp": 1,
+          "pedestrian_miss_no_box_iou50": 3
+        },
+        "candidate": {
+          "tp": 28,
+          "fp": 4,
+          "fn": 10,
+          "frames": 24,
+          "pedestrian_tp": 4,
+          "rider_tp": 24,
+          "pedestrian_fn": 10,
+          "pedestrian_miss_has_eligible_query": 7,
+          "pedestrian_miss_no_box_iou50": 3
+        }
+      },
+      "cycle_only": {
+        "baseline": {
+          "tp": 24,
+          "fp": 0,
+          "fn": 0,
+          "frames": 24,
+          "rider_tp": 24
+        },
+        "candidate": {
+          "tp": 24,
+          "fp": 0,
+          "fn": 0,
+          "frames": 24,
+          "rider_tp": 24
+        }
+      },
+      "30m_plus": {
+        "baseline": {
+          "tp": 51,
+          "fp": 0,
+          "fn": 19,
+          "frames": 90,
+          "pedestrian_tp": 15,
+          "pedestrian_fn": 19,
+          "pedestrian_miss_has_eligible_query": 16,
+          "rider_tp": 36,
+          "pedestrian_miss_no_box_iou50": 3
+        },
+        "candidate": {
+          "tp": 55,
+          "fp": 6,
+          "fn": 15,
+          "frames": 90,
+          "pedestrian_tp": 19,
+          "pedestrian_fn": 15,
+          "pedestrian_miss_has_eligible_query": 12,
+          "rider_tp": 36,
+          "pedestrian_miss_no_box_iou50": 3
+        }
+      }
+    },
+    "archive-validation": {
+      "all": {
+        "baseline": {
+          "tp": 140,
+          "fp": 3,
+          "fn": 21,
+          "frames": 699,
+          "rider_tp": 85,
+          "rider_fn": 16,
+          "pedestrian_tp": 55,
+          "pedestrian_fn": 5
+        },
+        "candidate": {
+          "tp": 150,
+          "fp": 25,
+          "fn": 11,
+          "frames": 699,
+          "rider_tp": 95,
+          "rider_fn": 6,
+          "pedestrian_tp": 55,
+          "pedestrian_fn": 5
+        }
+      }
+    },
+    "pairs-validation": {
+      "all": {
+        "baseline": {
+          "tp": 76,
+          "fp": 3,
+          "fn": 18,
+          "frames": 120,
+          "pedestrian_tp": 30,
+          "rider_fn": 2,
+          "rider_miss_has_eligible_query": 2,
+          "rider_tp": 46,
+          "pedestrian_fn": 16,
+          "pedestrian_miss_has_eligible_query": 14,
+          "pedestrian_miss_no_box_iou50": 2
+        },
+        "candidate": {
+          "tp": 79,
+          "fp": 15,
+          "fn": 15,
+          "frames": 120,
+          "pedestrian_tp": 31,
+          "rider_tp": 48,
+          "pedestrian_fn": 15,
+          "pedestrian_miss_has_eligible_query": 13,
+          "pedestrian_miss_no_box_iou50": 2
+        }
+      },
+      "clear": {
+        "baseline": {
+          "tp": 15,
+          "fp": 2,
+          "fn": 1,
+          "frames": 24,
+          "pedestrian_tp": 15,
+          "pedestrian_fn": 1,
+          "pedestrian_miss_has_eligible_query": 1
+        },
+        "candidate": {
+          "tp": 15,
+          "fp": 3,
+          "fn": 1,
+          "frames": 24,
+          "pedestrian_tp": 15,
+          "pedestrian_fn": 1,
+          "pedestrian_miss_has_eligible_query": 1
+        }
+      },
+      "car": {
+        "baseline": {
+          "tp": 11,
+          "fp": 0,
+          "fn": 5,
+          "frames": 24,
+          "pedestrian_tp": 11,
+          "pedestrian_fn": 5,
+          "pedestrian_miss_has_eligible_query": 5
+        },
+        "candidate": {
+          "tp": 12,
+          "fp": 0,
+          "fn": 4,
+          "frames": 24,
+          "pedestrian_tp": 12,
+          "pedestrian_fn": 4,
+          "pedestrian_miss_has_eligible_query": 4
+        }
+      },
+      "car_only": {
+        "baseline": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "frames": 24
+        },
+        "candidate": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "frames": 24
+        }
+      },
+      "cycle": {
+        "baseline": {
+          "tp": 27,
+          "fp": 1,
+          "fn": 11,
+          "frames": 24,
+          "pedestrian_tp": 4,
+          "rider_fn": 1,
+          "rider_miss_has_eligible_query": 1,
+          "rider_tp": 23,
+          "pedestrian_fn": 10,
+          "pedestrian_miss_has_eligible_query": 8,
+          "pedestrian_miss_no_box_iou50": 2
+        },
+        "candidate": {
+          "tp": 28,
+          "fp": 11,
+          "fn": 10,
+          "frames": 24,
+          "pedestrian_tp": 4,
+          "rider_tp": 24,
+          "pedestrian_fn": 10,
+          "pedestrian_miss_has_eligible_query": 8,
+          "pedestrian_miss_no_box_iou50": 2
+        }
+      },
+      "cycle_only": {
+        "baseline": {
+          "tp": 23,
+          "fp": 0,
+          "fn": 1,
+          "frames": 24,
+          "rider_tp": 23,
+          "rider_fn": 1,
+          "rider_miss_has_eligible_query": 1
+        },
+        "candidate": {
+          "tp": 24,
+          "fp": 1,
+          "fn": 0,
+          "frames": 24,
+          "rider_tp": 24
+        }
+      },
+      "30m_plus": {
+        "baseline": {
+          "tp": 52,
+          "fp": 2,
+          "fn": 14,
+          "frames": 90,
+          "pedestrian_tp": 17,
+          "pedestrian_fn": 13,
+          "pedestrian_miss_has_eligible_query": 11,
+          "rider_tp": 35,
+          "pedestrian_miss_no_box_iou50": 2,
+          "rider_fn": 1,
+          "rider_miss_has_eligible_query": 1
+        },
+        "candidate": {
+          "tp": 54,
+          "fp": 12,
+          "fn": 12,
+          "frames": 90,
+          "pedestrian_tp": 18,
+          "pedestrian_fn": 12,
+          "pedestrian_miss_has_eligible_query": 10,
+          "rider_tp": 36,
+          "pedestrian_miss_no_box_iou50": 2
+        }
+      }
+    }
+  },
+  "gates": {
+    "archive-validation": {
+      "pedestrian": true,
+      "rider": true,
+      "fp": false,
+      "precision": true
+    },
+    "pairs-validation": {
+      "pedestrian": true,
+      "rider": true,
+      "fp": false,
+      "precision": false
+    }
+  },
+  "passed": false
+}

@@ -89,6 +89,8 @@ CUDA ONNX와 PyTorch의 81장 판정이 일치했고, 개발 절대 기준과 YO
 
 별도 검증 699장에서 놓친 보행자 5건은 모두 가림 장면이었다. 4건은 위치가 맞는 박스의 사람 점수가 낮았고 1건은 박스 위치가 빗나갔다. 점수 기준을 0.60에서 0.35로 낮추면 보행자 1건을 회복하고 사람 오검출이 7건 늘었다. 검증 자료의 30m 이상 보행자는 0건이다. [학습·검증 진단](test-plan/evidence/m10_person_diagnosis_v1/README.md)
 
+원거리·부분 가림 개발 영상을 학습·검증 각 120장 추가했다. 새 검증에서 단독 보행자 14/14를 찾았지만 같은 보행자가 이륜차 뒤에 서면 4/14였다. 사람 점수 보정으로 전체 보행자 검출은 30/46에서 31/46, 사람 오검출은 3건에서 15건이 되어 후보를 기각했다. [짝지은 장면과 개선 후보 평가](test-plan/evidence/m10_person_pairs_v1/README.md)
+
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.
 
 ## 현재 구현과 수용 경계
@@ -131,7 +133,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 30m 이상·부분 가림·이륜차 중첩 보행자를 독립 개발 장소에서 보강하고 현재 0.60 기준과 개선 후보의 보행자·탑승자 검출 및 오검출을 비교한다. 후보를 고정한 뒤 새 독립 장소로 검증한다. [보행자 누락 진단](test-plan/evidence/m10_person_diagnosis_v1/README.md)
+1. 이륜차와 보행자가 겹치는 장면에서 두 사람(보행자·탑승자)의 박스 위치와 일대일 대응을 개선한다. 학습 장소에서 중복·위치 오차 사례를 반영하고 두 검증 자료에서 정검출과 오검출을 비교한다. 통과 후보를 고정한 뒤 새 독립 장소를 평가한다. [가림 대조 실험](test-plan/evidence/m10_person_pairs_v1/README.md)
 2. 보류 기준을 통과하면 물리 서버와 영상 서버의 동일 프레임을 대조하고, 실제 영상 결과의 native 수신·만료·중단·재가입과 제어 지연을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
