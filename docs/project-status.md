@@ -66,8 +66,9 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 재현했을 때 바퀴 각도 차이는 최대 0.000033°였다. [움직이는 장면 비교](test-plan/evidence/m10_visual_inspect_v1/moving-comparison-03.json)
 
 물리 시뮬레이션에서 주행 중 실제 인지 IPC 연결을 끊으면 네이티브 수신기가 단절을 감지하고
-다음 물리 프레임에서 보호 제동을 적용했다. 차량과 네 바퀴는 정지했고 400회 정산이 완료됐다.
-[단절 시험](test-plan/evidence/m10_visual_inspect_v1/transport-loss-01/result.json)
+다음 10ms 물리 프레임에서 보호 제동을 적용했다. 두 번째 시험에서 0.429m/s였던 차량과 네 바퀴는
+시뮬레이션 시간 0.80초 뒤 정지했고 400회 정산이 완료됐다.
+[단절 시험](test-plan/evidence/m10_visual_inspect_v1/transport-loss-02/physical-response.json)
 
 개발·보류 준비는 각 99장 통과했다. 개발 평가 81장에서 D-FINE-M960은 정밀도 82.69%,
 재현율 59.93%로 절대 기준 85%·80%에 미달했다. 배경 차량 세 대가 차량 누락 205건을 차지한다.

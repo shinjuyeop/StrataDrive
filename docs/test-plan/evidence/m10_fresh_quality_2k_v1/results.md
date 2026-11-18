@@ -77,3 +77,8 @@ A fifth off-the-shelf alternative used instance masks to form visible boxes.
 TorchVision Mask R-CNN ResNet50 FPN V2 produced 64.16% precision and 62.36%
 recall. Its original object boxes produced 64.74% and 62.92%. These development
 screens did not produce a replacement Reference. [Weights and inputs](development-mask-01/declaration.json) · [Mask and box scores](development-mask-01/scores.json)
+
+A separate output replay checked the baseline and candidate tensors, regional
+detector outputs, all four comparison models and the visible-mask outputs
+against their stored predictions for the 81 development scenes. The original
+development decision reproduced as FAIL. [Replay result](development-output-replay.json)

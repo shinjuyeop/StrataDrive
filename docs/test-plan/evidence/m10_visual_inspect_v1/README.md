@@ -69,3 +69,20 @@ completed 400 physical intervals and 400 energy settlements. The peer had
 supplied no detection. This covers transport loss during motion. Normal visual
 input and its expiry still require a live, qualified result.
 [Transport-loss evidence](transport-loss-01/result.json)
+
+The repeated disconnect test included the wheel read in the measured source
+acquisition bracket. The moving vehicle entered the fault at 0.429 m/s. At the
+next 10 ms physical stage the brake pressure reached 40 kPa while torque
+started its controlled rundown from 300 to 284 N·m. Torque reached zero after
+16 stages. The body and all four wheels reached and held zero speed after
+0.80 s of simulated time. All 400 physical receipts joined to the immediately
+following original energy settlements. Reset required a new INIT and the new
+binding rejected advancement without a newly staged input.
+[Original-response replay](transport-loss-02/physical-response.json) · [Original-repeat comparison](transport-loss-01/physical-response.json)
+
+A second process rendered all 16 sampled source frames across this stop. Their
+original 2K image hashes were recovered. On the sampled exposures, categorical
+component fields matched and maximum ego wheel angular error was 0.000030°.
+The renderer rejected the wrong key and duplicate wheel names. The six shared
+runtime hashes and the original boot-cache file were restored.
+[Across-stop replay](transport-comparison-01.json) · [Restoration](transport-runtime-restoration.json)
