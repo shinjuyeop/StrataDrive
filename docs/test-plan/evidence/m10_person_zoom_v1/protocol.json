@@ -1,0 +1,9 @@
+{
+  "parent_sha256": "cebce257cc2cd456a229467f47d19101ee0cad336833e6627d29ecf640c52683",
+  "training_probe": "../m10_person_assignment_v1/train-zoom.json",
+  "rule": "On the highest-confidence full-frame bicycle or motorcycle, crop 3/8 of the native RGB width and height (960x576 on 2560x1536). Use nearest integer origin, clip to image bounds. Rerun the same frozen 960x960 model. Replace only person boxes with centers inside the crop, restoring crop boxes to full-frame coordinates. All frozen thresholds including person 0.60 apply.",
+  "validation": {"archive-validation": 699, "pairs-validation": 120},
+  "gates": "Previous strict screens apply on each set: gain >=1 pedestrian on paired validation, no pedestrian loss on archive, no rider loss, person precision >=0.85, FP increase <= floor(0.01*frames). Additionally require strictly more both-matched cycle scenes on paired validation. Small-mask matches remain strict FP.",
+  "timing": "Single RTX 3090 CUDA ORT session. Warm up on training RGB, then time every validation frame from decoded PIL RGB through both tensor transformations, synchronous CPU-returning ORT runs, decoding and merge. Record nested full pass, incremental zoom processing and ORT call time in nanoseconds. Exclude acquisition, file IO, checksums, evaluation and queue waits. Report triggered, untriggered and all frames. No separate latency pass/fail gate.",
+  "decision": "Reproduce training probe and frozen validation baseline. If any quality gate fails retain parent and reserve fresh holdout. If all pass check existing six-class development replay before a fresh holdout."
+}
