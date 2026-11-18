@@ -1,0 +1,9 @@
+{
+  "parent": "../m10_person_pairs_v1/protocol.json",
+  "train": ["archive-train", "pairs-train"],
+  "validation": ["archive-validation", "pairs-validation"],
+  "candidate": "Use frozen RGB query features, bounded edge regression, and one-to-one training assignment for pedestrian and rider. Unassigned duplicates and mislocalized fragments are negatives. Keep parent detections and test additional boxes at confidence 0.60.",
+  "screen": "Use both previous screens, additionally require a gain in simultaneous pedestrian and rider matches on eligible cycle pairs. No change to the model or operating point after evaluating these splits.",
+  "on_pass": "Freeze the candidate and check the existing independent six-class development benchmark before a new holdout.",
+  "on_fail": "Keep the frozen parent and report the mechanism limiting the overlap pairs."
+}
