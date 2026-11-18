@@ -34,6 +34,8 @@ def main(a):
         raise ValueError('closed raw endurance shards only')
     if getattr(a,'native_service_us',1000)!=1000 and not (a.endurance_seconds and a.profile_state_path):
         raise ValueError('profiled endurance native service cadence')
+    if getattr(a,'cuda_resize_library',None) and not (a.endurance_seconds and a.tensor_workspace and a.resize_threads==0):
+        raise ValueError('explicit endurance CUDA resize with tensor workspace and zero CPU resize threads')
     root=Path(__file__).resolve().parents[3];a.output.mkdir(parents=True,exist_ok=False)
     report=dict(schema='m10-paired-server-v1',status='FAIL',condition=a.condition,attempts=1,
                 started_utc=datetime.now(timezone.utc).isoformat(),export_hz=a.export_hz,endurance_seconds=a.endurance_seconds,
@@ -77,6 +79,15 @@ def main(a):
             '-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False',
             '-log','-stdout','-FullStdOutLogOutput']
         common=dict(os.environ,OMP_WAIT_POLICY='PASSIVE');common.pop('STRATADRIVE_M7_OWNER_KEY',None)
+        cuda_library=getattr(a,'cuda_resize_library',None)
+        if cuda_library:
+            path=cuda_library.resolve();digest=sha(path)
+            if json.loads(a.freeze.read_text())['external'].get(str(path))!=digest:
+                raise ValueError('CUDA resize library must be frozen before execution')
+            common.update(STRATADRIVE_M10_CUDA_RESIZE_LIBRARY=str(path),STRATADRIVE_M10_CUDA_RESIZE_SHA256=digest)
+            report['cuda_resize']=dict(library=str(path),sha256=digest)
+        elif any(key in common for key in ('STRATADRIVE_M10_CUDA_RESIZE_LIBRARY','STRATADRIVE_M10_CUDA_RESIZE_SHA256')):
+            raise ValueError('undeclared CUDA resize environment')
         camera_period=getattr(a,'camera_period_ms',50)
         camera_pacing(a.renderer_wall_hz,camera_period,getattr(a,'raw_recording',False))
         if (getattr(a,'raw_recording',False) or camera_period!=50) and not a.endurance_seconds:
@@ -325,6 +336,7 @@ if __name__=='__main__':
     p.add_argument('--wall-profile',choices=tuple(WALL_PROFILES),default='wall5-hv30-v1')
     p.add_argument('--packaged-target-map',action='store_true')
     p.add_argument('--native-service-us',type=int,choices=(500,1000),default=1000)
+    p.add_argument('--cuda-resize-library',type=Path)
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-no-visual-tags',action='store_true')

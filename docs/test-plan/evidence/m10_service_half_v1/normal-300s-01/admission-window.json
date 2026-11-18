@@ -1,0 +1,83 @@
+{
+  "status": "PASS_SERVICE_HALF_INTEGRITY",
+  "receipts": 60000,
+  "normal": 59838,
+  "preview_reserve_ns": 300000,
+  "physics_interval_ns": 5000000,
+  "original_age_ns": 30000000,
+  "scope": "service cadence and original policy integrity; separate physical acceptance required",
+  "purges": [
+    {
+      "slices": 405,
+      "completion_span_ns": 2003748351,
+      "work_ns": 44594189,
+      "longest_slice_ns": 157999
+    },
+    {
+      "slices": 2,
+      "completion_span_ns": 1576205,
+      "work_ns": 9491,
+      "longest_slice_ns": 6098
+    },
+    {
+      "slices": 2,
+      "completion_span_ns": 1519679,
+      "work_ns": 8363,
+      "longest_slice_ns": 5864
+    },
+    {
+      "slices": 2,
+      "completion_span_ns": 1389060,
+      "work_ns": 8739,
+      "longest_slice_ns": 6155
+    }
+  ],
+  "requested_slice_ns": 100000,
+  "owner_cpus": [
+    2,
+    3,
+    4,
+    5,
+    10,
+    11,
+    12,
+    13
+  ],
+  "renderer_cpus": [
+    6,
+    7,
+    14,
+    15
+  ],
+  "measured_placement_samples": {
+    "owner": 298,
+    "renderer": 298,
+    "client": 298,
+    "native": 298,
+    "pipeline": 298
+  },
+  "library_prefetch": {
+    "owner": {
+      "files": 12,
+      "bytes": 1909074752,
+      "elapsed_ns": 1601560243
+    },
+    "renderer": {
+      "files": 12,
+      "bytes": 1909074752,
+      "elapsed_ns": 1600855819
+    }
+  },
+  "cadence": {
+    "service_period_ns": 500000,
+    "observed_calls": 599963,
+    "skipped_slots": 45,
+    "original_ecu_periods_and_watch_deadlines": true
+  },
+  "declared_policy": {
+    "hv_dependency_ns": 50000000,
+    "source_and_actual_policy": "original 30ms gates",
+    "completed_cache_hints": 164,
+    "raw_bytes_retained": true
+  }
+}

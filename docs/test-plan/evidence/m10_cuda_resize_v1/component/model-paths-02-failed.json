@@ -1,0 +1,149 @@
+{
+  "status": "FAIL",
+  "scope": "actual two setup paths at100%; no CARLA, camera or control; no70% physical acceptance",
+  "begin_wall_ns": 2004991571833443,
+  "owner_worker_cpus": [
+    6,
+    7,
+    14,
+    15
+  ],
+  "owner_preparation": {
+    "state": "READY",
+    "started_wall_ns": 2005010870988196,
+    "finished_wall_ns": 2005011730668940,
+    "last_observed_wall_ns": 2005011730668940,
+    "error": null,
+    "calls": [
+      {
+        "number": 1,
+        "owner_thread_id": 128099242997312,
+        "begin_wall_ns": 2005010871058489,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 1,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 13887346,
+          "inference_ns": 750774476,
+          "postprocess_ns": 752635,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 2005011670965774,
+        "elapsed_wall_ns": 799907285
+      },
+      {
+        "number": 2,
+        "owner_thread_id": 128099242997312,
+        "begin_wall_ns": 2005011670991349,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 2,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 8453917,
+          "inference_ns": 20949428,
+          "postprocess_ns": 248947,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 2005011700787669,
+        "elapsed_wall_ns": 29796320
+      },
+      {
+        "number": 3,
+        "owner_thread_id": 128099242997312,
+        "begin_wall_ns": 2005011700806957,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 3,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 7795031,
+          "inference_ns": 21634911,
+          "postprocess_ns": 285355,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 2005011730668940,
+        "elapsed_wall_ns": 29861983
+      }
+    ]
+  },
+  "owner_library_read": {
+    "files": 12,
+    "bytes": 1909074752,
+    "elapsed_ns": 16165748927
+  },
+  "owner_cuda_resize": {
+    "kind": "cuda-two-pass-exact-v1",
+    "library": "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+    "sha256": "0be28cf15bc07f76710e4b88ea3b57d516ff5aec12b12efa5dfe72ef07be7312",
+    "cpu_resize_threads": 0,
+    "host_wait": "cudaEventBlockingSync",
+    "calls": 3,
+    "failures": 0,
+    "closed": true,
+    "owner_thread_id": 128099242997312,
+    "owner_native_tid": 4088827
+  },
+  "renderer_worker_cpus": [
+    6,
+    7,
+    14,
+    15
+  ],
+  "renderer_library_read": {
+    "files": 12,
+    "bytes": 1909074752,
+    "elapsed_ns": 1176444687
+  },
+  "renderer_cuda_resize": {
+    "kind": "cuda-two-pass-exact-v1",
+    "library": "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+    "sha256": "0be28cf15bc07f76710e4b88ea3b57d516ff5aec12b12efa5dfe72ef07be7312",
+    "cpu_resize_threads": 0,
+    "host_wait": "cudaEventBlockingSync",
+    "calls": 3,
+    "failures": 0,
+    "closed": true,
+    "owner_thread_id": 128099242997312,
+    "owner_native_tid": 4088834
+  },
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/build/m10-cuda-resize-v1/check-model-paths.py\", line 46, in <module>\n    record['cuda_audit']=validate_cuda(dict(cuda_resize=dict(library=os.environ['STRATADRIVE_M10_CUDA_RESIZE_LIBRARY'],sha256=os.environ['STRATADRIVE_M10_CUDA_RESIZE_SHA256'])),cap.report,renderer)\n  File \"/d/shin/StrataDrive/tests/integration/perception/audit_cuda_resize_v1.py\", line 17, in validate\n    (renderer, len(renderer['preparation']) + len(renderer['inference']))):\nKeyError: 'inference'\n",
+  "end_wall_ns": 2005013464514779
+}

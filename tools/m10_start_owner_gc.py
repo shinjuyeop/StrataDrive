@@ -13,8 +13,8 @@ import time
 
 
 def check(root):
-    series = root/'docs/test-plan/evidence/m10_service_half_v1'
-    work = root/'build/m10-service-half-v1'
+    series = root/'docs/test-plan/evidence/m10_cuda_resize_v1'
+    work = root/'build/m10-cuda-resize-v1'
     if os.geteuid() == 0:
         raise RuntimeError('Run this launcher as your normal user, without sudo.')
     prepared = json.loads((series/'prepared.json').read_text())
@@ -82,7 +82,7 @@ def run(root):
                     break
                 if stopped or owner.poll() is not None or not identity or identity['pid'] != owner.pid or identity['uid'] != os.getuid():
                     raise RuntimeError('Fresh owner did not become ready; see sequence.log.')
-                print(f'새 실행기 PID {owner.pid}: 30초 → 30초 → 5분 시험을 시작합니다.', flush=True)
+                print(f'새 실행기 PID {owner.pid}: 30초 → 5분 시험을 시작합니다.', flush=True)
                 argv = ['/usr/bin/sudo', '-n', '/usr/bin/python3', str(helper),
                         '--owner-pid', str(owner.pid), '--seconds', '1800']
                 with subprocess.Popen(argv, stdout=subprocess.PIPE, text=True) as lease:

@@ -47,23 +47,22 @@ def main(a):
     manifest=json.loads((a.bundle/'run-manifest.json').read_text())
     checked_members(a.bundle/manifest['archive'],manifest,run)
     assert json.loads((run/'server.json').read_text())['freeze_sha256']==case['freeze_sha256']
-    for m in json.loads((a.bundle/'raw-manifest.json').read_text())['archives']:
-        checked_members(a.bundle/m['archive'],m)
-        relative=Path(m['original']);assert not relative.is_absolute() and '..' not in relative.parts
-        p=run/relative;p.parent.mkdir(parents=True,exist_ok=True);os.symlink((a.bundle/m['archive']).resolve(),p)
     result=run/'capture/paired/renderer/result.json'
     raw=json.loads(result.read_text())['raw'] if result.exists() else []
-    # Full decompression is required even when the physical audit rejects first.
-    from endurance_recording_v1 import RawReader
-    from PIL import Image
-    reader=RawReader(result.parent)
-    try:
-        for row in raw:
-            bgra=reader.read(row)
-            assert len(bgra)==2560*1536*4 and hashlib.sha256(bgra).hexdigest()==row['bgra_sha256']
-            rgb=Image.frombytes('RGB',(2560,1536),bgra,'raw','BGRX').tobytes()
-            assert hashlib.sha256(rgb).hexdigest()==row['rgb_sha256']
-    finally:reader.close()
+    from raw_archive_stream_v1 import inspect as inspect_raw
+    archives=json.loads((a.bundle/'raw-manifest.json').read_text())['archives']
+    if len({m['archive'] for m in archives})!=len(archives):raise ValueError('duplicate raw archive')
+    originals=[Path(m['original']).name for m in archives]
+    if len(set(originals))!=len(originals):raise ValueError('duplicate original raw archive')
+    if {r['archive'] for r in raw}!=set(originals):raise ValueError('complete raw archives')
+    for m in archives:
+        rows=[r for r in raw if r['archive']==Path(m['original']).name]
+        assert all((r['width'],r['height'])==(2560,1536) for r in rows)
+        # Includes complete tar bytes, members, decoded BGRA and RGB identities,
+        # even when the original physical verdict is FAIL.
+        inspect_raw(a.bundle/m['archive'],m,frames=rows)
+        relative=Path(m['original']);assert not relative.is_absolute() and '..' not in relative.parts
+        p=run/relative;p.parent.mkdir(parents=True,exist_ok=True);os.symlink((a.bundle/m['archive']).resolve(),p)
     exclusions=json.loads((a.bundle/'future-exclusion.json').read_text());prior=a.bundle/exclusions['prior']
     assert sha(prior)==exclusions['prior_sha256'] and exclusions['holdout_access'] is False
     expected=set(json.loads(prior.read_text())['rgb_sha256']);expected.update(row['rgb_sha256'] for row in raw)

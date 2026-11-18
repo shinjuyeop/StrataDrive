@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "scope": "actual two setup paths at100%; no CARLA, camera or control; no70% physical acceptance",
+  "begin_wall_ns": 2003468434088487,
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/build/m10-cuda-resize-v1/check-model-paths.py\", line 20, in <module>\n    cap.report['model_setup_cpus']=cpus;cap.prepare_model(SimpleNamespace(id=1))\n  File \"/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py\", line 49, in prepare_model\n    prefetch_pipeline_libraries(self.report['library_prefetch'])\n  File \"/d/shin/StrataDrive/tests/integration/perception/endurance_host_v1.py\", line 113, in prefetch_pipeline_libraries\n    prefetch(root/'profiles/perception-inference-libraries-host-v1.json',root,report)\n  File \"/d/shin/StrataDrive/physical_ai/perception/library_prefetch_v1.py\", line 57, in prefetch\n    digest.update(block);count+=len(block);observe()\n  File \"/d/shin/StrataDrive/physical_ai/perception/library_prefetch_v1.py\", line 45, in observe\n    if now-started>=READ_BUDGET_NS:raise TimeoutError('library read deadline')\nTimeoutError: library read deadline\n",
+  "end_wall_ns": 2003498556085396
+}

@@ -1,0 +1,21 @@
+{
+  "status": "PASS_CUDA_RESIZE_CANDIDATE",
+  "module_sha256": "bdfb14908db58cd49e2abefcc59f6e5c213faf75e0a7577d40e66b08410bd980",
+  "physics_native_unity_unchanged": true,
+  "prior_model_preparation": "docs/test-plan/evidence/m10_cuda_resize_v1/component/model-paths-03.json",
+  "isolated_scene_inventory_equal": true,
+  "live_acceptance": false,
+  "read_only_code_prefetch": "new opt-in before native START; no residency guarantee",
+  "hv_profile": "wall5-hv50-v1 (existing ADR-0066; new explicit endurance/replay CLI)",
+  "closed_shard_cache": "new opt-in; sync then hint only; byte identity tested",
+  "native_service_us": 500,
+  "renderer": "source editor with t.MaxFPS60; stock latency rejected",
+  "cuda_resize": {
+    "path": "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+    "sha256": "0be28cf15bc07f76710e4b88ea3b57d516ff5aec12b12efa5dfe72ef07be7312"
+  },
+  "exact_pixel_cases": 12,
+  "memory_check": "zero errors; zero leaked bytes",
+  "actual_model_preparation": "both original paths PASS, three calls each; owner handoff and closure audited",
+  "archive_transport": "explicit post-run gzip, exact full original tar/image hashes"
+}

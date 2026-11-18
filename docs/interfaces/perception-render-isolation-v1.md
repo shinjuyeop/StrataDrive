@@ -1,11 +1,11 @@
 # Physics and camera rendering separation
 
 One physical owner supplies authoritative state; a separate world renders camera
-images from bounded completed snapshots. The latest HV50/cache V2 passes its
-30s diagnostic but fails the 300s case on Rear command expiry after GC. Exact
-original replay identifies sequential Front ACK → Rear delivery 145770ns after
-the previous command's expiry. Complete visual-scene admission, stable 300s
-operation and native perception-control acceptance remain OPEN.
+images from bounded completed snapshots. The explicit500us native service trial
+passed30s and300s, including exact original replay, all raw hashes and eight frozen
+supplemental audits. It preserved sequential Front ACK→Rear delivery and original
+expiry. Complete visual-scene admission, continuous perception availability and
+native perception-control acceptance remain OPEN.
 
 Current settings and results are maintained in
 [project status](../project-status.md#최신-m10-판단) and the
@@ -116,7 +116,7 @@ or moving only Python inference does not establish this boundary.
    to bounded sync/cache hints; original bytes and image hashes remain mandatory.
    Temporary NVMe asset placement retains original asset inodes and restores them.
    The stock-renderer comparison is not adopted because measured scene age is
-   about 496ms median. The prospective source-editor/500us service trial preserves
+   about 496ms median. The completed source-editor/500us service trial preserves
    sequential acknowledgements and original expiry checks. Preparation or replay
    success is not live physical acceptance. Camera 20Hz is not an acceptance gate;
    retain 1× wall behavior without silently slowing simulation.

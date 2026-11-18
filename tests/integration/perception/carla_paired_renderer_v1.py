@@ -49,6 +49,7 @@ class DiagnosticInference:
         self.thread=threading.Thread(target=self.run,name='paired-diagnostic-inference',daemon=True);self.thread.start()
 
     def run(self):
+        backend=None
         try:
             mark_thread('m10-inference')
             import cv2
@@ -62,6 +63,9 @@ class DiagnosticInference:
             self.report['host_pipeline']=dict(thread_id=threading.get_native_id(),cv_threads=cv2.getNumThreads(),
                 tensor_workspace=os.environ.get('STRATADRIVE_M10_TENSOR_WORKSPACE')=='1',
                 resize_threads=backend.resize.threads,cuda_wait=getattr(backend.detector,'cuda_wait_policy',None))
+            metadata = getattr(backend.resize, 'metadata', None)
+            if isinstance(metadata, dict):
+                self.report['cuda_resize'] = metadata
             self.report['providers']=backend.detector.session.get_providers()
             if os.environ.get('STRATADRIVE_ORT_PASSIVE_THREADS'):
                 options=backend.detector.session.get_session_options()
@@ -99,6 +103,8 @@ class DiagnosticInference:
                 if len(self.report['inference'])>=self.max_calls:raise ValueError('bounded diagnostic inference trace')
             self.report['backend_stages']=backend.stages
         except Exception:self.report['errors'].append(traceback.format_exc());self.ready.set()
+        finally:
+            if backend is not None and callable(getattr(backend,'close',None)):backend.close()
 
     def offer(self,image):
         with self.condition:

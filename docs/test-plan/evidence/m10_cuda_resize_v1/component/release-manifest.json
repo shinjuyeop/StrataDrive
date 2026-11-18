@@ -1,0 +1,54 @@
+{
+  "schema": "m10-cuda-resize-2k-v1",
+  "status": "BUILT_NOT_ACCEPTED",
+  "scope": "Host RTX3090 SM86/PTX86 candidate; rebuild and validate on each Jetson in M12",
+  "compiler": "/usr/local/cuda-12.9/bin/nvcc",
+  "compiler_version": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Wed_Apr__9_19:24:57_PDT_2025\nCuda compilation tools, release 12.9, V12.9.41\nBuild cuda_12.9.r12.9/compiler.35813241_0\n",
+  "command": [
+    "/usr/local/cuda-12.9/bin/nvcc",
+    "-std=c++17",
+    "-O3",
+    "-Xcompiler=-fPIC,-ffp-contract=off",
+    "--fmad=false",
+    "--cudart=shared",
+    "-gencode",
+    "arch=compute_86,code=sm_86",
+    "-gencode",
+    "arch=compute_86,code=compute_86",
+    "-shared",
+    "/d/shin/StrataDrive/physical_ai/perception/cuda_resize_2k_v1.cu",
+    "-o",
+    "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+    "-Xlinker",
+    "-rpath",
+    "-Xlinker",
+    "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/nvidia/cuda_runtime/lib"
+  ],
+  "source": {
+    "path": "physical_ai/perception/cuda_resize_2k_v1.cu",
+    "sha256": "e9576742845af49cba757aab8f0b6fbc6bc41250402813a653ec5d80f97fabae"
+  },
+  "library": {
+    "path": "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+    "sha256": "0be28cf15bc07f76710e4b88ea3b57d516ff5aec12b12efa5dfe72ef07be7312"
+  },
+  "runtime": {
+    "path": "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+    "sha256": "256e6409e4f06f618e1fb53d4844a6b81cdded1013afa8ade40c22f99eb133b7"
+  },
+  "arithmetic": "original host-generated coefficients; two integer 22-bit passes; CPU tensor conversion unchanged",
+  "input": [
+    1536,
+    2560,
+    4
+  ],
+  "output": [
+    960,
+    960,
+    3
+  ],
+  "persistent_workspace": true,
+  "host_wait": "cudaEventBlockingSync",
+  "cpu_resize_threads": 0,
+  "live_execution": false
+}

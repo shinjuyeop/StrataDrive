@@ -1,0 +1,205 @@
+{
+  "status": "PREPARED_NOT_PHYSICAL_ACCEPTANCE",
+  "validation_only": false,
+  "host_policy": {
+    "min_perf_pct": "16",
+    "max_perf_pct": "100",
+    "no_turbo": "0"
+  },
+  "stages": {
+    "owner": {
+      "argv": [
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+        "/Game/Carla/Maps/Town03_Opt",
+        "-game",
+        "-FixedSeed",
+        "-RenderOffScreen",
+        "-nosound",
+        "-unattended",
+        "-nosplash",
+        "-carla-server",
+        "-quality-level=Epic",
+        "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1",
+        "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+        "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+        "-log",
+        "-stdout",
+        "-FullStdOutLogOutput",
+        "-carla-rpc-port=2200",
+        "-StrataM7NativeProbe",
+        "-StrataM7V1Substeps320",
+        "-StrataM7SolverWork",
+        "-StrataM7CompactWork",
+        "-StrataM7WallNative",
+        "-StrataM7HeldSteerSleep",
+        "-StrataM7Wall5ms",
+        "-nullrhi",
+        "-norenderthread",
+        "-StrataM10EnduranceFrames=60000",
+        "-StrataM10IdleWait",
+        "-StrataM10StatePathProfile",
+        "-StrataM10GcProfile",
+        "-StrataM10PurgeSlice",
+        "-StrataM10RecoveryPreview",
+        "-StrataM10NoVisualTags",
+        "-StrataM10StructuredState"
+      ],
+      "startup_budget_seconds": 600,
+      "ready_seconds": 76.696142933,
+      "prepared": {
+        "world": 9558490227473304459,
+        "map": "Carla/Maps/Town03_Opt",
+        "counts": {
+          "vehicle.*": 0,
+          "walker.*": 0,
+          "sensor.*": 0
+        },
+        "parked": true
+      },
+      "shutdown": {
+        "begin_wall_ns": 2000813411866452,
+        "limit_seconds": 30,
+        "diagnostic_after_seconds": 10,
+        "diagnostics_enabled": true,
+        "end_wall_ns": 2000815330643642,
+        "server_exit": 130
+      }
+    },
+    "renderer": {
+      "argv": [
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+        "/Game/Carla/Maps/Town03_Opt",
+        "-game",
+        "-FixedSeed",
+        "-RenderOffScreen",
+        "-nosound",
+        "-unattended",
+        "-nosplash",
+        "-carla-server",
+        "-quality-level=Epic",
+        "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+        "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+        "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+        "-log",
+        "-stdout",
+        "-FullStdOutLogOutput",
+        "-carla-rpc-port=2300",
+        "-StrataM10IdleWait"
+      ],
+      "startup_budget_seconds": 600,
+      "ready_seconds": 58.363464328,
+      "prepared": {
+        "world": 8726477744012774403,
+        "map": "Carla/Maps/Town03_Opt",
+        "counts": {
+          "vehicle.*": 0,
+          "walker.*": 0,
+          "sensor.*": 0
+        },
+        "parked": true
+      },
+      "shutdown": {
+        "begin_wall_ns": 2000874284166260,
+        "limit_seconds": 30,
+        "diagnostic_after_seconds": 10,
+        "diagnostics_enabled": true,
+        "end_wall_ns": 2000876152586139,
+        "server_exit": 130
+      }
+    }
+  },
+  "scope": "empty processes at100%; no native START, camera, detector or forced GC",
+  "script_sha256": "3d1004f1db5a6f2504af175225e3151f8ff658b07546a8e23ea233124dd4d6a1",
+  "restoration": {
+    "status": "PASS",
+    "components": {
+      "dxcompiler": {
+        "status": "RESTORED",
+        "command_exit": 0,
+        "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+      },
+      "module": {
+        "status": "RESTORED",
+        "command_exit": 0,
+        "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+      }
+    },
+    "files": {
+      "executable": {
+        "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+        "sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+        "original_sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+        "checked_sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8"
+      },
+      "module": {
+        "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so",
+        "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+        "original_sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+        "checked_sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+      },
+      "engine": {
+        "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-Engine.so",
+        "sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+        "original_sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+        "checked_sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48"
+      },
+      "rendercore": {
+        "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-RenderCore.so",
+        "sha256": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+        "original_sha256": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+        "checked_sha256": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b"
+      },
+      "dxcompiler": {
+        "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/ThirdParty/ShaderConductor/Linux/x86_64-unknown-linux-gnu/libdxcompiler.so",
+        "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+        "original_sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+        "checked_sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+      },
+      "ini": {
+        "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Saved/Config/Linux/GameUserSettings.ini",
+        "sha256": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448",
+        "checked_sha256": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+      }
+    },
+    "errors": [],
+    "checked_utc": "2026-11-18T06:13:27.519264+00:00"
+  },
+  "stock_ini_restored": true,
+  "completed_wall_ns": 2000886409361003,
+  "files": {
+    "guarded-restore-module.log": {
+      "bytes": 117,
+      "sha256": "d80288cb9be1c1b2ebd2a9a16b2850a1a945143da0d0f7a8afa94f8fed6f79ef"
+    },
+    "install-module.log": {
+      "bytes": 117,
+      "sha256": "5aa5b044b579fa117602f30c5d247295237e6e1c0224e64afcae3ea4b1bae796"
+    },
+    "renderer.log": {
+      "bytes": 481595,
+      "sha256": "f0857a3c6bd53d6609ed36c650ba5a0aa7b91b482e37754bce217d8fdd5bea06"
+    },
+    "install-dxc.log": {
+      "bytes": 98,
+      "sha256": "feb9b72f024bc242e6b8100031160ab895aab39b37bc96e40d47f6b8125b2fd1"
+    },
+    "renderer-readiness.jsonl": {
+      "bytes": 8186,
+      "sha256": "3f312a02698725e9af3065d851de03307e007c72f5aa9ec95076f5cd00dd5137"
+    },
+    "guarded-restore-dxcompiler.log": {
+      "bytes": 97,
+      "sha256": "6028bbf1743ba62353b13ce95163f1d9d8ce2bb57c3bbae3442720eaf9769425"
+    },
+    "owner.log": {
+      "bytes": 239684,
+      "sha256": "c8c43c12e5def5265100ff2563481fd2657f2b9ced598feadb5730f376e201d7"
+    },
+    "owner-readiness.jsonl": {
+      "bytes": 10959,
+      "sha256": "e59733e35dbe26804e76b9bac47097862d3a64982132bdd48e255b5e7904ba32"
+    }
+  }
+}

@@ -1,7 +1,10 @@
 # Separate-world render provenance V1
 
 Status: typed association and renderer-only diagnostic implemented; **complete
-scene export and concurrent physical/rendering operation remain OPEN**. The
+scene export and native perception admission remain OPEN**. The latest
+[500us service trial](../test-plan/evidence/m10_service_half_v1/README.md) passed
+finite30s/300s concurrent physics/rendering diagnostics. The historical tests below
+retain their original verdicts. The
 [corrected renderer trial](../test-plan/evidence/m10_render_replay_v2/README.md)
 produced19 actual2K images,12 mapped images and a server shutdown failure. It is not
 a successful whole-system run. The subsequent

@@ -16,16 +16,18 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **30초 PASS / 5분 후륜 명령 만료 FAIL / 전체 OPEN** | [최신 실행](test-plan/evidence/m10_hv50_cache_v2/README.md) · [통신 처리 후보](test-plan/evidence/m10_service_half_v1/README.md) |
+| M10 | **30초·5분 동시 실행 PASS / 인지 수용·전체 OPEN** | [최신 실행](test-plan/evidence/m10_service_half_v1/README.md) · [영상 처리 후보](test-plan/evidence/m10_cuda_resize_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
 
-**M10은 아직 OPEN이다.** 반복된 실패를 모두 같은 GC 문제로 묶지 않고, 실제 최초 오류와
-원본 재생으로 나눴다. [HV50/cache V2](test-plan/evidence/m10_hv50_cache_v2/README.md)는
-30초 PASS, 5분은 60.086015970초에 후륜 명령 만료로 FAIL이다. 60000개 물리 구간과
-300003개 native 호출의 원본 재생 및 추가 감사기 8개 재실행은 일치한다.
+**M10은 아직 OPEN이다.** [0.5ms 통신 처리 후보](test-plan/evidence/m10_service_half_v1/README.md)가
+30초·5분의 실제 동시 실행, 원본 전체 검증, 추가 감사기 8개 재현을 통과했다.
+5분의 물리 기록 60000개와 native 호출 599963개가 정확히 재생됐고, 보호 진입·물리 중 만료가
+없었다. 독립 watch 1500000 슬롯의 누락·지연은 0이다. 모델 시간 300초에 실제 시간
+300.00098초가 걸렸다. 유한 가감속 뒤 대부분 정지 유지한 조건의 결과다.
+이전 [HV50/cache V2](test-plan/evidence/m10_hv50_cache_v2/README.md)의 실패는 그대로 보존한다.
 
 | 확인한 문제 | 현재 판단 |
 | --- | --- |
@@ -33,18 +35,24 @@
 | 시작 전 자산 읽기·모델 준비 지연 | 별도 빈 서버 준비, 동일 CUDA 라이브러리 준비, 원본을 보존한 NVMe 자산 배치 구현 |
 | 기록 캐시와 GC 중 디스크 읽기 | 닫힌 raw shard를 sync한 뒤 캐시 해제. V2의 GC 4회는 major fault 증가 0, 약 13~17ms. 다른 부하까지 해결됐다는 뜻은 아님 |
 | HV 의존 입력 30ms 만료 | 기존 ADR-0066의 명시적 HV50 프로필을 endurance/replay에 연결. source·wheel·Actual·명령 기한은 그대로. 과거 HV30 실패는 그대로 보존 |
-| 새 후륜 명령 전달 지연 | Front ACK 후 Rear에 순차 전달하는 1ms polling이 기존 만료보다 145770ns 늦음. 실제 원본 재생으로 확인 |
+| 새 후륜 명령 전달 지연 | 원래 1ms polling의 145770ns 지각을 확인. 0.5ms 후보의 실제 30초·5분은 기존 만료·순차 ACK를 유지한 채 PASS |
 | 배포용 영상 서버 비교 | 중앙 장면 지연 약 496ms로 부적합. 기존 source editor 영상 서버로 복귀 |
 
-다음 [0.5ms native 통신 후보](test-plan/evidence/m10_service_half_v1/README.md)는 통신 확인
-주기만 줄인다. ECU 주기·물리 5ms·독립 watch 2/4ms·명령 만료·순차 ACK는 바꾸지 않는다.
-C++ 42개, Python 592개와 기존 기본 HV30 기록의 완전 일치 재생을 통과했다.
-실제 30초→5분 시험 결과는 아직 미확정이다.
+[GPU 전처리 후보](test-plan/evidence/m10_cuda_resize_v1/README.md)는 픽셀·모델 입력을
+그대로 유지하며 기존 CPU 크기 변환을 GPU로 옮긴다. 격리 비교에서 전처리 중앙값은
+17.63→8.28ms, 해당 스레드 CPU 시간은 15.18→5.59ms였다. 실제 동시 실행 효과는 아직 미확정이다.
+원본 보관·검증의 중복 읽기를 줄인 [검증기](test-plan/evidence/m10_archive_stream_v1/README.md)도
+전체 파일·영상 해시와 원래 판정을 유지하면서 검증했다.
 
 현재 후보는 owner 4코어/native 1코어/영상 2코어/관측 1코어, 2560×1536,
 D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 20Hz 카메라 달성 자체는 종료 기준이 아니다. 원래 100ms 기한과 실제 wall 시간에서의
 가용성을 측정한다. 유한 가감속 뒤 정지 유지 시나리오이며 연속 경로 주행 수용이 아니다.
+
+5분 영상 결과의 장면 기준 지연은 중앙값 93.97ms/p95 104.12ms였고, 2772개 중 321개가
+100ms 기한을 넘었다. 10Hz와 처리 지연을 함께 고려하면, 추가 수용 조건을 무시해도 원래
+기한 안에 결과가 존재하는 시간은 최대 5.30%였다. 기한 내 결과 비율과 연속 가용성은 다르다.
+이 수치를 정상 인지 제어 수용으로 세지 않는다.
 
 전체 장면의 같은 프레임 wheel/bone/material·자산 식별, typed native 인지 연결,
 고정 후보의 새 독립 품질 평가와 안정성 검증이 남았다. Jetson별 배포는 M12에서
@@ -91,7 +99,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [0.5ms 통신 후보](test-plan/evidence/m10_service_half_v1/README.md)를 원래 물리·watch·영상 기준으로 검증한다. 임계값을 늘리지 않고 GC 후 순차 명령 전달 지연을 줄인다. 반복 인증은 [전용 Host lease](test-plan/m10-host-lease-automation.md)가 처리한다. 구조 분석 추천은 GPT-6.2 Astra / xhigh다.
+1. [GPU 전처리 후보](test-plan/evidence/m10_cuda_resize_v1/README.md)의 실제 두 준비 경로와 30초→5분 동시 실행을 검증한다. 영상 지연과 공급 공백을 함께 측정하고 원래 기한을 유지한다. 반복 인증은 [전용 Host lease](test-plan/m10-host-lease-automation.md)가 처리한다. 구조 분석 추천은 GPT-6.2 Astra / xhigh다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

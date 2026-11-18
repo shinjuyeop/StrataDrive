@@ -54,6 +54,9 @@ class Capture:
         cv_threads = int(os.environ.get('STRATADRIVE_M10_CV_THREADS', '0'))
         resize_threads = int(os.environ.get('STRATADRIVE_M10_RESIZE_THREADS', '0'))
         configure_pipeline_threads(self.detector, cv_threads, resize_threads)
+        metadata = getattr(self.detector.resize, 'metadata', None)
+        if isinstance(metadata, dict):
+            self.report['cuda_resize'] = metadata
         self.report['preparation_thread_overrides'] = dict(cv=cv_threads, resize=resize_threads)
         self.report["providers"] = self.detector.detector.session.get_providers()
         owner = self
@@ -210,6 +213,8 @@ class Capture:
             self.report["backend_stages"] = self.detector.stages
             if not self.report["closed"]:
                 self.report["cleanup_errors"].append("worker close timeout")
+            elif callable(getattr(self.detector,'close',None)):
+                self.detector.close()
         if self.recorder:
             if not self.recorder.close(30):
                 self.report["cleanup_errors"].append("recorder close timeout")

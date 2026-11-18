@@ -88,6 +88,14 @@ def configure_pipeline_threads(backend,cv_threads,resize_threads):
 def pipeline_backend(default):
     """Explicit input-equivalent tensor workspace candidate; default unchanged."""
     value = os.environ.get('STRATADRIVE_M10_TENSOR_WORKSPACE')
+    cuda_library = os.environ.get('STRATADRIVE_M10_CUDA_RESIZE_LIBRARY')
+    cuda_digest = os.environ.get('STRATADRIVE_M10_CUDA_RESIZE_SHA256')
+    if cuda_library is not None or cuda_digest is not None:
+        if (not cuda_library or not cuda_digest or value != '1'
+                or os.environ.get('STRATADRIVE_M10_RESIZE_THREADS', '0') != '0'):
+            raise ValueError('explicit CUDA resize with tensor workspace and no CPU resize workers')
+        from physical_ai.perception.cuda_resize_2k_v1 import CudaTensorKernelBackend
+        return CudaTensorKernelBackend
     if value is None:
         return default
     if value != '1':
