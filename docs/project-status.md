@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **30초·5분 동시 실행 및 개발 인지 품질 PASS / 보류·실시간 인지 수용 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [CPU 전처리 비교 기준](test-plan/evidence/m10_service_half_v1/README.md) |
+| M10 | **30초·5분 동시 실행 및 개발 인지 품질 PASS / 보류 인지 품질 FAIL · 실시간 수용 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [보류 장소 101 평가](test-plan/evidence/m10_parking_holdout_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -72,7 +72,7 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 
 개발·보류 준비는 각 99장 통과했다. 개발 평가 81장에서 D-FINE-M960은 정밀도 82.69%,
 재현율 59.93%로 절대 기준 85%·80%에 미달했다. 배경 차량 세 대가 차량 누락 205건을 차지한다.
-보류 평가는 열지 않았다. 정상 인지의 실시간 수용·만료·재가입 및 최종 안정성 검증이 남았다.
+이 초기 모델은 개발 단계에서 탈락했다. 정상 인지의 실시간 수용·만료·재가입 및 최종 안정성 검증이 남았다.
 [개발 점수와 비교 실험](test-plan/evidence/m10_fresh_quality_2k_v1/results.md) Jetson별 배포는 M12에서
 수행하며 현재 보드 최적화를 앞당기지 않는다. M10 종료로 표시하지 않는다.
 다른 도로에서 RGB·마스크 432쌍을 새로 수집했다. 기존 학습 전용 자료를 합쳐 D-FINE을 학습하고
@@ -83,8 +83,9 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 독립 지도에서 학습 264장·검증 384장을 추가했다. 승용차 박스·가림 보정과 버스·트럭 중복 처리 후
 개발 장소 90에서 432개 정검출·10개 오검출·102개 누락으로 정밀도 97.74%, 재현율 80.90%를 기록했다.
 CUDA ONNX와 PyTorch의 81장 판정이 일치했고, 개발 절대 기준과 YOLOX-S 대비 상대 기준을 모두 통과했다.
-독립 검증 두 집단에서도 정밀도 85%·재현율 80%를 넘었다. 보류 장소 101은 평가 전이고, 이 모델의
-실시간 제어 경로와 Jetson 성능은 미검증이다. [개발 후보 및 고정 기록](test-plan/evidence/m10_parking_verifier_v1/README.md)
+독립 검증 두 집단에서도 정밀도 85%·재현율 80%를 넘었다. [개발 후보 및 고정 기록](test-plan/evidence/m10_parking_verifier_v1/README.md)
+
+고정 후보를 보류 장소 101의 81장에서 한 번 평가했다. 정답 129개 중 106개를 맞히고 오검출 2건으로 정밀도 98.15%·재현율 82.17%를 기록했다. YOLOX-S 대비 상대 기준 여섯 항목은 통과했지만 사람 재현율 26/42(61.90%)가 클래스별 최소 70%에 미달해 전체 판정은 FAIL이다. 승용차는 33/33, 근거리 보행자는 3/3이었다. 실시간 제어 수용과 Jetson 성능은 미검증이다. [보류 점수·마스크 재검산](test-plan/evidence/m10_parking_holdout_v1/README.md)
 
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.
 
@@ -128,7 +129,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 고정한 ONNX·후처리와 입력 해시를 확인한 뒤 보류 장소 101을 한 번 평가한다. [고정 후보](test-plan/evidence/m10_parking_verifier_v1/development-freeze.json) · [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
+1. 장소 101을 제외한 학습·검증 영상에서 보행자와 탑승자를 나눠 원거리·가림·중첩 조건의 누락을 진단한다. 개선 후보를 개발 자료에서 고정하고 새 독립 장소로 검증한다. [보류 실패 내역](test-plan/evidence/m10_parking_holdout_v1/README.md)
 2. 보류 기준을 통과하면 물리 서버와 영상 서버의 동일 프레임을 대조하고, 실제 영상 결과의 native 수신·만료·중단·재가입과 제어 지연을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
