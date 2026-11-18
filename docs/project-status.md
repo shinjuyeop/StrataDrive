@@ -57,7 +57,11 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 5분의 최대 21.09%였고 최대 공백은 633ms였다. 실제 인지 제어 입력 수용은 0건이다.
 [기존 5분 원본 집계](test-plan/evidence/m10_service_half_v1/latency-300s-audited.json) · [GPU 5분 원본 집계](test-plan/evidence/m10_cuda_resize_v1/latency-300s.json)
 
-전체 장면의 같은 프레임 wheel/bone/material·자산 식별, typed native 인지 연결,
+정지 상태의 두 서버에서 차량 2대와 보행자 1대를 각각 16프레임 관측했다.
+뼈대 80개와 재질 슬롯 59개를 포함한 측정값이 일치했고, 실제 카메라 원본 8장의
+프레임·시각·픽셀 해시를 확인했다. [정지 장면 비교](test-plan/evidence/m10_visual_inspect_v1/README.md)
+
+움직이는 물리 장면과 영상 사이의 같은 프레임 증명, typed native 인지 연결,
 고정 후보의 새 독립 품질 평가와 안정성 검증이 남았다. Jetson별 배포는 M12에서
 수행하며 현재 보드 최적화를 앞당기지 않는다. M10 종료로 표시하지 않는다.
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.

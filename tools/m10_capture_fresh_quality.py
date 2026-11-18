@@ -14,7 +14,7 @@ import traceback
 ROOT = Path(__file__).resolve().parents[1]
 TESTS = ROOT / "tests/integration/perception"
 sys.path.insert(0, str(TESTS))
-from carla_readiness_v1 import wait_ready
+from m10_parked_world_readiness import prepare_empty_world
 from fresh_quality_2k_plan import validate_retained
 from fresh_quality_2k_review import BASE, EXCLUSIONS, digest, read, review, write
 from renderer_shutdown_v1 import shutdown
@@ -41,6 +41,7 @@ def sources():
         Path(read(SERIES / "component/release-manifest.json")["library"]["path"]),
         PROBE,
         Path(__file__),
+        ROOT / "tools/m10_parked_world_readiness.py",
         TESTS / "fresh_quality_2k_review.py",
         TESTS / "fresh_quality_2k_plan.py",
         TESTS / "fresh_quality_2k_score.py",
@@ -215,8 +216,8 @@ def run(phase, partition, attempt, port):
                 preexec_fn=no_core,
             )
             try:
-                record["readiness"] = wait_ready(
-                    PYTHON, port, output / "readiness.jsonl", env
+                record["readiness"] = prepare_empty_world(
+                    PYTHON, port, output, env, process, args[2]
                 )
                 with (output / "client.log").open("x") as log:
                     record["client_exit"] = subprocess.run(
