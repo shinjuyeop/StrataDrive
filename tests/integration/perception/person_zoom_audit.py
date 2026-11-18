@@ -43,14 +43,14 @@ def compare(first, second, paired):
                 if paired and mode == "zoom":
                     for i in sorted(v[3]):
                         obj = gt["excluded"][i]
-                        l, t, r, bottom = obj["box"]
+                        left, top, right, bottom = obj["box"]
                         small.append(
                             dict(
                                 rgb=sha,
                                 role=meta["role"],
                                 tags=obj["semantic_tags"],
-                                width=r - l,
-                                height=bottom - t,
+                                width=right - left,
+                                height=bottom - top,
                                 native_visible_pixels=obj["native_visible_pixels"],
                             )
                         )
@@ -78,9 +78,10 @@ def training_size_check(parity):
                 raise ValueError("training trace identity")
             keep = []
             for d in row["zoom"]:
-                l, t, r, b = d["box"]
+                left, top, right, bottom = d["box"]
                 if d not in row["full"] and (
-                    min(r - l, b - t) < 4 or (r - l) * (b - t) < 25
+                    min(right - left, bottom - top) < 4
+                    or (right - left) * (bottom - top) < 25
                 ):
                     flagged += 1
                 else:
