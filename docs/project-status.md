@@ -93,6 +93,8 @@ CUDA ONNX와 PyTorch의 81장 판정이 일치했고, 개발 절대 기준과 YO
 
 일대일 대응 후보는 Town02에서 보행자·탑승자 동시 검출이 기존과 같은 3/14여서 기각했다. 별도 Town01 학습 실험에서 원본 영상의 이륜차 주변을 확대하면 동시 검출이 1/14에서 10/14로 늘었다. 확대 후 엄격한 오검출 6건은 모두 평가 크기에 미달한 실제 사람 마스크와 겹쳤다. [후보 검증 및 확대 진단](test-plan/evidence/m10_person_assignment_v1/README.md)
 
+이륜차 중심 확대는 Town02에서 두 사람 동시 검출을 3/14에서 11/14로 늘렸다. 엄격한 사람 오검출이 3건에서 9건으로 늘어 개발 기준을 통과하지 못했고, 9건 모두 최소 폭에 미달한 작은 사람 정답과 일치했다. RTX 3090의 2K 전체 프레임 처리 P95는 42.3ms에서 72.1ms가 됐다. [확대 검증 및 지연](test-plan/evidence/m10_person_zoom_v1/README.md)
+
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.
 
 ## 현재 구현과 수용 경계
@@ -135,7 +137,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 이륜차 중심 국소 확대를 하나의 후보로 고정하고 기존 검증·Town02에서 보행자와 탑승자 동시 검출, 엄격한 오검출, 작은 사람 마스크와의 대응을 비교한다. 추가 GPU 추론의 발생률과 전체 처리 지연을 측정한다. 개발 기준을 통과한 후보를 새 독립 장소에서 평가한다. [일대일 대응 및 학습 영상 확대 결과](test-plan/evidence/m10_person_assignment_v1/README.md)
+1. 확대 원본 검출을 보존하면서 작은 사람의 예측 크기를 별도 표시하고, 새 개발 자료에서 평가 가능한 보행자 손실과 실제 작은 사람·배경 오검출 구분을 검증한다. 현재 엄격 기준은 유지한다. [검증 결과와 학습 크기 진단](test-plan/evidence/m10_person_zoom_v1/README.md)
 2. 보류 기준을 통과하면 물리 서버와 영상 서버의 동일 프레임을 대조하고, 실제 영상 결과의 native 수신·만료·중단·재가입과 제어 지연을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 

@@ -203,8 +203,9 @@ def run(out, training):
             gates = {}
         else:
             ref = refs[name]["groups"]["all"]["baseline"]
-            if any(
-                full[k] != ref.get(k, 0)
+            ref_pairs = (ref.get("eligible_both", 0), ref.get("matched_both", 0))
+            if (full["both_eligible"], full["both_matched"]) != ref_pairs or any(
+                full[k] != ref[k]
                 for k in (
                     "frames",
                     "tp",
@@ -212,8 +213,6 @@ def run(out, training):
                     "fn",
                     "pedestrian_tp",
                     "rider_tp",
-                    "both_eligible",
-                    "both_matched",
                 )
             ):
                 raise ValueError("validation denominator or baseline drift")
