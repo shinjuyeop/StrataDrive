@@ -1,0 +1,176 @@
+{
+  "splits": {
+    "archive-validation": {
+      "groups": {
+        "all": {
+          "baseline": {
+            "tp": 140,
+            "fp": 3,
+            "fn": 21,
+            "frames": 699,
+            "rider_tp": 85,
+            "rider_fn": 16,
+            "pedestrian_tp": 55,
+            "pedestrian_fn": 5
+          },
+          "candidate": {
+            "tp": 140,
+            "fp": 4,
+            "fn": 21,
+            "frames": 699,
+            "rider_tp": 85,
+            "rider_fn": 16,
+            "pedestrian_tp": 55,
+            "pedestrian_fn": 5
+          }
+        }
+      },
+      "cycle_pedestrian_misses": {}
+    },
+    "pairs-validation": {
+      "groups": {
+        "all": {
+          "baseline": {
+            "tp": 76,
+            "fp": 3,
+            "fn": 18,
+            "frames": 120,
+            "pedestrian_tp": 30,
+            "rider_fn": 2,
+            "eligible_both": 14,
+            "matched_both": 3,
+            "rider_tp": 46,
+            "pedestrian_fn": 16
+          },
+          "candidate": {
+            "tp": 76,
+            "fp": 3,
+            "fn": 18,
+            "frames": 120,
+            "pedestrian_tp": 30,
+            "rider_fn": 2,
+            "eligible_both": 14,
+            "matched_both": 3,
+            "rider_tp": 46,
+            "pedestrian_fn": 16
+          }
+        },
+        "clear": {
+          "baseline": {
+            "tp": 15,
+            "fp": 2,
+            "fn": 1,
+            "frames": 24,
+            "pedestrian_tp": 15,
+            "pedestrian_fn": 1
+          },
+          "candidate": {
+            "tp": 15,
+            "fp": 2,
+            "fn": 1,
+            "frames": 24,
+            "pedestrian_tp": 15,
+            "pedestrian_fn": 1
+          }
+        },
+        "car": {
+          "baseline": {
+            "tp": 11,
+            "fp": 0,
+            "fn": 5,
+            "frames": 24,
+            "pedestrian_tp": 11,
+            "pedestrian_fn": 5
+          },
+          "candidate": {
+            "tp": 11,
+            "fp": 0,
+            "fn": 5,
+            "frames": 24,
+            "pedestrian_tp": 11,
+            "pedestrian_fn": 5
+          }
+        },
+        "car_only": {
+          "baseline": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "frames": 24
+          },
+          "candidate": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "frames": 24
+          }
+        },
+        "cycle": {
+          "baseline": {
+            "tp": 27,
+            "fp": 1,
+            "fn": 11,
+            "frames": 24,
+            "pedestrian_tp": 4,
+            "rider_fn": 1,
+            "eligible_both": 14,
+            "matched_both": 3,
+            "rider_tp": 23,
+            "pedestrian_fn": 10
+          },
+          "candidate": {
+            "tp": 27,
+            "fp": 1,
+            "fn": 11,
+            "frames": 24,
+            "pedestrian_tp": 4,
+            "rider_fn": 1,
+            "eligible_both": 14,
+            "matched_both": 3,
+            "rider_tp": 23,
+            "pedestrian_fn": 10
+          }
+        },
+        "cycle_only": {
+          "baseline": {
+            "tp": 23,
+            "fp": 0,
+            "fn": 1,
+            "frames": 24,
+            "rider_tp": 23,
+            "rider_fn": 1
+          },
+          "candidate": {
+            "tp": 23,
+            "fp": 0,
+            "fn": 1,
+            "frames": 24,
+            "rider_tp": 23,
+            "rider_fn": 1
+          }
+        }
+      },
+      "cycle_pedestrian_misses": {
+        "corrected_box_below_score": 9,
+        "no_matching_input_or_corrected_box": 1
+      }
+    }
+  },
+  "gates": {
+    "archive-validation": {
+      "pedestrian": true,
+      "rider": true,
+      "fp": true,
+      "precision": true
+    },
+    "pairs-validation": {
+      "pedestrian": false,
+      "rider": true,
+      "fp": true,
+      "precision": true,
+      "simultaneous_pair_gain": false
+    }
+  },
+  "passed": false,
+  "model_sha256": "2471cdf4a5defc1fb8e165d989748c9a36143e50b7afaca8467669355f2edaec"
+}
