@@ -23,7 +23,7 @@ from person_proposal_diagnosis import (
 FEATURE = "/decoder/decoder/layers.3/norm3/Add_1_output_0"
 CONFIDENCE = 0.60
 MIN_PROPOSAL = 0.01
-TOWNS = {"train": "Town01_Opt", "validation": "Town07_Opt"}
+TOWNS = {"train": "Town01_Opt", "validation": "Town02_Opt"}
 
 
 def dump(path, value):
@@ -125,6 +125,19 @@ def cache(root, split, paired):
         idx = (prob >= MIN_PROPOSAL) & (b[:, 2:] > b[:, :2]).all(axis=1)
         name = f"{i:04}.npz"
         np.savez(folder / name, x=feat[0, idx], boxes=b[idx], p=prob[idx])
+        if paired:
+            meta["person_proposals"] = []
+            for obj in gt["objects"]:
+                if obj["class_id"] == 0:
+                    iou = overlaps(b, [obj["box"]])[:, 0]
+                    meta["person_proposals"].append(
+                        dict(
+                            best_iou=float(iou.max()),
+                            best_person_score=float(prob[iou >= 0.5].max())
+                            if (iou >= 0.5).any()
+                            else None,
+                        )
+                    )
         records.append(
             dict(
                 file=name,
@@ -249,6 +262,15 @@ def evaluate(root):
 
     head = read(root / "person-head.json")
     report = {}
+    if (
+        head["parent"] != MODEL
+        or head["threshold"] != CONFIDENCE
+        or any(
+            digest(root / k / "index.json") != h
+            for k, h in head["training_indices"].items()
+        )
+    ):
+        raise ValueError("candidate parent, threshold or training identity changed")
     seen = set()
     for key in (
         "archive-train",
@@ -280,6 +302,19 @@ def evaluate(root):
                             tuple(o["semantic_tags"])
                         ]
                         c[k + ("_tp" if n in used else "_fn")] += 1
+                        if n not in used and "person_proposals" in row:
+                            proposal = row["person_proposals"][n]
+                            best = proposal["best_person_score"]
+                            reason = (
+                                "no_box_iou50"
+                                if best is None
+                                else (
+                                    "below_query_floor"
+                                    if best < MIN_PROPOSAL
+                                    else "has_eligible_query"
+                                )
+                            )
+                            c[k + "_miss_" + reason] += 1
         report[key] = totals
     reference = read(PARK / "selected-validation.json")
     orig = report["archive-validation"]["all"]["baseline"]
@@ -291,6 +326,8 @@ def evaluate(root):
     gates = {}
     for key in ("archive-validation", "pairs-validation"):
         base, cand = (report[key]["all"][k] for k in ("baseline", "candidate"))
+        if any(base[k + "_tp"] + base[k + "_fn"] == 0 for k in ("pedestrian", "rider")):
+            raise ValueError("missing eligible validation class")
         gates[key] = dict(
             pedestrian=cand["pedestrian_tp"]
             >= base["pedestrian_tp"] + (key == "pairs-validation"),

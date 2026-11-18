@@ -90,6 +90,17 @@ def audit(root, split):
                     visible_pixels=n,
                 )
             )
+    if (
+        len(groups) != 24
+        or any(
+            counts[role + "-30m+"]["eligible"] == 0
+            for role in ("clear", "car", "cycle")
+        )
+        or any(counts[role]["partial_10to90pct_loss"] == 0 for role in ("car", "cycle"))
+    ):
+        raise ValueError(
+            "missing eligible long-range walker or measured partial occlusion"
+        )
     return dict(
         town=town,
         groups=len(groups),

@@ -6,8 +6,9 @@ import math
 from pathlib import Path
 
 from occlusion_transfer_capture import capture
+from person_proposal_diagnosis import PARK, read
 
-TOWNS = {"Town01_Opt": "train", "Town07_Opt": "validation"}
+TOWNS = {"Town01_Opt": "train", "Town02_Opt": "validation"}
 
 
 def pose(tr):
@@ -23,8 +24,31 @@ def plan(world, town):
         raise ValueError("unexpected town")
     split = TOWNS[town]
     starts = []
-    for idx, spawn in enumerate(road.get_spawn_points()):
-        wp = road.get_waypoint(spawn.location)
+    used_roads = set()
+    origins = []
+    if split == "validation":
+        old = read(PARK / "Town02_Opt-stock-02/dataset/plan.json")
+        if (
+            old["xodr_sha256"]
+            != hashlib.sha256(road.to_opendrive().encode()).hexdigest()
+        ):
+            raise ValueError("historical validation map geometry")
+        used_roads = {r for s in old["scenes"] for r in s["roads"]}
+        origins = [
+            tuple(s["camera"]["location"][k] for k in "xyz") for s in old["scenes"]
+        ]
+    candidates = [road.get_waypoint(tr.location) for tr in road.get_spawn_points()]
+    if split == "validation":
+        candidates += sorted(
+            road.generate_waypoints(8), key=lambda w: (w.road_id, w.lane_id, w.s)
+        )
+    for idx, wp in enumerate(candidates):
+        spawn = wp.transform
+        if wp.road_id in used_roads or any(
+            math.dist((spawn.location.x, spawn.location.y, spawn.location.z), o) < 50
+            for o in origins
+        ):
+            continue
         if wp.is_junction or any(
             wp.road_id == w.road_id
             or spawn.location.distance(w.transform.location) < 65
