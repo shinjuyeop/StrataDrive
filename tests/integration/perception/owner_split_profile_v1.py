@@ -1,9 +1,14 @@
 """Explicit owner-only plant cadence; no implicit change to shadow10ms."""
 PROFILES = ('shadow10ms', 'owner5ms')
+WALL_PROFILES = {'wall5-hv30-v1': 30, 'wall5-hv50-v1': 50}
 
 
 def validate_client(args):
-    common = args.warmup_ticks == 150 and args.hv_dependency_ms == 30 and args.fault == 'none'
+    policy = getattr(args, 'wall_profile', 'wall5-hv30-v1')
+    common = (args.warmup_ticks == 150 and args.fault == 'none' and
+              policy in WALL_PROFILES and args.hv_dependency_ms == WALL_PROFILES[policy])
+    if policy == 'wall5-hv50-v1':
+        common = common and args.execution_profile == 'owner5ms' and bool(getattr(args, 'endurance_seconds', 0))
     if args.execution_profile == 'shadow10ms':
         valid = args.cameras and args.ticks == 200 and args.step_ms == 10
     elif args.execution_profile == 'owner5ms':
@@ -15,7 +20,7 @@ def validate_client(args):
     else:
         valid = False
     if not common or not valid:
-        raise ValueError('declared shadow10ms or camera-free owner5ms profile required; HV30 unchanged')
+        raise ValueError('declared camera/cadence and matching explicit HV policy required')
 
 
 def configure_owner(command, client, profile, condition):

@@ -72,7 +72,10 @@ class PairedCapture:
         self.last_poll=0;self.stopped_at=None;self.resumed=False;self.exited=False
         # Keep a pidfd for the runner-owned renderer; PID reuse cannot retarget a fault.
         cmdline=Path(f'/proc/{args.paired_renderer_pid}/cmdline').read_bytes().split(b'\0')
-        if b'-carla-rpc-port=2300' not in cmdline or not cmdline[0].endswith(b'/UE4Editor'):
+        executable=getattr(args,'paired_renderer_executable',None)
+        expected=str(executable.resolve()).encode() if executable else None
+        correct=cmdline[0]==expected if expected else cmdline[0].endswith(b'/UE4Editor')
+        if b'-carla-rpc-port=2300' not in cmdline or not correct:
             raise ValueError('expected dedicated renderer process')
         self.renderer_fd=os.pidfd_open(args.paired_renderer_pid)
         actors=sorted([a for a in world.get_actors() if a.type_id.startswith(('vehicle.','walker.'))],key=lambda a:a.id)

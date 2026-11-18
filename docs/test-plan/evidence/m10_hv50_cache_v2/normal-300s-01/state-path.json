@@ -1,0 +1,6832 @@
+{
+  "status": "PASS_DIAGNOSTIC_TRACE_INTEGRITY",
+  "scope": "does not replace the original physical/renderer/shadow acceptance audits; wall-minus-CPU includes waiting/preemption and measurement skew",
+  "native_calls": 300003,
+  "receipts": 60000,
+  "hv_derivations": 60000,
+  "first_protection_ns": 1998820353591382,
+  "phases": {
+    "all": {
+      "acquisition_to_publication_ns": {
+        "count": 60000,
+        "median_ns": 32990.0,
+        "p95_ns": 56775.15,
+        "max_ns": 329717
+      },
+      "publication_to_native_upper_ns": {
+        "count": 60000,
+        "median_ns": 804018.5,
+        "p95_ns": 987473.1,
+        "max_ns": 1483591
+      },
+      "acquisition_to_native_ns": {
+        "count": 60000,
+        "median_ns": 872104.5,
+        "p95_ns": 1049274.15,
+        "max_ns": 1549754
+      },
+      "native_service_ns": {
+        "count": 60000,
+        "median_ns": 94976.0,
+        "p95_ns": 126125.25,
+        "max_ns": 315795
+      },
+      "native_cpu_ns": {
+        "count": 60000,
+        "median_ns": 103719.5,
+        "p95_ns": 141384.2,
+        "max_ns": 359875
+      },
+      "max_pump_gap_ns": {
+        "count": 60000,
+        "median_ns": 1681976.5,
+        "p95_ns": 2600757.25,
+        "max_ns": 18609452
+      },
+      "max_rpc_ns": {
+        "count": 60000,
+        "median_ns": 115021.5,
+        "p95_ns": 352679.35,
+        "max_ns": 1086006
+      },
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 173667.0,
+            "p95_ns": 266704.25,
+            "max_ns": 855653
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 173940.5,
+            "p95_ns": 267280.35,
+            "max_ns": 856669
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 0.0,
+            "p95_ns": 0.0,
+            "max_ns": 422427
+          }
+        },
+        "staged_to_before_tick": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 3274.0,
+            "p95_ns": 7062.05,
+            "max_ns": 87098
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 2926.0,
+            "p95_ns": 6123.0,
+            "max_ns": 59946
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 317.0,
+            "p95_ns": 1006.0,
+            "max_ns": 81133
+          }
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 751924.5,
+            "p95_ns": 1247018.9,
+            "max_ns": 4076129
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 668753.0,
+            "p95_ns": 1124391.45,
+            "max_ns": 3672460
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 80182.5,
+            "p95_ns": 155008.45,
+            "max_ns": 2623378
+          }
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 23599.0,
+            "p95_ns": 39786.0,
+            "max_ns": 197464
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 23045.5,
+            "p95_ns": 38762.4,
+            "max_ns": 196523
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 516.0,
+            "p95_ns": 1196.0,
+            "max_ns": 43114
+          }
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 28161.0,
+            "p95_ns": 48550.05,
+            "max_ns": 564272
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 28162.5,
+            "p95_ns": 48537.35,
+            "max_ns": 564412
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 3.0,
+            "p95_ns": 83.0,
+            "max_ns": 46028
+          }
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 5206.0,
+            "p95_ns": 12989.2,
+            "max_ns": 235758
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 5145.0,
+            "p95_ns": 12911.0,
+            "max_ns": 236246
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 53.0,
+            "p95_ns": 164.05,
+            "max_ns": 35759
+          }
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 16071.0,
+            "p95_ns": 32929.05,
+            "max_ns": 237190
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 16097.0,
+            "p95_ns": 33021.0,
+            "max_ns": 236860
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 0.0,
+            "p95_ns": 6.05,
+            "max_ns": 13154
+          }
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 10150.0,
+            "p95_ns": 16572.0,
+            "max_ns": 116947
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 10128.0,
+            "p95_ns": 16540.05,
+            "max_ns": 117145
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 18.0,
+            "p95_ns": 96.0,
+            "max_ns": 12161
+          }
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 840.0,
+            "p95_ns": 1327.0,
+            "max_ns": 38811
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 821.0,
+            "p95_ns": 1267.0,
+            "max_ns": 38947
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 17.0,
+            "p95_ns": 79.0,
+            "max_ns": 23957
+          }
+        },
+        "publish_end_to_complete": {
+          "wall_ns": {
+            "count": 60000,
+            "median_ns": 509.0,
+            "p95_ns": 582.0,
+            "max_ns": 22193
+          },
+          "cpu_ns": {
+            "count": 60000,
+            "median_ns": 499.0,
+            "p95_ns": 568.0,
+            "max_ns": 20506
+          },
+          "wall_minus_cpu_ns": {
+            "count": 60000,
+            "median_ns": 10.0,
+            "p95_ns": 25.0,
+            "max_ns": 21479
+          }
+        }
+      }
+    },
+    "normal": {
+      "acquisition_to_publication_ns": {
+        "count": 11853,
+        "median_ns": 33709,
+        "p95_ns": 65145.8,
+        "max_ns": 329717
+      },
+      "publication_to_native_upper_ns": {
+        "count": 11853,
+        "median_ns": 799393,
+        "p95_ns": 979392.4,
+        "max_ns": 1092207
+      },
+      "acquisition_to_native_ns": {
+        "count": 11853,
+        "median_ns": 864846,
+        "p95_ns": 1040703.0,
+        "max_ns": 1188883
+      },
+      "native_service_ns": {
+        "count": 11853,
+        "median_ns": 87129,
+        "p95_ns": 124704.2,
+        "max_ns": 315795
+      },
+      "native_cpu_ns": {
+        "count": 11853,
+        "median_ns": 96283,
+        "p95_ns": 140538.2,
+        "max_ns": 359875
+      },
+      "max_pump_gap_ns": {
+        "count": 11853,
+        "median_ns": 1740548,
+        "p95_ns": 2751109.2,
+        "max_ns": 18609452
+      },
+      "max_rpc_ns": {
+        "count": 11853,
+        "median_ns": 115074,
+        "p95_ns": 358769.4,
+        "max_ns": 1086006
+      },
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 196186,
+            "p95_ns": 293918.2,
+            "max_ns": 759784
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 196470,
+            "p95_ns": 294098.6,
+            "max_ns": 760821
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 0,
+            "p95_ns": 0.0,
+            "max_ns": 82278
+          }
+        },
+        "staged_to_before_tick": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 3371,
+            "p95_ns": 7881.0,
+            "max_ns": 87098
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 3002,
+            "p95_ns": 6787.4,
+            "max_ns": 59770
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 343,
+            "p95_ns": 1098.0,
+            "max_ns": 81133
+          }
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 761902,
+            "p95_ns": 1377963.6,
+            "max_ns": 4076129
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 677379,
+            "p95_ns": 1245251.0,
+            "max_ns": 3672460
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 81811,
+            "p95_ns": 155945.2,
+            "max_ns": 2623378
+          }
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 23859,
+            "p95_ns": 40103.0,
+            "max_ns": 197464
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 23366,
+            "p95_ns": 38975.8,
+            "max_ns": 196523
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 486,
+            "p95_ns": 1244.4,
+            "max_ns": 22324
+          }
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 28391,
+            "p95_ns": 48552.0,
+            "max_ns": 213729
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 28392,
+            "p95_ns": 48578.2,
+            "max_ns": 213938
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 2,
+            "p95_ns": 82.0,
+            "max_ns": 11786
+          }
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 5228,
+            "p95_ns": 12840.0,
+            "max_ns": 65956
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 5170,
+            "p95_ns": 12758.8,
+            "max_ns": 65933
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 53,
+            "p95_ns": 162.0,
+            "max_ns": 8505
+          }
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 16480,
+            "p95_ns": 44162.4,
+            "max_ns": 237190
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 16506,
+            "p95_ns": 44246.0,
+            "max_ns": 236860
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 0,
+            "p95_ns": 7.0,
+            "max_ns": 9196
+          }
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 10300,
+            "p95_ns": 16789.8,
+            "max_ns": 116947
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 10280,
+            "p95_ns": 16757.2,
+            "max_ns": 117145
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 18,
+            "p95_ns": 95.4,
+            "max_ns": 9852
+          }
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 838,
+            "p95_ns": 1302.4,
+            "max_ns": 29758
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 817,
+            "p95_ns": 1245.4,
+            "max_ns": 29694
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 19,
+            "p95_ns": 82.0,
+            "max_ns": 8654
+          }
+        },
+        "publish_end_to_complete": {
+          "wall_ns": {
+            "count": 11853,
+            "median_ns": 511,
+            "p95_ns": 576.0,
+            "max_ns": 20492
+          },
+          "cpu_ns": {
+            "count": 11853,
+            "median_ns": 502,
+            "p95_ns": 562.4,
+            "max_ns": 20506
+          },
+          "wall_minus_cpu_ns": {
+            "count": 11853,
+            "median_ns": 10,
+            "p95_ns": 25.0,
+            "max_ns": 3446
+          }
+        }
+      }
+    },
+    "non_normal": {
+      "acquisition_to_publication_ns": {
+        "count": 48147,
+        "median_ns": 32845,
+        "p95_ns": 52781.0,
+        "max_ns": 295031
+      },
+      "publication_to_native_upper_ns": {
+        "count": 48147,
+        "median_ns": 806398,
+        "p95_ns": 988722.4,
+        "max_ns": 1483591
+      },
+      "acquisition_to_native_ns": {
+        "count": 48147,
+        "median_ns": 875382,
+        "p95_ns": 1050506.8,
+        "max_ns": 1549754
+      },
+      "native_service_ns": {
+        "count": 48147,
+        "median_ns": 96277,
+        "p95_ns": 126460.3,
+        "max_ns": 302620
+      },
+      "native_cpu_ns": {
+        "count": 48147,
+        "median_ns": 105021,
+        "p95_ns": 141556.2,
+        "max_ns": 355595
+      },
+      "max_pump_gap_ns": {
+        "count": 48147,
+        "median_ns": 1668807,
+        "p95_ns": 2557476.0,
+        "max_ns": 15711526
+      },
+      "max_rpc_ns": {
+        "count": 48147,
+        "median_ns": 115002,
+        "p95_ns": 351345.5,
+        "max_ns": 913247
+      },
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 168999,
+            "p95_ns": 257744.2,
+            "max_ns": 855653
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 169281,
+            "p95_ns": 258270.5,
+            "max_ns": 856669
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 0,
+            "p95_ns": 0.0,
+            "max_ns": 422427
+          }
+        },
+        "staged_to_before_tick": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 3249,
+            "p95_ns": 6865.4,
+            "max_ns": 60766
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 2909,
+            "p95_ns": 5981.7,
+            "max_ns": 59946
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 310,
+            "p95_ns": 984.7,
+            "max_ns": 36184
+          }
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 749866,
+            "p95_ns": 1189197.2,
+            "max_ns": 4032334
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 666936,
+            "p95_ns": 1070113.6,
+            "max_ns": 3585053
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 79853,
+            "p95_ns": 154669.1,
+            "max_ns": 2569505
+          }
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 23529,
+            "p95_ns": 39640.7,
+            "max_ns": 159879
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 22963,
+            "p95_ns": 38637.5,
+            "max_ns": 156748
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 524,
+            "p95_ns": 1187.0,
+            "max_ns": 43114
+          }
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 28105,
+            "p95_ns": 48549.4,
+            "max_ns": 564272
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 28103,
+            "p95_ns": 48512.7,
+            "max_ns": 564412
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 3,
+            "p95_ns": 83.0,
+            "max_ns": 46028
+          }
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 5200,
+            "p95_ns": 13050.2,
+            "max_ns": 235758
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 5138,
+            "p95_ns": 12955.8,
+            "max_ns": 236246
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 53,
+            "p95_ns": 166.0,
+            "max_ns": 35759
+          }
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 16001,
+            "p95_ns": 28849.0,
+            "max_ns": 190038
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 16027,
+            "p95_ns": 28902.7,
+            "max_ns": 190065
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 0,
+            "p95_ns": 6.0,
+            "max_ns": 13154
+          }
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 10115,
+            "p95_ns": 16536.4,
+            "max_ns": 100633
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 10093,
+            "p95_ns": 16498.4,
+            "max_ns": 100845
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 18,
+            "p95_ns": 96.0,
+            "max_ns": 12161
+          }
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 841,
+            "p95_ns": 1332.0,
+            "max_ns": 38811
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 822,
+            "p95_ns": 1273.0,
+            "max_ns": 38947
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 17,
+            "p95_ns": 78.0,
+            "max_ns": 23957
+          }
+        },
+        "publish_end_to_complete": {
+          "wall_ns": {
+            "count": 48147,
+            "median_ns": 508,
+            "p95_ns": 583.0,
+            "max_ns": 22193
+          },
+          "cpu_ns": {
+            "count": 48147,
+            "median_ns": 499,
+            "p95_ns": 570.0,
+            "max_ns": 16516
+          },
+          "wall_minus_cpu_ns": {
+            "count": 48147,
+            "median_ns": 10,
+            "p95_ns": 24.0,
+            "max_ns": 21479
+          }
+        }
+      }
+    }
+  },
+  "first_fault_owner_window": [
+    {
+      "frame": 12273,
+      "ticket": 11977,
+      "normal": true,
+      "acquisition_ns": 1998820153626956,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 168663,
+          "cpu_ns": 168799,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2658,
+          "cpu_ns": 2465,
+          "wall_minus_cpu_ns": 193
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 783124,
+          "cpu_ns": 687624,
+          "wall_minus_cpu_ns": 95500
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 20855,
+          "cpu_ns": 20414,
+          "wall_minus_cpu_ns": 441
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31121,
+          "cpu_ns": 31111,
+          "wall_minus_cpu_ns": 10
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5503,
+          "cpu_ns": 5443,
+          "wall_minus_cpu_ns": 60
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14933,
+          "cpu_ns": 14969,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9622,
+          "cpu_ns": 9589,
+          "wall_minus_cpu_ns": 33
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 782,
+          "cpu_ns": 772,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 503,
+          "cpu_ns": 488,
+          "wall_minus_cpu_ns": 15
+        }
+      },
+      "acquisition_to_publication_ns": 30058,
+      "publication_to_native_upper_ns": 897821,
+      "acquisition_to_native_ns": 959000,
+      "native_service_ns": 82505,
+      "native_cpu_ns": 91621,
+      "max_pump_gap_ns": 1842608,
+      "max_rpc_ns": 111428
+    },
+    {
+      "frame": 12274,
+      "ticket": 11978,
+      "normal": true,
+      "acquisition_ns": 1998820160104114,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 269943,
+          "cpu_ns": 271104,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 6828,
+          "cpu_ns": 5694,
+          "wall_minus_cpu_ns": 1134
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1043496,
+          "cpu_ns": 946287,
+          "wall_minus_cpu_ns": 97209
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 33606,
+          "cpu_ns": 32980,
+          "wall_minus_cpu_ns": 626
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 47121,
+          "cpu_ns": 47106,
+          "wall_minus_cpu_ns": 15
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6270,
+          "cpu_ns": 6237,
+          "wall_minus_cpu_ns": 33
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 17526,
+          "cpu_ns": 17553,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 15377,
+          "cpu_ns": 15378,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1281,
+          "cpu_ns": 1233,
+          "wall_minus_cpu_ns": 48
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 496,
+          "cpu_ns": 490,
+          "wall_minus_cpu_ns": 6
+        }
+      },
+      "acquisition_to_publication_ns": 39173,
+      "publication_to_native_upper_ns": 409425,
+      "acquisition_to_native_ns": 495719,
+      "native_service_ns": 115350,
+      "native_cpu_ns": 126496,
+      "max_pump_gap_ns": 1723136,
+      "max_rpc_ns": 172324
+    },
+    {
+      "frame": 12275,
+      "ticket": 11979,
+      "normal": true,
+      "acquisition_ns": 1998820163634461,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 205033,
+          "cpu_ns": 205290,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3374,
+          "cpu_ns": 2936,
+          "wall_minus_cpu_ns": 438
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 742946,
+          "cpu_ns": 655263,
+          "wall_minus_cpu_ns": 87683
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 27282,
+          "cpu_ns": 25899,
+          "wall_minus_cpu_ns": 1383
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26739,
+          "cpu_ns": 26717,
+          "wall_minus_cpu_ns": 22
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 15640,
+          "cpu_ns": 15621,
+          "wall_minus_cpu_ns": 19
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15023,
+          "cpu_ns": 15016,
+          "wall_minus_cpu_ns": 7
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10784,
+          "cpu_ns": 10754,
+          "wall_minus_cpu_ns": 30
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 830,
+          "cpu_ns": 840,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 575,
+          "cpu_ns": 563,
+          "wall_minus_cpu_ns": 12
+        }
+      },
+      "acquisition_to_publication_ns": 41447,
+      "publication_to_native_upper_ns": 907009,
+      "acquisition_to_native_ns": 975195,
+      "native_service_ns": 115181,
+      "native_cpu_ns": 126502,
+      "max_pump_gap_ns": 2196824,
+      "max_rpc_ns": 1875
+    },
+    {
+      "frame": 12276,
+      "ticket": 11980,
+      "normal": true,
+      "acquisition_ns": 1998820168794606,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 244740,
+          "cpu_ns": 245046,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4875,
+          "cpu_ns": 4435,
+          "wall_minus_cpu_ns": 440
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 858345,
+          "cpu_ns": 770754,
+          "wall_minus_cpu_ns": 87591
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23037,
+          "cpu_ns": 22632,
+          "wall_minus_cpu_ns": 405
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 33516,
+          "cpu_ns": 33509,
+          "wall_minus_cpu_ns": 7
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4879,
+          "cpu_ns": 4832,
+          "wall_minus_cpu_ns": 47
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15038,
+          "cpu_ns": 15058,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9885,
+          "cpu_ns": 9880,
+          "wall_minus_cpu_ns": 5
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 836,
+          "cpu_ns": 810,
+          "wall_minus_cpu_ns": 26
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 499,
+          "cpu_ns": 481,
+          "wall_minus_cpu_ns": 18
+        }
+      },
+      "acquisition_to_publication_ns": 29802,
+      "publication_to_native_upper_ns": 736989,
+      "acquisition_to_native_ns": 800307,
+      "native_service_ns": 85743,
+      "native_cpu_ns": 95526,
+      "max_pump_gap_ns": 2097200,
+      "max_rpc_ns": 179319
+    },
+    {
+      "frame": 12277,
+      "ticket": 11981,
+      "normal": true,
+      "acquisition_ns": 1998820173665905,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 188345,
+          "cpu_ns": 188496,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3039,
+          "cpu_ns": 2846,
+          "wall_minus_cpu_ns": 193
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 796895,
+          "cpu_ns": 724546,
+          "wall_minus_cpu_ns": 72349
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24707,
+          "cpu_ns": 24131,
+          "wall_minus_cpu_ns": 576
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26956,
+          "cpu_ns": 26932,
+          "wall_minus_cpu_ns": 24
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 13422,
+          "cpu_ns": 13415,
+          "wall_minus_cpu_ns": 7
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 16087,
+          "cpu_ns": 16093,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10283,
+          "cpu_ns": 10267,
+          "wall_minus_cpu_ns": 16
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 967,
+          "cpu_ns": 952,
+          "wall_minus_cpu_ns": 15
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 511,
+          "cpu_ns": 488,
+          "wall_minus_cpu_ns": 23
+        }
+      },
+      "acquisition_to_publication_ns": 39792,
+      "publication_to_native_upper_ns": 854686,
+      "acquisition_to_native_ns": 921434,
+      "native_service_ns": 77531,
+      "native_cpu_ns": 84947,
+      "max_pump_gap_ns": 1852504,
+      "max_rpc_ns": 147030
+    },
+    {
+      "frame": 12278,
+      "ticket": 11982,
+      "normal": true,
+      "acquisition_ns": 1998820178626635,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 170646,
+          "cpu_ns": 170756,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2683,
+          "cpu_ns": 2474,
+          "wall_minus_cpu_ns": 209
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 653017,
+          "cpu_ns": 583737,
+          "wall_minus_cpu_ns": 69280
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19812,
+          "cpu_ns": 19527,
+          "wall_minus_cpu_ns": 285
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 23043,
+          "cpu_ns": 23008,
+          "wall_minus_cpu_ns": 35
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4435,
+          "cpu_ns": 4431,
+          "wall_minus_cpu_ns": 4
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 18310,
+          "cpu_ns": 18303,
+          "wall_minus_cpu_ns": 7
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9549,
+          "cpu_ns": 9552,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 819,
+          "cpu_ns": 802,
+          "wall_minus_cpu_ns": 17
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 511,
+          "cpu_ns": 485,
+          "wall_minus_cpu_ns": 26
+        }
+      },
+      "acquisition_to_publication_ns": 32294,
+      "publication_to_native_upper_ns": 915475,
+      "acquisition_to_native_ns": 970812,
+      "native_service_ns": 98516,
+      "native_cpu_ns": 109468,
+      "max_pump_gap_ns": 1751233,
+      "max_rpc_ns": 113086
+    },
+    {
+      "frame": 12279,
+      "ticket": 11983,
+      "normal": true,
+      "acquisition_ns": 1998820183754907,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 160088,
+          "cpu_ns": 160415,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3792,
+          "cpu_ns": 3439,
+          "wall_minus_cpu_ns": 353
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 787767,
+          "cpu_ns": 710543,
+          "wall_minus_cpu_ns": 77224
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24609,
+          "cpu_ns": 24156,
+          "wall_minus_cpu_ns": 453
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 32219,
+          "cpu_ns": 32216,
+          "wall_minus_cpu_ns": 3
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5089,
+          "cpu_ns": 5046,
+          "wall_minus_cpu_ns": 43
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14796,
+          "cpu_ns": 14821,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12798,
+          "cpu_ns": 12782,
+          "wall_minus_cpu_ns": 16
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 858,
+          "cpu_ns": 820,
+          "wall_minus_cpu_ns": 38
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 499,
+          "cpu_ns": 497,
+          "wall_minus_cpu_ns": 2
+        }
+      },
+      "acquisition_to_publication_ns": 32683,
+      "publication_to_native_upper_ns": 770670,
+      "acquisition_to_native_ns": 835572,
+      "native_service_ns": 89736,
+      "native_cpu_ns": 99253,
+      "max_pump_gap_ns": 1507533,
+      "max_rpc_ns": 122523
+    },
+    {
+      "frame": 12280,
+      "ticket": 11984,
+      "normal": true,
+      "acquisition_ns": 1998820188899822,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 235918,
+          "cpu_ns": 235733,
+          "wall_minus_cpu_ns": 185
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 5895,
+          "cpu_ns": 5689,
+          "wall_minus_cpu_ns": 206
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 960788,
+          "cpu_ns": 887205,
+          "wall_minus_cpu_ns": 73583
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21856,
+          "cpu_ns": 21545,
+          "wall_minus_cpu_ns": 311
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25738,
+          "cpu_ns": 25738,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 11461,
+          "cpu_ns": 11415,
+          "wall_minus_cpu_ns": 46
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15083,
+          "cpu_ns": 15104,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10503,
+          "cpu_ns": 10482,
+          "wall_minus_cpu_ns": 21
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 795,
+          "cpu_ns": 783,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 496,
+          "cpu_ns": 473,
+          "wall_minus_cpu_ns": 23
+        }
+      },
+      "acquisition_to_publication_ns": 37047,
+      "publication_to_native_upper_ns": 630134,
+      "acquisition_to_native_ns": 692919,
+      "native_service_ns": 80935,
+      "native_cpu_ns": 89314,
+      "max_pump_gap_ns": 1848917,
+      "max_rpc_ns": 2596
+    },
+    {
+      "frame": 12281,
+      "ticket": 11985,
+      "normal": true,
+      "acquisition_ns": 1998820193913572,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 220626,
+          "cpu_ns": 221051,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3368,
+          "cpu_ns": 2831,
+          "wall_minus_cpu_ns": 537
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1014470,
+          "cpu_ns": 905828,
+          "wall_minus_cpu_ns": 108642
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 32405,
+          "cpu_ns": 31928,
+          "wall_minus_cpu_ns": 477
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 30092,
+          "cpu_ns": 30074,
+          "wall_minus_cpu_ns": 18
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6193,
+          "cpu_ns": 6155,
+          "wall_minus_cpu_ns": 38
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 17913,
+          "cpu_ns": 17905,
+          "wall_minus_cpu_ns": 8
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 27851,
+          "cpu_ns": 27873,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 926,
+          "cpu_ns": 892,
+          "wall_minus_cpu_ns": 34
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 494,
+          "cpu_ns": 479,
+          "wall_minus_cpu_ns": 15
+        }
+      },
+      "acquisition_to_publication_ns": 51957,
+      "publication_to_native_upper_ns": 600558,
+      "acquisition_to_native_ns": 682607,
+      "native_service_ns": 82286,
+      "native_cpu_ns": 91366,
+      "max_pump_gap_ns": 2024301,
+      "max_rpc_ns": 345578
+    },
+    {
+      "frame": 12282,
+      "ticket": 11986,
+      "normal": true,
+      "acquisition_ns": 1998820198821030,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 198714,
+          "cpu_ns": 199143,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4108,
+          "cpu_ns": 3646,
+          "wall_minus_cpu_ns": 462
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 804160,
+          "cpu_ns": 723604,
+          "wall_minus_cpu_ns": 80556
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23375,
+          "cpu_ns": 22821,
+          "wall_minus_cpu_ns": 554
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26206,
+          "cpu_ns": 26209,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8968,
+          "cpu_ns": 8930,
+          "wall_minus_cpu_ns": 38
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14407,
+          "cpu_ns": 14432,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9596,
+          "cpu_ns": 9568,
+          "wall_minus_cpu_ns": 28
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 882,
+          "cpu_ns": 858,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 491,
+          "cpu_ns": 482,
+          "wall_minus_cpu_ns": 9
+        }
+      },
+      "acquisition_to_publication_ns": 32971,
+      "publication_to_native_upper_ns": 712217,
+      "acquisition_to_native_ns": 771394,
+      "native_service_ns": 86349,
+      "native_cpu_ns": 94993,
+      "max_pump_gap_ns": 2175473,
+      "max_rpc_ns": 237054
+    },
+    {
+      "frame": 12283,
+      "ticket": 11987,
+      "normal": true,
+      "acquisition_ns": 1998820204237978,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 327379,
+          "cpu_ns": 327508,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 5185,
+          "cpu_ns": 4816,
+          "wall_minus_cpu_ns": 369
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1152049,
+          "cpu_ns": 1062493,
+          "wall_minus_cpu_ns": 89556
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 60574,
+          "cpu_ns": 59208,
+          "wall_minus_cpu_ns": 1366
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 36573,
+          "cpu_ns": 36543,
+          "wall_minus_cpu_ns": 30
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6156,
+          "cpu_ns": 6128,
+          "wall_minus_cpu_ns": 28
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 28400,
+          "cpu_ns": 28437,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12196,
+          "cpu_ns": 12177,
+          "wall_minus_cpu_ns": 19
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1039,
+          "cpu_ns": 1002,
+          "wall_minus_cpu_ns": 37
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 500,
+          "cpu_ns": 497,
+          "wall_minus_cpu_ns": 3
+        }
+      },
+      "acquisition_to_publication_ns": 46752,
+      "publication_to_native_upper_ns": 287517,
+      "acquisition_to_native_ns": 370842,
+      "native_service_ns": 111335,
+      "native_cpu_ns": 128579,
+      "max_pump_gap_ns": 1733697,
+      "max_rpc_ns": 1611
+    },
+    {
+      "frame": 12284,
+      "ticket": 11988,
+      "normal": true,
+      "acquisition_ns": 1998820208537230,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 196728,
+          "cpu_ns": 196916,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2974,
+          "cpu_ns": 2743,
+          "wall_minus_cpu_ns": 231
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 667726,
+          "cpu_ns": 593086,
+          "wall_minus_cpu_ns": 74640
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21353,
+          "cpu_ns": 21015,
+          "wall_minus_cpu_ns": 338
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 23129,
+          "cpu_ns": 23124,
+          "wall_minus_cpu_ns": 5
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4524,
+          "cpu_ns": 4492,
+          "wall_minus_cpu_ns": 32
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 21633,
+          "cpu_ns": 21685,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 13876,
+          "cpu_ns": 13914,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1256,
+          "cpu_ns": 1160,
+          "wall_minus_cpu_ns": 96
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 503,
+          "cpu_ns": 484,
+          "wall_minus_cpu_ns": 19
+        }
+      },
+      "acquisition_to_publication_ns": 40033,
+      "publication_to_native_upper_ns": 995985,
+      "acquisition_to_native_ns": 1059147,
+      "native_service_ns": 97233,
+      "native_cpu_ns": 108249,
+      "max_pump_gap_ns": 2608019,
+      "max_rpc_ns": 118864
+    },
+    {
+      "frame": 12285,
+      "ticket": 11989,
+      "normal": true,
+      "acquisition_ns": 1998820213466147,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 180827,
+          "cpu_ns": 181003,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2651,
+          "cpu_ns": 2446,
+          "wall_minus_cpu_ns": 205
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 644292,
+          "cpu_ns": 572542,
+          "wall_minus_cpu_ns": 71750
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19860,
+          "cpu_ns": 19502,
+          "wall_minus_cpu_ns": 358
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 21860,
+          "cpu_ns": 21849,
+          "wall_minus_cpu_ns": 11
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5066,
+          "cpu_ns": 5046,
+          "wall_minus_cpu_ns": 20
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 17212,
+          "cpu_ns": 17234,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9218,
+          "cpu_ns": 9208,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 788,
+          "cpu_ns": 743,
+          "wall_minus_cpu_ns": 45
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 491,
+          "cpu_ns": 487,
+          "wall_minus_cpu_ns": 4
+        }
+      },
+      "acquisition_to_publication_ns": 31496,
+      "publication_to_native_upper_ns": 61117,
+      "acquisition_to_native_ns": 114473,
+      "native_service_ns": 82610,
+      "native_cpu_ns": 87633,
+      "max_pump_gap_ns": 1539671,
+      "max_rpc_ns": 105956
+    },
+    {
+      "frame": 12286,
+      "ticket": 11990,
+      "normal": true,
+      "acquisition_ns": 1998820218654073,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 169347,
+          "cpu_ns": 169610,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3391,
+          "cpu_ns": 3009,
+          "wall_minus_cpu_ns": 382
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 679556,
+          "cpu_ns": 606758,
+          "wall_minus_cpu_ns": 72798
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22541,
+          "cpu_ns": 22185,
+          "wall_minus_cpu_ns": 356
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26031,
+          "cpu_ns": 26011,
+          "wall_minus_cpu_ns": 20
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4438,
+          "cpu_ns": 4412,
+          "wall_minus_cpu_ns": 26
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 21293,
+          "cpu_ns": 21326,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9230,
+          "cpu_ns": 9217,
+          "wall_minus_cpu_ns": 13
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 777,
+          "cpu_ns": 735,
+          "wall_minus_cpu_ns": 42
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 498,
+          "cpu_ns": 503,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 34961,
+      "publication_to_native_upper_ns": 876658,
+      "acquisition_to_native_ns": 937650,
+      "native_service_ns": 82767,
+      "native_cpu_ns": 90589,
+      "max_pump_gap_ns": 1450131,
+      "max_rpc_ns": 124584
+    },
+    {
+      "frame": 12287,
+      "ticket": 11991,
+      "normal": true,
+      "acquisition_ns": 1998820223643258,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 227498,
+          "cpu_ns": 227702,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4031,
+          "cpu_ns": 3729,
+          "wall_minus_cpu_ns": 302
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 725920,
+          "cpu_ns": 658828,
+          "wall_minus_cpu_ns": 67092
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23009,
+          "cpu_ns": 22604,
+          "wall_minus_cpu_ns": 405
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26410,
+          "cpu_ns": 26459,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5545,
+          "cpu_ns": 5446,
+          "wall_minus_cpu_ns": 99
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15094,
+          "cpu_ns": 15104,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9920,
+          "cpu_ns": 9924,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 829,
+          "cpu_ns": 810,
+          "wall_minus_cpu_ns": 19
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 505,
+          "cpu_ns": 483,
+          "wall_minus_cpu_ns": 22
+        }
+      },
+      "acquisition_to_publication_ns": 30559,
+      "publication_to_native_upper_ns": 897450,
+      "acquisition_to_native_ns": 954419,
+      "native_service_ns": 81981,
+      "native_cpu_ns": 90876,
+      "max_pump_gap_ns": 1550937,
+      "max_rpc_ns": 1980
+    },
+    {
+      "frame": 12288,
+      "ticket": 11992,
+      "normal": true,
+      "acquisition_ns": 1998820228516359,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 186018,
+          "cpu_ns": 186289,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3436,
+          "cpu_ns": 3155,
+          "wall_minus_cpu_ns": 281
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 690602,
+          "cpu_ns": 624196,
+          "wall_minus_cpu_ns": 66406
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21017,
+          "cpu_ns": 20622,
+          "wall_minus_cpu_ns": 395
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24059,
+          "cpu_ns": 24061,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4538,
+          "cpu_ns": 4466,
+          "wall_minus_cpu_ns": 72
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 18830,
+          "cpu_ns": 18863,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10035,
+          "cpu_ns": 10025,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 782,
+          "cpu_ns": 768,
+          "wall_minus_cpu_ns": 14
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 497,
+          "cpu_ns": 486,
+          "wall_minus_cpu_ns": 11
+        }
+      },
+      "acquisition_to_publication_ns": 33403,
+      "publication_to_native_upper_ns": 21756,
+      "acquisition_to_native_ns": 79218,
+      "native_service_ns": 84697,
+      "native_cpu_ns": 92309,
+      "max_pump_gap_ns": 1772692,
+      "max_rpc_ns": 112639
+    },
+    {
+      "frame": 12289,
+      "ticket": 11993,
+      "normal": true,
+      "acquisition_ns": 1998820233582216,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 190134,
+          "cpu_ns": 190357,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2706,
+          "cpu_ns": 2461,
+          "wall_minus_cpu_ns": 245
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 708564,
+          "cpu_ns": 634896,
+          "wall_minus_cpu_ns": 73668
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 26633,
+          "cpu_ns": 26257,
+          "wall_minus_cpu_ns": 376
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27925,
+          "cpu_ns": 27884,
+          "wall_minus_cpu_ns": 41
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5223,
+          "cpu_ns": 5192,
+          "wall_minus_cpu_ns": 31
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 20285,
+          "cpu_ns": 20334,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10624,
+          "cpu_ns": 10588,
+          "wall_minus_cpu_ns": 36
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 926,
+          "cpu_ns": 914,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 554,
+          "cpu_ns": 543,
+          "wall_minus_cpu_ns": 11
+        }
+      },
+      "acquisition_to_publication_ns": 36132,
+      "publication_to_native_upper_ns": 948700,
+      "acquisition_to_native_ns": 1012757,
+      "native_service_ns": 91981,
+      "native_cpu_ns": 99875,
+      "max_pump_gap_ns": 1515541,
+      "max_rpc_ns": 96969
+    },
+    {
+      "frame": 12290,
+      "ticket": 11994,
+      "normal": true,
+      "acquisition_ns": 1998820238746897,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 178315,
+          "cpu_ns": 178685,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2869,
+          "cpu_ns": 2487,
+          "wall_minus_cpu_ns": 382
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 742787,
+          "cpu_ns": 657136,
+          "wall_minus_cpu_ns": 85651
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 41046,
+          "cpu_ns": 39216,
+          "wall_minus_cpu_ns": 1830
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 64385,
+          "cpu_ns": 64592,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8859,
+          "cpu_ns": 8456,
+          "wall_minus_cpu_ns": 403
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 27685,
+          "cpu_ns": 27711,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 15785,
+          "cpu_ns": 15785,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 960,
+          "cpu_ns": 945,
+          "wall_minus_cpu_ns": 15
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 603,
+          "cpu_ns": 573,
+          "wall_minus_cpu_ns": 30
+        }
+      },
+      "acquisition_to_publication_ns": 52329,
+      "publication_to_native_upper_ns": 766007,
+      "acquisition_to_native_ns": 882721,
+      "native_service_ns": 174013,
+      "native_cpu_ns": 204272,
+      "max_pump_gap_ns": 1561382,
+      "max_rpc_ns": 102690
+    },
+    {
+      "frame": 12291,
+      "ticket": 11995,
+      "normal": true,
+      "acquisition_ns": 1998820243720935,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 166457,
+          "cpu_ns": 166450,
+          "wall_minus_cpu_ns": 7
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3481,
+          "cpu_ns": 3286,
+          "wall_minus_cpu_ns": 195
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 789284,
+          "cpu_ns": 717088,
+          "wall_minus_cpu_ns": 72196
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23007,
+          "cpu_ns": 22645,
+          "wall_minus_cpu_ns": 362
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29245,
+          "cpu_ns": 29227,
+          "wall_minus_cpu_ns": 18
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5251,
+          "cpu_ns": 5188,
+          "wall_minus_cpu_ns": 63
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 13952,
+          "cpu_ns": 13973,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9379,
+          "cpu_ns": 9383,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 727,
+          "cpu_ns": 717,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 508,
+          "cpu_ns": 478,
+          "wall_minus_cpu_ns": 30
+        }
+      },
+      "acquisition_to_publication_ns": 28582,
+      "publication_to_native_upper_ns": 818427,
+      "acquisition_to_native_ns": 876254,
+      "native_service_ns": 101514,
+      "native_cpu_ns": 110105,
+      "max_pump_gap_ns": 2822321,
+      "max_rpc_ns": 149878
+    },
+    {
+      "frame": 12292,
+      "ticket": 11996,
+      "normal": true,
+      "acquisition_ns": 1998820248593981,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 193666,
+          "cpu_ns": 194015,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4256,
+          "cpu_ns": 3875,
+          "wall_minus_cpu_ns": 381
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 713766,
+          "cpu_ns": 639986,
+          "wall_minus_cpu_ns": 73780
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24920,
+          "cpu_ns": 24335,
+          "wall_minus_cpu_ns": 585
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29886,
+          "cpu_ns": 29832,
+          "wall_minus_cpu_ns": 54
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5058,
+          "cpu_ns": 5015,
+          "wall_minus_cpu_ns": 43
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14523,
+          "cpu_ns": 14536,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10629,
+          "cpu_ns": 10628,
+          "wall_minus_cpu_ns": 1
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 828,
+          "cpu_ns": 798,
+          "wall_minus_cpu_ns": 30
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 495,
+          "cpu_ns": 497,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 30210,
+      "publication_to_native_upper_ns": 937272,
+      "acquisition_to_native_ns": 997368,
+      "native_service_ns": 74937,
+      "native_cpu_ns": 83042,
+      "max_pump_gap_ns": 2013471,
+      "max_rpc_ns": 375301
+    },
+    {
+      "frame": 12293,
+      "ticket": 11997,
+      "normal": true,
+      "acquisition_ns": 1998820253665870,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 205182,
+          "cpu_ns": 205301,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3297,
+          "cpu_ns": 3020,
+          "wall_minus_cpu_ns": 277
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 782455,
+          "cpu_ns": 702315,
+          "wall_minus_cpu_ns": 80140
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24194,
+          "cpu_ns": 23588,
+          "wall_minus_cpu_ns": 606
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 34879,
+          "cpu_ns": 34870,
+          "wall_minus_cpu_ns": 9
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5175,
+          "cpu_ns": 5128,
+          "wall_minus_cpu_ns": 47
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15031,
+          "cpu_ns": 15052,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10431,
+          "cpu_ns": 10419,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1264,
+          "cpu_ns": 1228,
+          "wall_minus_cpu_ns": 36
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 527,
+          "cpu_ns": 510,
+          "wall_minus_cpu_ns": 17
+        }
+      },
+      "acquisition_to_publication_ns": 30637,
+      "publication_to_native_upper_ns": 864752,
+      "acquisition_to_native_ns": 930268,
+      "native_service_ns": 91135,
+      "native_cpu_ns": 99741,
+      "max_pump_gap_ns": 1597241,
+      "max_rpc_ns": 133831
+    },
+    {
+      "frame": 12294,
+      "ticket": 11998,
+      "normal": true,
+      "acquisition_ns": 1998820259789185,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 224406,
+          "cpu_ns": 224664,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3841,
+          "cpu_ns": 3535,
+          "wall_minus_cpu_ns": 306
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 769704,
+          "cpu_ns": 685621,
+          "wall_minus_cpu_ns": 84083
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23147,
+          "cpu_ns": 22709,
+          "wall_minus_cpu_ns": 438
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27285,
+          "cpu_ns": 27280,
+          "wall_minus_cpu_ns": 5
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 12520,
+          "cpu_ns": 12489,
+          "wall_minus_cpu_ns": 31
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15426,
+          "cpu_ns": 15411,
+          "wall_minus_cpu_ns": 15
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10860,
+          "cpu_ns": 10855,
+          "wall_minus_cpu_ns": 5
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 745,
+          "cpu_ns": 724,
+          "wall_minus_cpu_ns": 21
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 548,
+          "cpu_ns": 543,
+          "wall_minus_cpu_ns": 5
+        }
+      },
+      "acquisition_to_publication_ns": 38806,
+      "publication_to_native_upper_ns": 730216,
+      "acquisition_to_native_ns": 796307,
+      "native_service_ns": 78303,
+      "native_cpu_ns": 84865,
+      "max_pump_gap_ns": 1687996,
+      "max_rpc_ns": 124629
+    },
+    {
+      "frame": 12295,
+      "ticket": 11999,
+      "normal": true,
+      "acquisition_ns": 1998820263617573,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 177024,
+          "cpu_ns": 177137,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3020,
+          "cpu_ns": 2750,
+          "wall_minus_cpu_ns": 270
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 756620,
+          "cpu_ns": 672634,
+          "wall_minus_cpu_ns": 83986
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23643,
+          "cpu_ns": 22943,
+          "wall_minus_cpu_ns": 700
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31357,
+          "cpu_ns": 31359,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 7065,
+          "cpu_ns": 7014,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14955,
+          "cpu_ns": 14981,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10088,
+          "cpu_ns": 10059,
+          "wall_minus_cpu_ns": 29
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 767,
+          "cpu_ns": 753,
+          "wall_minus_cpu_ns": 14
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 536,
+          "cpu_ns": 522,
+          "wall_minus_cpu_ns": 14
+        }
+      },
+      "acquisition_to_publication_ns": 32108,
+      "publication_to_native_upper_ns": 931954,
+      "acquisition_to_native_ns": 995419,
+      "native_service_ns": 83019,
+      "native_cpu_ns": 89317,
+      "max_pump_gap_ns": 1747787,
+      "max_rpc_ns": 121862
+    },
+    {
+      "frame": 12296,
+      "ticket": 12000,
+      "normal": true,
+      "acquisition_ns": 1998820268655752,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 207014,
+          "cpu_ns": 207685,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4158,
+          "cpu_ns": 3455,
+          "wall_minus_cpu_ns": 703
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 763969,
+          "cpu_ns": 682139,
+          "wall_minus_cpu_ns": 81830
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21873,
+          "cpu_ns": 21364,
+          "wall_minus_cpu_ns": 509
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31728,
+          "cpu_ns": 31725,
+          "wall_minus_cpu_ns": 3
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4743,
+          "cpu_ns": 4692,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15146,
+          "cpu_ns": 15192,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9947,
+          "cpu_ns": 9893,
+          "wall_minus_cpu_ns": 54
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 770,
+          "cpu_ns": 763,
+          "wall_minus_cpu_ns": 7
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 530,
+          "cpu_ns": 512,
+          "wall_minus_cpu_ns": 18
+        }
+      },
+      "acquisition_to_publication_ns": 29836,
+      "publication_to_native_upper_ns": 871893,
+      "acquisition_to_native_ns": 933457,
+      "native_service_ns": 92792,
+      "native_cpu_ns": 101117,
+      "max_pump_gap_ns": 1621148,
+      "max_rpc_ns": 1643
+    },
+    {
+      "frame": 12297,
+      "ticket": 12001,
+      "normal": true,
+      "acquisition_ns": 1998820273604418,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 196097,
+          "cpu_ns": 196503,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3339,
+          "cpu_ns": 2814,
+          "wall_minus_cpu_ns": 525
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 751465,
+          "cpu_ns": 672045,
+          "wall_minus_cpu_ns": 79420
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22810,
+          "cpu_ns": 22096,
+          "wall_minus_cpu_ns": 714
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26844,
+          "cpu_ns": 26844,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5074,
+          "cpu_ns": 5022,
+          "wall_minus_cpu_ns": 52
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15029,
+          "cpu_ns": 15059,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10498,
+          "cpu_ns": 10475,
+          "wall_minus_cpu_ns": 23
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 952,
+          "cpu_ns": 927,
+          "wall_minus_cpu_ns": 25
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 532,
+          "cpu_ns": 522,
+          "wall_minus_cpu_ns": 10
+        }
+      },
+      "acquisition_to_publication_ns": 30601,
+      "publication_to_native_upper_ns": 971070,
+      "acquisition_to_native_ns": 1028515,
+      "native_service_ns": 190709,
+      "native_cpu_ns": 218750,
+      "max_pump_gap_ns": 1759568,
+      "max_rpc_ns": 107136
+    },
+    {
+      "frame": 12298,
+      "ticket": 12002,
+      "normal": true,
+      "acquisition_ns": 1998820279256612,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 286836,
+          "cpu_ns": 286915,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 5051,
+          "cpu_ns": 4413,
+          "wall_minus_cpu_ns": 638
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1085403,
+          "cpu_ns": 968737,
+          "wall_minus_cpu_ns": 116666
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 31051,
+          "cpu_ns": 30280,
+          "wall_minus_cpu_ns": 771
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 46181,
+          "cpu_ns": 46185,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6558,
+          "cpu_ns": 6506,
+          "wall_minus_cpu_ns": 52
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 24088,
+          "cpu_ns": 24105,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11916,
+          "cpu_ns": 11911,
+          "wall_minus_cpu_ns": 5
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1171,
+          "cpu_ns": 1147,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 563,
+          "cpu_ns": 553,
+          "wall_minus_cpu_ns": 10
+        }
+      },
+      "acquisition_to_publication_ns": 42562,
+      "publication_to_native_upper_ns": 253822,
+      "acquisition_to_native_ns": 342565,
+      "native_service_ns": 115428,
+      "native_cpu_ns": 131653,
+      "max_pump_gap_ns": 2685417,
+      "max_rpc_ns": 9001
+    },
+    {
+      "frame": 12299,
+      "ticket": 12003,
+      "normal": true,
+      "acquisition_ns": 1998820283598153,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 184408,
+          "cpu_ns": 184631,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3186,
+          "cpu_ns": 2877,
+          "wall_minus_cpu_ns": 309
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 749445,
+          "cpu_ns": 667605,
+          "wall_minus_cpu_ns": 81840
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21429,
+          "cpu_ns": 20737,
+          "wall_minus_cpu_ns": 692
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24183,
+          "cpu_ns": 24174,
+          "wall_minus_cpu_ns": 9
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5153,
+          "cpu_ns": 5115,
+          "wall_minus_cpu_ns": 38
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14078,
+          "cpu_ns": 14143,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9907,
+          "cpu_ns": 9859,
+          "wall_minus_cpu_ns": 48
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 803,
+          "cpu_ns": 761,
+          "wall_minus_cpu_ns": 42
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 520,
+          "cpu_ns": 516,
+          "wall_minus_cpu_ns": 4
+        }
+      },
+      "acquisition_to_publication_ns": 29138,
+      "publication_to_native_upper_ns": 946735,
+      "acquisition_to_native_ns": 1000056,
+      "native_service_ns": 67900,
+      "native_cpu_ns": 73770,
+      "max_pump_gap_ns": 2559747,
+      "max_rpc_ns": 118459
+    },
+    {
+      "frame": 12300,
+      "ticket": 12004,
+      "normal": true,
+      "acquisition_ns": 1998820288603730,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 178946,
+          "cpu_ns": 179232,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3150,
+          "cpu_ns": 2825,
+          "wall_minus_cpu_ns": 325
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 759004,
+          "cpu_ns": 678458,
+          "wall_minus_cpu_ns": 80546
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23158,
+          "cpu_ns": 22246,
+          "wall_minus_cpu_ns": 912
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31119,
+          "cpu_ns": 31109,
+          "wall_minus_cpu_ns": 10
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5729,
+          "cpu_ns": 5682,
+          "wall_minus_cpu_ns": 47
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 19504,
+          "cpu_ns": 19541,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9890,
+          "cpu_ns": 9865,
+          "wall_minus_cpu_ns": 25
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 749,
+          "cpu_ns": 737,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 531,
+          "cpu_ns": 537,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 35123,
+      "publication_to_native_upper_ns": 911267,
+      "acquisition_to_native_ns": 977509,
+      "native_service_ns": 67255,
+      "native_cpu_ns": 73487,
+      "max_pump_gap_ns": 1609567,
+      "max_rpc_ns": 108901
+    },
+    {
+      "frame": 12301,
+      "ticket": 12005,
+      "normal": true,
+      "acquisition_ns": 1998820293695315,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 179086,
+          "cpu_ns": 179100,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2694,
+          "cpu_ns": 2518,
+          "wall_minus_cpu_ns": 176
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 834452,
+          "cpu_ns": 755859,
+          "wall_minus_cpu_ns": 78593
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23073,
+          "cpu_ns": 22515,
+          "wall_minus_cpu_ns": 558
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31125,
+          "cpu_ns": 31087,
+          "wall_minus_cpu_ns": 38
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4700,
+          "cpu_ns": 4649,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14302,
+          "cpu_ns": 14317,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10139,
+          "cpu_ns": 10132,
+          "wall_minus_cpu_ns": 7
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 765,
+          "cpu_ns": 755,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 525,
+          "cpu_ns": 524,
+          "wall_minus_cpu_ns": 1
+        }
+      },
+      "acquisition_to_publication_ns": 29141,
+      "publication_to_native_upper_ns": 840663,
+      "acquisition_to_native_ns": 900929,
+      "native_service_ns": 78834,
+      "native_cpu_ns": 87493,
+      "max_pump_gap_ns": 1660222,
+      "max_rpc_ns": 154977
+    },
+    {
+      "frame": 12302,
+      "ticket": 12006,
+      "normal": true,
+      "acquisition_ns": 1998820299300841,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 205023,
+          "cpu_ns": 205329,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4061,
+          "cpu_ns": 3526,
+          "wall_minus_cpu_ns": 535
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1125096,
+          "cpu_ns": 1007634,
+          "wall_minus_cpu_ns": 117462
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 29404,
+          "cpu_ns": 28401,
+          "wall_minus_cpu_ns": 1003
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 35925,
+          "cpu_ns": 35904,
+          "wall_minus_cpu_ns": 21
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6005,
+          "cpu_ns": 5954,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 18034,
+          "cpu_ns": 18068,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10874,
+          "cpu_ns": 10851,
+          "wall_minus_cpu_ns": 23
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 832,
+          "cpu_ns": 823,
+          "wall_minus_cpu_ns": 9
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 523,
+          "cpu_ns": 512,
+          "wall_minus_cpu_ns": 11
+        }
+      },
+      "acquisition_to_publication_ns": 34913,
+      "publication_to_native_upper_ns": 240726,
+      "acquisition_to_native_ns": 311564,
+      "native_service_ns": 92601,
+      "native_cpu_ns": 107888,
+      "max_pump_gap_ns": 1681118,
+      "max_rpc_ns": 134191
+    },
+    {
+      "frame": 12303,
+      "ticket": 12007,
+      "normal": true,
+      "acquisition_ns": 1998820303569931,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 185680,
+          "cpu_ns": 185900,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2649,
+          "cpu_ns": 2402,
+          "wall_minus_cpu_ns": 247
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 727332,
+          "cpu_ns": 649660,
+          "wall_minus_cpu_ns": 77672
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 20488,
+          "cpu_ns": 20004,
+          "wall_minus_cpu_ns": 484
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29769,
+          "cpu_ns": 29762,
+          "wall_minus_cpu_ns": 7
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5034,
+          "cpu_ns": 4972,
+          "wall_minus_cpu_ns": 62
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14535,
+          "cpu_ns": 14558,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10110,
+          "cpu_ns": 10098,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 860,
+          "cpu_ns": 844,
+          "wall_minus_cpu_ns": 16
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 507,
+          "cpu_ns": 507,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 29679,
+      "publication_to_native_upper_ns": 966280,
+      "acquisition_to_native_ns": 1025728,
+      "native_service_ns": 85692,
+      "native_cpu_ns": 94233,
+      "max_pump_gap_ns": 2544265,
+      "max_rpc_ns": 374894
+    },
+    {
+      "frame": 12304,
+      "ticket": 12008,
+      "normal": true,
+      "acquisition_ns": 1998820309071755,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 284495,
+          "cpu_ns": 285831,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 7257,
+          "cpu_ns": 5439,
+          "wall_minus_cpu_ns": 1818
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1109961,
+          "cpu_ns": 1016346,
+          "wall_minus_cpu_ns": 93615
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 40035,
+          "cpu_ns": 39219,
+          "wall_minus_cpu_ns": 816
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 59784,
+          "cpu_ns": 60083,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 11355,
+          "cpu_ns": 10937,
+          "wall_minus_cpu_ns": 418
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 21438,
+          "cpu_ns": 21449,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 13908,
+          "cpu_ns": 14015,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1195,
+          "cpu_ns": 1055,
+          "wall_minus_cpu_ns": 140
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 520,
+          "cpu_ns": 526,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 46701,
+      "publication_to_native_upper_ns": 416192,
+      "acquisition_to_native_ns": 522677,
+      "native_service_ns": 86542,
+      "native_cpu_ns": 95285,
+      "max_pump_gap_ns": 1548937,
+      "max_rpc_ns": 127193
+    },
+    {
+      "frame": 12305,
+      "ticket": 12009,
+      "normal": true,
+      "acquisition_ns": 1998820313502696,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 182670,
+          "cpu_ns": 182806,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2771,
+          "cpu_ns": 2585,
+          "wall_minus_cpu_ns": 186
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 694657,
+          "cpu_ns": 614813,
+          "wall_minus_cpu_ns": 79844
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19534,
+          "cpu_ns": 19066,
+          "wall_minus_cpu_ns": 468
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 23619,
+          "cpu_ns": 23612,
+          "wall_minus_cpu_ns": 7
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4300,
+          "cpu_ns": 4247,
+          "wall_minus_cpu_ns": 53
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 17640,
+          "cpu_ns": 17680,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9151,
+          "cpu_ns": 9101,
+          "wall_minus_cpu_ns": 50
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 847,
+          "cpu_ns": 843,
+          "wall_minus_cpu_ns": 4
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 500,
+          "cpu_ns": 500,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 31091,
+      "publication_to_native_upper_ns": 33936,
+      "acquisition_to_native_ns": 88646,
+      "native_service_ns": 81742,
+      "native_cpu_ns": 89515,
+      "max_pump_gap_ns": 2304221,
+      "max_rpc_ns": 116610
+    },
+    {
+      "frame": 12306,
+      "ticket": 12010,
+      "normal": true,
+      "acquisition_ns": 1998820318604818,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 175646,
+          "cpu_ns": 175921,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3093,
+          "cpu_ns": 2792,
+          "wall_minus_cpu_ns": 301
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 627276,
+          "cpu_ns": 554276,
+          "wall_minus_cpu_ns": 73000
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 18562,
+          "cpu_ns": 18212,
+          "wall_minus_cpu_ns": 350
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 28604,
+          "cpu_ns": 28587,
+          "wall_minus_cpu_ns": 17
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4457,
+          "cpu_ns": 4406,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 13805,
+          "cpu_ns": 13831,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9657,
+          "cpu_ns": 9612,
+          "wall_minus_cpu_ns": 45
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 731,
+          "cpu_ns": 726,
+          "wall_minus_cpu_ns": 5
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 502,
+          "cpu_ns": 497,
+          "wall_minus_cpu_ns": 5
+        }
+      },
+      "acquisition_to_publication_ns": 27919,
+      "publication_to_native_upper_ns": 919423,
+      "acquisition_to_native_ns": 975946,
+      "native_service_ns": 61493,
+      "native_cpu_ns": 66761,
+      "max_pump_gap_ns": 1476817,
+      "max_rpc_ns": 1084
+    },
+    {
+      "frame": 12307,
+      "ticket": 12011,
+      "normal": true,
+      "acquisition_ns": 1998820323445611,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 170091,
+          "cpu_ns": 170289,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2956,
+          "cpu_ns": 2731,
+          "wall_minus_cpu_ns": 225
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 635338,
+          "cpu_ns": 559771,
+          "wall_minus_cpu_ns": 75567
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19116,
+          "cpu_ns": 18507,
+          "wall_minus_cpu_ns": 609
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27769,
+          "cpu_ns": 27775,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4281,
+          "cpu_ns": 4214,
+          "wall_minus_cpu_ns": 67
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15408,
+          "cpu_ns": 15449,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10068,
+          "cpu_ns": 10060,
+          "wall_minus_cpu_ns": 8
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 890,
+          "cpu_ns": 864,
+          "wall_minus_cpu_ns": 26
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 538,
+          "cpu_ns": 527,
+          "wall_minus_cpu_ns": 11
+        }
+      },
+      "acquisition_to_publication_ns": 29757,
+      "publication_to_native_upper_ns": 87024,
+      "acquisition_to_native_ns": 144550,
+      "native_service_ns": 83702,
+      "native_cpu_ns": 90518,
+      "max_pump_gap_ns": 1464806,
+      "max_rpc_ns": 104738
+    },
+    {
+      "frame": 12308,
+      "ticket": 12012,
+      "normal": true,
+      "acquisition_ns": 1998820342261714,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 199788,
+          "cpu_ns": 200038,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3627,
+          "cpu_ns": 3297,
+          "wall_minus_cpu_ns": 330
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 784609,
+          "cpu_ns": 688263,
+          "wall_minus_cpu_ns": 96346
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25118,
+          "cpu_ns": 24422,
+          "wall_minus_cpu_ns": 696
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 38131,
+          "cpu_ns": 38141,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5421,
+          "cpu_ns": 5351,
+          "wall_minus_cpu_ns": 70
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 16652,
+          "cpu_ns": 16661,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10608,
+          "cpu_ns": 10613,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 944,
+          "cpu_ns": 920,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 549,
+          "cpu_ns": 540,
+          "wall_minus_cpu_ns": 9
+        }
+      },
+      "acquisition_to_publication_ns": 32681,
+      "publication_to_native_upper_ns": 267618,
+      "acquisition_to_native_ns": 338430,
+      "native_service_ns": 103052,
+      "native_cpu_ns": 113168,
+      "max_pump_gap_ns": 18609452,
+      "max_rpc_ns": 158500
+    },
+    {
+      "frame": 12309,
+      "ticket": 12013,
+      "normal": true,
+      "acquisition_ns": 1998820344078025,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 179391,
+          "cpu_ns": 179500,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2829,
+          "cpu_ns": 2644,
+          "wall_minus_cpu_ns": 185
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 766814,
+          "cpu_ns": 684004,
+          "wall_minus_cpu_ns": 82810
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25445,
+          "cpu_ns": 24647,
+          "wall_minus_cpu_ns": 798
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27249,
+          "cpu_ns": 27252,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4865,
+          "cpu_ns": 4818,
+          "wall_minus_cpu_ns": 47
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14426,
+          "cpu_ns": 14436,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 20497,
+          "cpu_ns": 20506,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 871,
+          "cpu_ns": 835,
+          "wall_minus_cpu_ns": 36
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 537,
+          "cpu_ns": 533,
+          "wall_minus_cpu_ns": 4
+        }
+      },
+      "acquisition_to_publication_ns": 39788,
+      "publication_to_native_upper_ns": 459726,
+      "acquisition_to_native_ns": 526763,
+      "native_service_ns": 77084,
+      "native_cpu_ns": 91956,
+      "max_pump_gap_ns": 1855333,
+      "max_rpc_ns": 1822
+    },
+    {
+      "frame": 12310,
+      "ticket": 12014,
+      "normal": true,
+      "acquisition_ns": 1998820345806990,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 206357,
+          "cpu_ns": 206535,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3177,
+          "cpu_ns": 2925,
+          "wall_minus_cpu_ns": 252
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 686932,
+          "cpu_ns": 606760,
+          "wall_minus_cpu_ns": 80172
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21333,
+          "cpu_ns": 20955,
+          "wall_minus_cpu_ns": 378
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25360,
+          "cpu_ns": 25346,
+          "wall_minus_cpu_ns": 14
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4881,
+          "cpu_ns": 4816,
+          "wall_minus_cpu_ns": 65
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14266,
+          "cpu_ns": 14290,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9494,
+          "cpu_ns": 9496,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 848,
+          "cpu_ns": 813,
+          "wall_minus_cpu_ns": 35
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 548,
+          "cpu_ns": 544,
+          "wall_minus_cpu_ns": 4
+        }
+      },
+      "acquisition_to_publication_ns": 28641,
+      "publication_to_native_upper_ns": 735829,
+      "acquisition_to_native_ns": 789830,
+      "native_service_ns": 95566,
+      "native_cpu_ns": 104415,
+      "max_pump_gap_ns": 1793413,
+      "max_rpc_ns": 1865
+    },
+    {
+      "frame": 12311,
+      "ticket": 12015,
+      "normal": true,
+      "acquisition_ns": 1998820347721672,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 192000,
+          "cpu_ns": 192125,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2745,
+          "cpu_ns": 2548,
+          "wall_minus_cpu_ns": 197
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 723430,
+          "cpu_ns": 639674,
+          "wall_minus_cpu_ns": 83756
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22285,
+          "cpu_ns": 21923,
+          "wall_minus_cpu_ns": 362
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25002,
+          "cpu_ns": 25012,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5387,
+          "cpu_ns": 5326,
+          "wall_minus_cpu_ns": 61
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14598,
+          "cpu_ns": 14611,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9805,
+          "cpu_ns": 9797,
+          "wall_minus_cpu_ns": 8
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 862,
+          "cpu_ns": 841,
+          "wall_minus_cpu_ns": 21
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 547,
+          "cpu_ns": 534,
+          "wall_minus_cpu_ns": 13
+        }
+      },
+      "acquisition_to_publication_ns": 29790,
+      "publication_to_native_upper_ns": 807129,
+      "acquisition_to_native_ns": 861921,
+      "native_service_ns": 78952,
+      "native_cpu_ns": 85942,
+      "max_pump_gap_ns": 1666697,
+      "max_rpc_ns": 2053
+    },
+    {
+      "frame": 12312,
+      "ticket": 12016,
+      "normal": false,
+      "acquisition_ns": 1998820358939496,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 256932,
+          "cpu_ns": 257790,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 7766,
+          "cpu_ns": 6775,
+          "wall_minus_cpu_ns": 991
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 797093,
+          "cpu_ns": 696610,
+          "wall_minus_cpu_ns": 100483
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25145,
+          "cpu_ns": 24764,
+          "wall_minus_cpu_ns": 381
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27272,
+          "cpu_ns": 27279,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4864,
+          "cpu_ns": 4801,
+          "wall_minus_cpu_ns": 63
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15665,
+          "cpu_ns": 15692,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10971,
+          "cpu_ns": 10941,
+          "wall_minus_cpu_ns": 30
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 807,
+          "cpu_ns": 798,
+          "wall_minus_cpu_ns": 9
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 538,
+          "cpu_ns": 534,
+          "wall_minus_cpu_ns": 4
+        }
+      },
+      "acquisition_to_publication_ns": 31500,
+      "publication_to_native_upper_ns": 594830,
+      "acquisition_to_native_ns": 653602,
+      "native_service_ns": 90012,
+      "native_cpu_ns": 98974,
+      "max_pump_gap_ns": 1873265,
+      "max_rpc_ns": 375411
+    },
+    {
+      "frame": 12313,
+      "ticket": 12017,
+      "normal": false,
+      "acquisition_ns": 1998820360625062,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 175763,
+          "cpu_ns": 175880,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2808,
+          "cpu_ns": 2638,
+          "wall_minus_cpu_ns": 170
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 667803,
+          "cpu_ns": 586748,
+          "wall_minus_cpu_ns": 81055
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23407,
+          "cpu_ns": 22923,
+          "wall_minus_cpu_ns": 484
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25142,
+          "cpu_ns": 25139,
+          "wall_minus_cpu_ns": 3
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5414,
+          "cpu_ns": 5350,
+          "wall_minus_cpu_ns": 64
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15282,
+          "cpu_ns": 15295,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9848,
+          "cpu_ns": 9845,
+          "wall_minus_cpu_ns": 3
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 850,
+          "cpu_ns": 824,
+          "wall_minus_cpu_ns": 26
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 536,
+          "cpu_ns": 533,
+          "wall_minus_cpu_ns": 3
+        }
+      },
+      "acquisition_to_publication_ns": 30544,
+      "publication_to_native_upper_ns": 912774,
+      "acquisition_to_native_ns": 968460,
+      "native_service_ns": 87910,
+      "native_cpu_ns": 96992,
+      "max_pump_gap_ns": 1904973,
+      "max_rpc_ns": 1806
+    },
+    {
+      "frame": 12314,
+      "ticket": 12018,
+      "normal": false,
+      "acquisition_ns": 1998820362608874,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 146574,
+          "cpu_ns": 146722,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2853,
+          "cpu_ns": 2604,
+          "wall_minus_cpu_ns": 249
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 698822,
+          "cpu_ns": 619935,
+          "wall_minus_cpu_ns": 78887
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25239,
+          "cpu_ns": 24210,
+          "wall_minus_cpu_ns": 1029
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26658,
+          "cpu_ns": 26631,
+          "wall_minus_cpu_ns": 27
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5194,
+          "cpu_ns": 5147,
+          "wall_minus_cpu_ns": 47
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15870,
+          "cpu_ns": 15882,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10609,
+          "cpu_ns": 10590,
+          "wall_minus_cpu_ns": 19
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 873,
+          "cpu_ns": 860,
+          "wall_minus_cpu_ns": 13
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 522,
+          "cpu_ns": 516,
+          "wall_minus_cpu_ns": 6
+        }
+      },
+      "acquisition_to_publication_ns": 31673,
+      "publication_to_native_upper_ns": 915173,
+      "acquisition_to_native_ns": 973504,
+      "native_service_ns": 75730,
+      "native_cpu_ns": 82223,
+      "max_pump_gap_ns": 1654685,
+      "max_rpc_ns": 114086
+    },
+    {
+      "frame": 12315,
+      "ticket": 12019,
+      "normal": false,
+      "acquisition_ns": 1998820364608147,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 160353,
+          "cpu_ns": 160487,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2714,
+          "cpu_ns": 2530,
+          "wall_minus_cpu_ns": 184
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 683236,
+          "cpu_ns": 616039,
+          "wall_minus_cpu_ns": 67197
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24329,
+          "cpu_ns": 23944,
+          "wall_minus_cpu_ns": 385
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25915,
+          "cpu_ns": 25921,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5786,
+          "cpu_ns": 5733,
+          "wall_minus_cpu_ns": 53
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 23096,
+          "cpu_ns": 23115,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9916,
+          "cpu_ns": 9892,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 754,
+          "cpu_ns": 740,
+          "wall_minus_cpu_ns": 14
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 528,
+          "cpu_ns": 523,
+          "wall_minus_cpu_ns": 5
+        }
+      },
+      "acquisition_to_publication_ns": 38798,
+      "publication_to_native_upper_ns": 912069,
+      "acquisition_to_native_ns": 976782,
+      "native_service_ns": 76590,
+      "native_cpu_ns": 82792,
+      "max_pump_gap_ns": 1677772,
+      "max_rpc_ns": 1774
+    },
+    {
+      "frame": 12316,
+      "ticket": 12020,
+      "normal": false,
+      "acquisition_ns": 1998820369160248,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 208017,
+          "cpu_ns": 208234,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 5177,
+          "cpu_ns": 4911,
+          "wall_minus_cpu_ns": 266
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1287818,
+          "cpu_ns": 1173483,
+          "wall_minus_cpu_ns": 114335
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 47580,
+          "cpu_ns": 45885,
+          "wall_minus_cpu_ns": 1695
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 43294,
+          "cpu_ns": 43270,
+          "wall_minus_cpu_ns": 24
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8795,
+          "cpu_ns": 8967,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 23887,
+          "cpu_ns": 23699,
+          "wall_minus_cpu_ns": 188
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 13945,
+          "cpu_ns": 13920,
+          "wall_minus_cpu_ns": 25
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1325,
+          "cpu_ns": 1303,
+          "wall_minus_cpu_ns": 22
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 519,
+          "cpu_ns": 532,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 46627,
+      "publication_to_native_upper_ns": 345199,
+      "acquisition_to_native_ns": 435120,
+      "native_service_ns": 96591,
+      "native_cpu_ns": 105550,
+      "max_pump_gap_ns": 1679182,
+      "max_rpc_ns": 154702
+    },
+    {
+      "frame": 12317,
+      "ticket": 12021,
+      "normal": false,
+      "acquisition_ns": 1998820373614497,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 193667,
+          "cpu_ns": 193885,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3176,
+          "cpu_ns": 2831,
+          "wall_minus_cpu_ns": 345
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 747971,
+          "cpu_ns": 674151,
+          "wall_minus_cpu_ns": 73820
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 26468,
+          "cpu_ns": 25933,
+          "wall_minus_cpu_ns": 535
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 28433,
+          "cpu_ns": 28557,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5403,
+          "cpu_ns": 5230,
+          "wall_minus_cpu_ns": 173
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15744,
+          "cpu_ns": 15795,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10835,
+          "cpu_ns": 10814,
+          "wall_minus_cpu_ns": 21
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 795,
+          "cpu_ns": 771,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 529,
+          "cpu_ns": 525,
+          "wall_minus_cpu_ns": 4
+        }
+      },
+      "acquisition_to_publication_ns": 31982,
+      "publication_to_native_upper_ns": 916568,
+      "acquisition_to_native_ns": 976983,
+      "native_service_ns": 97738,
+      "native_cpu_ns": 106311,
+      "max_pump_gap_ns": 2468427,
+      "max_rpc_ns": 1628
+    },
+    {
+      "frame": 12318,
+      "ticket": 12022,
+      "normal": false,
+      "acquisition_ns": 1998820378606408,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 178566,
+          "cpu_ns": 179045,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4027,
+          "cpu_ns": 3519,
+          "wall_minus_cpu_ns": 508
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 758778,
+          "cpu_ns": 678895,
+          "wall_minus_cpu_ns": 79883
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 28786,
+          "cpu_ns": 27873,
+          "wall_minus_cpu_ns": 913
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29078,
+          "cpu_ns": 29062,
+          "wall_minus_cpu_ns": 16
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5394,
+          "cpu_ns": 5343,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15711,
+          "cpu_ns": 15742,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 18699,
+          "cpu_ns": 18673,
+          "wall_minus_cpu_ns": 26
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 743,
+          "cpu_ns": 739,
+          "wall_minus_cpu_ns": 4
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 529,
+          "cpu_ns": 527,
+          "wall_minus_cpu_ns": 2
+        }
+      },
+      "acquisition_to_publication_ns": 39804,
+      "publication_to_native_upper_ns": 918036,
+      "acquisition_to_native_ns": 986918,
+      "native_service_ns": 90882,
+      "native_cpu_ns": 100052,
+      "max_pump_gap_ns": 1871346,
+      "max_rpc_ns": 118228
+    },
+    {
+      "frame": 12319,
+      "ticket": 12023,
+      "normal": false,
+      "acquisition_ns": 1998820383573573,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 172273,
+          "cpu_ns": 172610,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3557,
+          "cpu_ns": 3099,
+          "wall_minus_cpu_ns": 458
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 719192,
+          "cpu_ns": 645519,
+          "wall_minus_cpu_ns": 73673
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 34883,
+          "cpu_ns": 34393,
+          "wall_minus_cpu_ns": 490
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27318,
+          "cpu_ns": 27395,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5944,
+          "cpu_ns": 5805,
+          "wall_minus_cpu_ns": 139
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15919,
+          "cpu_ns": 15947,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9641,
+          "cpu_ns": 9622,
+          "wall_minus_cpu_ns": 19
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 736,
+          "cpu_ns": 732,
+          "wall_minus_cpu_ns": 4
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 526,
+          "cpu_ns": 526,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 31504,
+      "publication_to_native_upper_ns": 966575,
+      "acquisition_to_native_ns": 1025397,
+      "native_service_ns": 91196,
+      "native_cpu_ns": 100856,
+      "max_pump_gap_ns": 1767568,
+      "max_rpc_ns": 116092
+    },
+    {
+      "frame": 12320,
+      "ticket": 12024,
+      "normal": false,
+      "acquisition_ns": 1998820388527802,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 165471,
+          "cpu_ns": 165703,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3190,
+          "cpu_ns": 2907,
+          "wall_minus_cpu_ns": 283
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 700224,
+          "cpu_ns": 628975,
+          "wall_minus_cpu_ns": 71249
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19739,
+          "cpu_ns": 19322,
+          "wall_minus_cpu_ns": 417
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24439,
+          "cpu_ns": 24448,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 10807,
+          "cpu_ns": 10752,
+          "wall_minus_cpu_ns": 55
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14012,
+          "cpu_ns": 14011,
+          "wall_minus_cpu_ns": 1
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9383,
+          "cpu_ns": 9370,
+          "wall_minus_cpu_ns": 13
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 835,
+          "cpu_ns": 827,
+          "wall_minus_cpu_ns": 8
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 534,
+          "cpu_ns": 520,
+          "wall_minus_cpu_ns": 14
+        }
+      },
+      "acquisition_to_publication_ns": 34202,
+      "publication_to_native_upper_ns": 27882,
+      "acquisition_to_native_ns": 86523,
+      "native_service_ns": 75071,
+      "native_cpu_ns": 81368,
+      "max_pump_gap_ns": 1730530,
+      "max_rpc_ns": 115923
+    },
+    {
+      "frame": 12321,
+      "ticket": 12025,
+      "normal": false,
+      "acquisition_ns": 1998820393529600,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 147081,
+          "cpu_ns": 147318,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3250,
+          "cpu_ns": 2978,
+          "wall_minus_cpu_ns": 272
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 715797,
+          "cpu_ns": 635620,
+          "wall_minus_cpu_ns": 80177
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22566,
+          "cpu_ns": 21928,
+          "wall_minus_cpu_ns": 638
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24782,
+          "cpu_ns": 24782,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4646,
+          "cpu_ns": 4589,
+          "wall_minus_cpu_ns": 57
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15236,
+          "cpu_ns": 15236,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11399,
+          "cpu_ns": 11499,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1114,
+          "cpu_ns": 1052,
+          "wall_minus_cpu_ns": 62
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 746,
+          "cpu_ns": 721,
+          "wall_minus_cpu_ns": 25
+        }
+      },
+      "acquisition_to_publication_ns": 31281,
+      "publication_to_native_upper_ns": 1025021,
+      "acquisition_to_native_ns": 1081084,
+      "native_service_ns": 74341,
+      "native_cpu_ns": 80977,
+      "max_pump_gap_ns": 1618403,
+      "max_rpc_ns": 144720
+    },
+    {
+      "frame": 12322,
+      "ticket": 12026,
+      "normal": false,
+      "acquisition_ns": 1998820398742323,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 201537,
+          "cpu_ns": 201826,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4102,
+          "cpu_ns": 3646,
+          "wall_minus_cpu_ns": 456
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 869631,
+          "cpu_ns": 783869,
+          "wall_minus_cpu_ns": 85762
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22710,
+          "cpu_ns": 22245,
+          "wall_minus_cpu_ns": 465
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24707,
+          "cpu_ns": 24738,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5182,
+          "cpu_ns": 5085,
+          "wall_minus_cpu_ns": 97
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15435,
+          "cpu_ns": 15464,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9892,
+          "cpu_ns": 9889,
+          "wall_minus_cpu_ns": 3
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 943,
+          "cpu_ns": 929,
+          "wall_minus_cpu_ns": 14
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 540,
+          "cpu_ns": 520,
+          "wall_minus_cpu_ns": 20
+        }
+      },
+      "acquisition_to_publication_ns": 30509,
+      "publication_to_native_upper_ns": 795085,
+      "acquisition_to_native_ns": 850301,
+      "native_service_ns": 87329,
+      "native_cpu_ns": 96196,
+      "max_pump_gap_ns": 1658725,
+      "max_rpc_ns": 1673
+    },
+    {
+      "frame": 12323,
+      "ticket": 12027,
+      "normal": false,
+      "acquisition_ns": 1998820403744226,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 186399,
+          "cpu_ns": 186788,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3780,
+          "cpu_ns": 3364,
+          "wall_minus_cpu_ns": 416
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 886718,
+          "cpu_ns": 773505,
+          "wall_minus_cpu_ns": 113213
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 26955,
+          "cpu_ns": 26544,
+          "wall_minus_cpu_ns": 411
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 38352,
+          "cpu_ns": 38349,
+          "wall_minus_cpu_ns": 3
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5835,
+          "cpu_ns": 5773,
+          "wall_minus_cpu_ns": 62
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 21722,
+          "cpu_ns": 21743,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11154,
+          "cpu_ns": 11142,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1479,
+          "cpu_ns": 1459,
+          "wall_minus_cpu_ns": 20
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 504,
+          "cpu_ns": 494,
+          "wall_minus_cpu_ns": 10
+        }
+      },
+      "acquisition_to_publication_ns": 38711,
+      "publication_to_native_upper_ns": 774893,
+      "acquisition_to_native_ns": 851956,
+      "native_service_ns": 79509,
+      "native_cpu_ns": 87979,
+      "max_pump_gap_ns": 2102373,
+      "max_rpc_ns": 338042
+    },
+    {
+      "frame": 12324,
+      "ticket": 12028,
+      "normal": false,
+      "acquisition_ns": 1998820408500235,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 147665,
+          "cpu_ns": 147794,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3543,
+          "cpu_ns": 3382,
+          "wall_minus_cpu_ns": 161
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 687539,
+          "cpu_ns": 607393,
+          "wall_minus_cpu_ns": 80146
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19092,
+          "cpu_ns": 18628,
+          "wall_minus_cpu_ns": 464
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29105,
+          "cpu_ns": 29112,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5612,
+          "cpu_ns": 5544,
+          "wall_minus_cpu_ns": 68
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15038,
+          "cpu_ns": 15052,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9348,
+          "cpu_ns": 9339,
+          "wall_minus_cpu_ns": 9
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 855,
+          "cpu_ns": 833,
+          "wall_minus_cpu_ns": 22
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 509,
+          "cpu_ns": 497,
+          "wall_minus_cpu_ns": 12
+        }
+      },
+      "acquisition_to_publication_ns": 29998,
+      "publication_to_native_upper_ns": 23317,
+      "acquisition_to_native_ns": 82420,
+      "native_service_ns": 87279,
+      "native_cpu_ns": 94647,
+      "max_pump_gap_ns": 1934217,
+      "max_rpc_ns": 104638
+    },
+    {
+      "frame": 12325,
+      "ticket": 12029,
+      "normal": false,
+      "acquisition_ns": 1998820413574264,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 158374,
+          "cpu_ns": 158543,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3202,
+          "cpu_ns": 3005,
+          "wall_minus_cpu_ns": 197
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 743648,
+          "cpu_ns": 664490,
+          "wall_minus_cpu_ns": 79158
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25058,
+          "cpu_ns": 24410,
+          "wall_minus_cpu_ns": 648
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 32373,
+          "cpu_ns": 32378,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4971,
+          "cpu_ns": 4876,
+          "wall_minus_cpu_ns": 95
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15347,
+          "cpu_ns": 15381,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10313,
+          "cpu_ns": 10303,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 833,
+          "cpu_ns": 819,
+          "wall_minus_cpu_ns": 14
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 525,
+          "cpu_ns": 511,
+          "wall_minus_cpu_ns": 14
+        }
+      },
+      "acquisition_to_publication_ns": 30631,
+      "publication_to_native_upper_ns": 959595,
+      "acquisition_to_native_ns": 1022599,
+      "native_service_ns": 75506,
+      "native_cpu_ns": 84370,
+      "max_pump_gap_ns": 1885399,
+      "max_rpc_ns": 152842
+    },
+    {
+      "frame": 12326,
+      "ticket": 12030,
+      "normal": false,
+      "acquisition_ns": 1998820418705233,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 220798,
+          "cpu_ns": 221035,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4152,
+          "cpu_ns": 3888,
+          "wall_minus_cpu_ns": 264
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 810145,
+          "cpu_ns": 737032,
+          "wall_minus_cpu_ns": 73113
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 20544,
+          "cpu_ns": 20207,
+          "wall_minus_cpu_ns": 337
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29238,
+          "cpu_ns": 29255,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 9094,
+          "cpu_ns": 9021,
+          "wall_minus_cpu_ns": 73
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14287,
+          "cpu_ns": 14305,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9554,
+          "cpu_ns": 9544,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 847,
+          "cpu_ns": 835,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 508,
+          "cpu_ns": 495,
+          "wall_minus_cpu_ns": 13
+        }
+      },
+      "acquisition_to_publication_ns": 32935,
+      "publication_to_native_upper_ns": 824575,
+      "acquisition_to_native_ns": 886748,
+      "native_service_ns": 81395,
+      "native_cpu_ns": 90544,
+      "max_pump_gap_ns": 1769504,
+      "max_rpc_ns": 2022
+    },
+    {
+      "frame": 12327,
+      "ticket": 12031,
+      "normal": false,
+      "acquisition_ns": 1998820423604963,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 175009,
+          "cpu_ns": 175153,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3230,
+          "cpu_ns": 2962,
+          "wall_minus_cpu_ns": 268
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 757237,
+          "cpu_ns": 674187,
+          "wall_minus_cpu_ns": 83050
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25502,
+          "cpu_ns": 24804,
+          "wall_minus_cpu_ns": 698
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26697,
+          "cpu_ns": 26717,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4701,
+          "cpu_ns": 4631,
+          "wall_minus_cpu_ns": 70
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 22000,
+          "cpu_ns": 22047,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9840,
+          "cpu_ns": 9821,
+          "wall_minus_cpu_ns": 19
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 890,
+          "cpu_ns": 866,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 517,
+          "cpu_ns": 511,
+          "wall_minus_cpu_ns": 6
+        }
+      },
+      "acquisition_to_publication_ns": 36541,
+      "publication_to_native_upper_ns": 929553,
+      "acquisition_to_native_ns": 992791,
+      "native_service_ns": 82443,
+      "native_cpu_ns": 92061,
+      "max_pump_gap_ns": 1913396,
+      "max_rpc_ns": 105656
+    },
+    {
+      "frame": 12328,
+      "ticket": 12032,
+      "normal": false,
+      "acquisition_ns": 1998820428964497,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 229337,
+          "cpu_ns": 229847,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 20120,
+          "cpu_ns": 19523,
+          "wall_minus_cpu_ns": 597
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1069082,
+          "cpu_ns": 963292,
+          "wall_minus_cpu_ns": 105790
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 26076,
+          "cpu_ns": 25541,
+          "wall_minus_cpu_ns": 535
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 30658,
+          "cpu_ns": 30667,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 14999,
+          "cpu_ns": 14946,
+          "wall_minus_cpu_ns": 53
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 21433,
+          "cpu_ns": 21529,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 20626,
+          "cpu_ns": 20525,
+          "wall_minus_cpu_ns": 101
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 858,
+          "cpu_ns": 851,
+          "wall_minus_cpu_ns": 7
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 522,
+          "cpu_ns": 510,
+          "wall_minus_cpu_ns": 12
+        }
+      },
+      "acquisition_to_publication_ns": 57058,
+      "publication_to_native_upper_ns": 539901,
+      "acquisition_to_native_ns": 627617,
+      "native_service_ns": 80837,
+      "native_cpu_ns": 89720,
+      "max_pump_gap_ns": 1774588,
+      "max_rpc_ns": 121740
+    },
+    {
+      "frame": 12329,
+      "ticket": 12033,
+      "normal": false,
+      "acquisition_ns": 1998820433641026,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 170529,
+          "cpu_ns": 170678,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2913,
+          "cpu_ns": 2727,
+          "wall_minus_cpu_ns": 186
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 803306,
+          "cpu_ns": 719940,
+          "wall_minus_cpu_ns": 83366
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22978,
+          "cpu_ns": 22616,
+          "wall_minus_cpu_ns": 362
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26088,
+          "cpu_ns": 26097,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4748,
+          "cpu_ns": 4683,
+          "wall_minus_cpu_ns": 65
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15133,
+          "cpu_ns": 15171,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11041,
+          "cpu_ns": 11004,
+          "wall_minus_cpu_ns": 37
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 764,
+          "cpu_ns": 754,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 553,
+          "cpu_ns": 550,
+          "wall_minus_cpu_ns": 3
+        }
+      },
+      "acquisition_to_publication_ns": 30922,
+      "publication_to_native_upper_ns": 887881,
+      "acquisition_to_native_ns": 944891,
+      "native_service_ns": 78020,
+      "native_cpu_ns": 85136,
+      "max_pump_gap_ns": 2232596,
+      "max_rpc_ns": 229256
+    },
+    {
+      "frame": 12330,
+      "ticket": 12034,
+      "normal": false,
+      "acquisition_ns": 1998820438558083,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 178943,
+          "cpu_ns": 179159,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3621,
+          "cpu_ns": 3362,
+          "wall_minus_cpu_ns": 259
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 729471,
+          "cpu_ns": 634380,
+          "wall_minus_cpu_ns": 95091
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22364,
+          "cpu_ns": 21748,
+          "wall_minus_cpu_ns": 616
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 38774,
+          "cpu_ns": 38854,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5780,
+          "cpu_ns": 5662,
+          "wall_minus_cpu_ns": 118
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15012,
+          "cpu_ns": 15032,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9950,
+          "cpu_ns": 9908,
+          "wall_minus_cpu_ns": 42
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 722,
+          "cpu_ns": 713,
+          "wall_minus_cpu_ns": 9
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 533,
+          "cpu_ns": 524,
+          "wall_minus_cpu_ns": 9
+        }
+      },
+      "acquisition_to_publication_ns": 30742,
+      "publication_to_native_upper_ns": 955353,
+      "acquisition_to_native_ns": 1024869,
+      "native_service_ns": 64317,
+      "native_cpu_ns": 69860,
+      "max_pump_gap_ns": 1877262,
+      "max_rpc_ns": 1676
+    },
+    {
+      "frame": 12331,
+      "ticket": 12035,
+      "normal": false,
+      "acquisition_ns": 1998820443672066,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 184764,
+          "cpu_ns": 185028,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3625,
+          "cpu_ns": 3232,
+          "wall_minus_cpu_ns": 393
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 813106,
+          "cpu_ns": 730718,
+          "wall_minus_cpu_ns": 82388
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 27904,
+          "cpu_ns": 27393,
+          "wall_minus_cpu_ns": 511
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 28843,
+          "cpu_ns": 28828,
+          "wall_minus_cpu_ns": 15
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5378,
+          "cpu_ns": 5300,
+          "wall_minus_cpu_ns": 78
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14927,
+          "cpu_ns": 14971,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11057,
+          "cpu_ns": 11040,
+          "wall_minus_cpu_ns": 17
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 771,
+          "cpu_ns": 754,
+          "wall_minus_cpu_ns": 17
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 548,
+          "cpu_ns": 539,
+          "wall_minus_cpu_ns": 9
+        }
+      },
+      "acquisition_to_publication_ns": 31362,
+      "publication_to_native_upper_ns": 866415,
+      "acquisition_to_native_ns": 926620,
+      "native_service_ns": 100351,
+      "native_cpu_ns": 111896,
+      "max_pump_gap_ns": 1788297,
+      "max_rpc_ns": 106906
+    },
+    {
+      "frame": 12332,
+      "ticket": 12036,
+      "normal": false,
+      "acquisition_ns": 1998820448734984,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 184930,
+          "cpu_ns": 185252,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3662,
+          "cpu_ns": 3309,
+          "wall_minus_cpu_ns": 353
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 873224,
+          "cpu_ns": 782787,
+          "wall_minus_cpu_ns": 90437
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25593,
+          "cpu_ns": 25073,
+          "wall_minus_cpu_ns": 520
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27919,
+          "cpu_ns": 27917,
+          "wall_minus_cpu_ns": 2
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5020,
+          "cpu_ns": 4966,
+          "wall_minus_cpu_ns": 54
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14734,
+          "cpu_ns": 14768,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10351,
+          "cpu_ns": 10300,
+          "wall_minus_cpu_ns": 51
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 806,
+          "cpu_ns": 813,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 547,
+          "cpu_ns": 528,
+          "wall_minus_cpu_ns": 19
+        }
+      },
+      "acquisition_to_publication_ns": 30105,
+      "publication_to_native_upper_ns": 799711,
+      "acquisition_to_native_ns": 857735,
+      "native_service_ns": 80560,
+      "native_cpu_ns": 89136,
+      "max_pump_gap_ns": 1833362,
+      "max_rpc_ns": 117589
+    },
+    {
+      "frame": 12333,
+      "ticket": 12037,
+      "normal": false,
+      "acquisition_ns": 1998820454143622,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 266904,
+          "cpu_ns": 267882,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 9954,
+          "cpu_ns": 8946,
+          "wall_minus_cpu_ns": 1008
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1179702,
+          "cpu_ns": 1079620,
+          "wall_minus_cpu_ns": 100082
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 30517,
+          "cpu_ns": 29771,
+          "wall_minus_cpu_ns": 746
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29888,
+          "cpu_ns": 29881,
+          "wall_minus_cpu_ns": 7
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6172,
+          "cpu_ns": 6137,
+          "wall_minus_cpu_ns": 35
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15583,
+          "cpu_ns": 15607,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10571,
+          "cpu_ns": 10532,
+          "wall_minus_cpu_ns": 39
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 736,
+          "cpu_ns": 728,
+          "wall_minus_cpu_ns": 8
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 531,
+          "cpu_ns": 522,
+          "wall_minus_cpu_ns": 9
+        }
+      },
+      "acquisition_to_publication_ns": 32326,
+      "publication_to_native_upper_ns": 403805,
+      "acquisition_to_native_ns": 466019,
+      "native_service_ns": 85770,
+      "native_cpu_ns": 101521,
+      "max_pump_gap_ns": 1897641,
+      "max_rpc_ns": 372961
+    },
+    {
+      "frame": 12334,
+      "ticket": 12038,
+      "normal": false,
+      "acquisition_ns": 1998820458727022,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 203674,
+          "cpu_ns": 204057,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4133,
+          "cpu_ns": 3714,
+          "wall_minus_cpu_ns": 419
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 840574,
+          "cpu_ns": 751313,
+          "wall_minus_cpu_ns": 89261
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 26832,
+          "cpu_ns": 26229,
+          "wall_minus_cpu_ns": 603
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 36257,
+          "cpu_ns": 36264,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5679,
+          "cpu_ns": 5620,
+          "wall_minus_cpu_ns": 59
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 17970,
+          "cpu_ns": 17996,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11036,
+          "cpu_ns": 11020,
+          "wall_minus_cpu_ns": 16
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 934,
+          "cpu_ns": 911,
+          "wall_minus_cpu_ns": 23
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 536,
+          "cpu_ns": 536,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 34685,
+      "publication_to_native_upper_ns": 796242,
+      "acquisition_to_native_ns": 867184,
+      "native_service_ns": 96349,
+      "native_cpu_ns": 105450,
+      "max_pump_gap_ns": 2447507,
+      "max_rpc_ns": 2482
+    },
+    {
+      "frame": 12335,
+      "ticket": 12039,
+      "normal": false,
+      "acquisition_ns": 1998820464269868,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 237042,
+          "cpu_ns": 237401,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 6754,
+          "cpu_ns": 6201,
+          "wall_minus_cpu_ns": 553
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1316466,
+          "cpu_ns": 1200415,
+          "wall_minus_cpu_ns": 116051
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 51625,
+          "cpu_ns": 46792,
+          "wall_minus_cpu_ns": 4833
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 35680,
+          "cpu_ns": 35662,
+          "wall_minus_cpu_ns": 18
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5745,
+          "cpu_ns": 5705,
+          "wall_minus_cpu_ns": 40
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 19673,
+          "cpu_ns": 19687,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11279,
+          "cpu_ns": 11277,
+          "wall_minus_cpu_ns": 2
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1135,
+          "cpu_ns": 1108,
+          "wall_minus_cpu_ns": 27
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 513,
+          "cpu_ns": 501,
+          "wall_minus_cpu_ns": 12
+        }
+      },
+      "acquisition_to_publication_ns": 36697,
+      "publication_to_native_upper_ns": 270733,
+      "acquisition_to_native_ns": 343110,
+      "native_service_ns": 100294,
+      "native_cpu_ns": 117820,
+      "max_pump_gap_ns": 2020169,
+      "max_rpc_ns": 120173
+    },
+    {
+      "frame": 12336,
+      "ticket": 12040,
+      "normal": false,
+      "acquisition_ns": 1998820468588942,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 161329,
+          "cpu_ns": 161449,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2823,
+          "cpu_ns": 2672,
+          "wall_minus_cpu_ns": 151
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 767986,
+          "cpu_ns": 689428,
+          "wall_minus_cpu_ns": 78558
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21751,
+          "cpu_ns": 21081,
+          "wall_minus_cpu_ns": 670
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29904,
+          "cpu_ns": 29877,
+          "wall_minus_cpu_ns": 27
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 7168,
+          "cpu_ns": 7135,
+          "wall_minus_cpu_ns": 33
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14750,
+          "cpu_ns": 14763,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10081,
+          "cpu_ns": 10071,
+          "wall_minus_cpu_ns": 10
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 766,
+          "cpu_ns": 747,
+          "wall_minus_cpu_ns": 19
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 508,
+          "cpu_ns": 508,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 31999,
+      "publication_to_native_upper_ns": 944434,
+      "acquisition_to_native_ns": 1006337,
+      "native_service_ns": 85922,
+      "native_cpu_ns": 94023,
+      "max_pump_gap_ns": 2617262,
+      "max_rpc_ns": 107052
+    },
+    {
+      "frame": 12337,
+      "ticket": 12041,
+      "normal": false,
+      "acquisition_ns": 1998820473511908,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 148135,
+          "cpu_ns": 148296,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3080,
+          "cpu_ns": 2905,
+          "wall_minus_cpu_ns": 175
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 702307,
+          "cpu_ns": 623965,
+          "wall_minus_cpu_ns": 78342
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 20001,
+          "cpu_ns": 19409,
+          "wall_minus_cpu_ns": 592
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 23567,
+          "cpu_ns": 23585,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5270,
+          "cpu_ns": 5201,
+          "wall_minus_cpu_ns": 69
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14361,
+          "cpu_ns": 14391,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9391,
+          "cpu_ns": 9371,
+          "wall_minus_cpu_ns": 20
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 806,
+          "cpu_ns": 781,
+          "wall_minus_cpu_ns": 25
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 511,
+          "cpu_ns": 502,
+          "wall_minus_cpu_ns": 9
+        }
+      },
+      "acquisition_to_publication_ns": 29022,
+      "publication_to_native_upper_ns": 25498,
+      "acquisition_to_native_ns": 78087,
+      "native_service_ns": 68591,
+      "native_cpu_ns": 75556,
+      "max_pump_gap_ns": 1678718,
+      "max_rpc_ns": 125572
+    },
+    {
+      "frame": 12338,
+      "ticket": 12042,
+      "normal": false,
+      "acquisition_ns": 1998820478573986,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 148821,
+          "cpu_ns": 148930,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2835,
+          "cpu_ns": 2686,
+          "wall_minus_cpu_ns": 149
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 755939,
+          "cpu_ns": 673066,
+          "wall_minus_cpu_ns": 82873
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24088,
+          "cpu_ns": 23422,
+          "wall_minus_cpu_ns": 666
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25105,
+          "cpu_ns": 25087,
+          "wall_minus_cpu_ns": 18
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5977,
+          "cpu_ns": 5940,
+          "wall_minus_cpu_ns": 37
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15471,
+          "cpu_ns": 15491,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10558,
+          "cpu_ns": 10534,
+          "wall_minus_cpu_ns": 24
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 791,
+          "cpu_ns": 788,
+          "wall_minus_cpu_ns": 3
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 527,
+          "cpu_ns": 502,
+          "wall_minus_cpu_ns": 25
+        }
+      },
+      "acquisition_to_publication_ns": 32006,
+      "publication_to_native_upper_ns": 960415,
+      "acquisition_to_native_ns": 1017526,
+      "native_service_ns": 90895,
+      "native_cpu_ns": 98677,
+      "max_pump_gap_ns": 1565115,
+      "max_rpc_ns": 124085
+    },
+    {
+      "frame": 12339,
+      "ticket": 12043,
+      "normal": false,
+      "acquisition_ns": 1998820483707954,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 207268,
+          "cpu_ns": 207423,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3856,
+          "cpu_ns": 3569,
+          "wall_minus_cpu_ns": 287
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 841297,
+          "cpu_ns": 758439,
+          "wall_minus_cpu_ns": 82858
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25594,
+          "cpu_ns": 25043,
+          "wall_minus_cpu_ns": 551
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 39889,
+          "cpu_ns": 39879,
+          "wall_minus_cpu_ns": 10
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 7969,
+          "cpu_ns": 7911,
+          "wall_minus_cpu_ns": 58
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 16116,
+          "cpu_ns": 16398,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12563,
+          "cpu_ns": 12294,
+          "wall_minus_cpu_ns": 269
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 872,
+          "cpu_ns": 847,
+          "wall_minus_cpu_ns": 25
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 649,
+          "cpu_ns": 728,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 36648,
+      "publication_to_native_upper_ns": 813002,
+      "acquisition_to_native_ns": 889539,
+      "native_service_ns": 78929,
+      "native_cpu_ns": 88588,
+      "max_pump_gap_ns": 1696824,
+      "max_rpc_ns": 2031
+    },
+    {
+      "frame": 12340,
+      "ticket": 12044,
+      "normal": false,
+      "acquisition_ns": 1998820488582721,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 172028,
+          "cpu_ns": 172236,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3245,
+          "cpu_ns": 2995,
+          "wall_minus_cpu_ns": 250
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 751124,
+          "cpu_ns": 668655,
+          "wall_minus_cpu_ns": 82469
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 20609,
+          "cpu_ns": 20208,
+          "wall_minus_cpu_ns": 401
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 30504,
+          "cpu_ns": 30513,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4649,
+          "cpu_ns": 4587,
+          "wall_minus_cpu_ns": 62
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14604,
+          "cpu_ns": 14611,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10405,
+          "cpu_ns": 10397,
+          "wall_minus_cpu_ns": 8
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 799,
+          "cpu_ns": 797,
+          "wall_minus_cpu_ns": 2
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 534,
+          "cpu_ns": 523,
+          "wall_minus_cpu_ns": 11
+        }
+      },
+      "acquisition_to_publication_ns": 29658,
+      "publication_to_native_upper_ns": 948297,
+      "acquisition_to_native_ns": 1008459,
+      "native_service_ns": 66593,
+      "native_cpu_ns": 73527,
+      "max_pump_gap_ns": 2017758,
+      "max_rpc_ns": 116443
+    },
+    {
+      "frame": 12341,
+      "ticket": 12045,
+      "normal": false,
+      "acquisition_ns": 1998820493663357,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 180521,
+          "cpu_ns": 180702,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2966,
+          "cpu_ns": 2756,
+          "wall_minus_cpu_ns": 210
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 815764,
+          "cpu_ns": 731792,
+          "wall_minus_cpu_ns": 83972
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24135,
+          "cpu_ns": 23700,
+          "wall_minus_cpu_ns": 435
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 33709,
+          "cpu_ns": 33703,
+          "wall_minus_cpu_ns": 6
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4771,
+          "cpu_ns": 4699,
+          "wall_minus_cpu_ns": 72
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 16067,
+          "cpu_ns": 16106,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10862,
+          "cpu_ns": 10846,
+          "wall_minus_cpu_ns": 16
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 886,
+          "cpu_ns": 873,
+          "wall_minus_cpu_ns": 13
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 538,
+          "cpu_ns": 520,
+          "wall_minus_cpu_ns": 18
+        }
+      },
+      "acquisition_to_publication_ns": 31700,
+      "publication_to_native_upper_ns": 869964,
+      "acquisition_to_native_ns": 935373,
+      "native_service_ns": 65425,
+      "native_cpu_ns": 71449,
+      "max_pump_gap_ns": 1685614,
+      "max_rpc_ns": 120867
+    },
+    {
+      "frame": 12342,
+      "ticket": 12046,
+      "normal": false,
+      "acquisition_ns": 1998820499075275,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 163817,
+          "cpu_ns": 164089,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2968,
+          "cpu_ns": 2659,
+          "wall_minus_cpu_ns": 309
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1215211,
+          "cpu_ns": 1085301,
+          "wall_minus_cpu_ns": 129910
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 78117,
+          "cpu_ns": 77984,
+          "wall_minus_cpu_ns": 133
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 90667,
+          "cpu_ns": 89605,
+          "wall_minus_cpu_ns": 1062
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 13116,
+          "cpu_ns": 13430,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 42132,
+          "cpu_ns": 42173,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 16065,
+          "cpu_ns": 15677,
+          "wall_minus_cpu_ns": 388
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 2071,
+          "cpu_ns": 2037,
+          "wall_minus_cpu_ns": 34
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 642,
+          "cpu_ns": 622,
+          "wall_minus_cpu_ns": 20
+        }
+      },
+      "acquisition_to_publication_ns": 71313,
+      "publication_to_native_upper_ns": 382544,
+      "acquisition_to_native_ns": 544524,
+      "native_service_ns": 160546,
+      "native_cpu_ns": 190802,
+      "max_pump_gap_ns": 1787092,
+      "max_rpc_ns": 108579
+    },
+    {
+      "frame": 12343,
+      "ticket": 12047,
+      "normal": false,
+      "acquisition_ns": 1998820503651746,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 159270,
+          "cpu_ns": 159524,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2899,
+          "cpu_ns": 2617,
+          "wall_minus_cpu_ns": 282
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 820264,
+          "cpu_ns": 736856,
+          "wall_minus_cpu_ns": 83408
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23600,
+          "cpu_ns": 23119,
+          "wall_minus_cpu_ns": 481
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 34848,
+          "cpu_ns": 34865,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6512,
+          "cpu_ns": 6458,
+          "wall_minus_cpu_ns": 54
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14339,
+          "cpu_ns": 14327,
+          "wall_minus_cpu_ns": 12
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10515,
+          "cpu_ns": 10513,
+          "wall_minus_cpu_ns": 2
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 808,
+          "cpu_ns": 794,
+          "wall_minus_cpu_ns": 14
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 521,
+          "cpu_ns": 503,
+          "wall_minus_cpu_ns": 18
+        }
+      },
+      "acquisition_to_publication_ns": 31366,
+      "publication_to_native_upper_ns": 878065,
+      "acquisition_to_native_ns": 944279,
+      "native_service_ns": 75547,
+      "native_cpu_ns": 83624,
+      "max_pump_gap_ns": 3511705,
+      "max_rpc_ns": 246270
+    },
+    {
+      "frame": 12344,
+      "ticket": 12048,
+      "normal": false,
+      "acquisition_ns": 1998820508581034,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 176785,
+          "cpu_ns": 176943,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2822,
+          "cpu_ns": 2649,
+          "wall_minus_cpu_ns": 173
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 750700,
+          "cpu_ns": 668525,
+          "wall_minus_cpu_ns": 82175
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22131,
+          "cpu_ns": 21427,
+          "wall_minus_cpu_ns": 704
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31456,
+          "cpu_ns": 31447,
+          "wall_minus_cpu_ns": 9
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5007,
+          "cpu_ns": 4951,
+          "wall_minus_cpu_ns": 56
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14610,
+          "cpu_ns": 14652,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10317,
+          "cpu_ns": 10300,
+          "wall_minus_cpu_ns": 17
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 823,
+          "cpu_ns": 811,
+          "wall_minus_cpu_ns": 12
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 528,
+          "cpu_ns": 504,
+          "wall_minus_cpu_ns": 24
+        }
+      },
+      "acquisition_to_publication_ns": 29934,
+      "publication_to_native_upper_ns": 949457,
+      "acquisition_to_native_ns": 1010847,
+      "native_service_ns": 69751,
+      "native_cpu_ns": 77486,
+      "max_pump_gap_ns": 2133958,
+      "max_rpc_ns": 354873
+    },
+    {
+      "frame": 12345,
+      "ticket": 12049,
+      "normal": false,
+      "acquisition_ns": 1998820513610713,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 169545,
+          "cpu_ns": 170046,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3428,
+          "cpu_ns": 2888,
+          "wall_minus_cpu_ns": 540
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 770980,
+          "cpu_ns": 689875,
+          "wall_minus_cpu_ns": 81105
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 25873,
+          "cpu_ns": 25189,
+          "wall_minus_cpu_ns": 684
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 35361,
+          "cpu_ns": 35335,
+          "wall_minus_cpu_ns": 26
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5031,
+          "cpu_ns": 4981,
+          "wall_minus_cpu_ns": 50
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15875,
+          "cpu_ns": 15900,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10875,
+          "cpu_ns": 10870,
+          "wall_minus_cpu_ns": 5
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 835,
+          "cpu_ns": 828,
+          "wall_minus_cpu_ns": 7
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 550,
+          "cpu_ns": 536,
+          "wall_minus_cpu_ns": 14
+        }
+      },
+      "acquisition_to_publication_ns": 31781,
+      "publication_to_native_upper_ns": 920030,
+      "acquisition_to_native_ns": 987172,
+      "native_service_ns": 83123,
+      "native_cpu_ns": 92549,
+      "max_pump_gap_ns": 1713257,
+      "max_rpc_ns": 124795
+    },
+    {
+      "frame": 12346,
+      "ticket": 12050,
+      "normal": false,
+      "acquisition_ns": 1998820518550967,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 154629,
+          "cpu_ns": 154852,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3290,
+          "cpu_ns": 3031,
+          "wall_minus_cpu_ns": 259
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 759421,
+          "cpu_ns": 678974,
+          "wall_minus_cpu_ns": 80447
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24215,
+          "cpu_ns": 23439,
+          "wall_minus_cpu_ns": 776
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24090,
+          "cpu_ns": 24069,
+          "wall_minus_cpu_ns": 21
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5714,
+          "cpu_ns": 5686,
+          "wall_minus_cpu_ns": 28
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 24833,
+          "cpu_ns": 24867,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9926,
+          "cpu_ns": 9894,
+          "wall_minus_cpu_ns": 32
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 780,
+          "cpu_ns": 774,
+          "wall_minus_cpu_ns": 6
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 544,
+          "cpu_ns": 520,
+          "wall_minus_cpu_ns": 24
+        }
+      },
+      "acquisition_to_publication_ns": 40473,
+      "publication_to_native_upper_ns": 975862,
+      "acquisition_to_native_ns": 1040425,
+      "native_service_ns": 79560,
+      "native_cpu_ns": 87788,
+      "max_pump_gap_ns": 1770737,
+      "max_rpc_ns": 123903
+    },
+    {
+      "frame": 12347,
+      "ticket": 12051,
+      "normal": false,
+      "acquisition_ns": 1998820523521385,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 140528,
+          "cpu_ns": 140732,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2777,
+          "cpu_ns": 2542,
+          "wall_minus_cpu_ns": 235
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 761065,
+          "cpu_ns": 677995,
+          "wall_minus_cpu_ns": 83070
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23582,
+          "cpu_ns": 22858,
+          "wall_minus_cpu_ns": 724
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 29753,
+          "cpu_ns": 29751,
+          "wall_minus_cpu_ns": 2
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5440,
+          "cpu_ns": 5366,
+          "wall_minus_cpu_ns": 74
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14583,
+          "cpu_ns": 14610,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10350,
+          "cpu_ns": 10354,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 945,
+          "cpu_ns": 904,
+          "wall_minus_cpu_ns": 41
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 524,
+          "cpu_ns": 526,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 30373,
+      "publication_to_native_upper_ns": 11282,
+      "acquisition_to_native_ns": 71408,
+      "native_service_ns": 80747,
+      "native_cpu_ns": 89374,
+      "max_pump_gap_ns": 1688478,
+      "max_rpc_ns": 143740
+    },
+    {
+      "frame": 12348,
+      "ticket": 12052,
+      "normal": false,
+      "acquisition_ns": 1998820528647561,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 187100,
+          "cpu_ns": 187392,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3465,
+          "cpu_ns": 3136,
+          "wall_minus_cpu_ns": 329
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 789201,
+          "cpu_ns": 700244,
+          "wall_minus_cpu_ns": 88957
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24065,
+          "cpu_ns": 23487,
+          "wall_minus_cpu_ns": 578
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27470,
+          "cpu_ns": 27469,
+          "wall_minus_cpu_ns": 1
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 10919,
+          "cpu_ns": 10868,
+          "wall_minus_cpu_ns": 51
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 16505,
+          "cpu_ns": 16519,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10642,
+          "cpu_ns": 10612,
+          "wall_minus_cpu_ns": 30
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 834,
+          "cpu_ns": 828,
+          "wall_minus_cpu_ns": 6
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 523,
+          "cpu_ns": 511,
+          "wall_minus_cpu_ns": 12
+        }
+      },
+      "acquisition_to_publication_ns": 38066,
+      "publication_to_native_upper_ns": 871510,
+      "acquisition_to_native_ns": 937046,
+      "native_service_ns": 82633,
+      "native_cpu_ns": 90570,
+      "max_pump_gap_ns": 1689609,
+      "max_rpc_ns": 1676
+    },
+    {
+      "frame": 12349,
+      "ticket": 12053,
+      "normal": false,
+      "acquisition_ns": 1998820533612518,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 168718,
+          "cpu_ns": 169070,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3383,
+          "cpu_ns": 3005,
+          "wall_minus_cpu_ns": 378
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 784821,
+          "cpu_ns": 703308,
+          "wall_minus_cpu_ns": 81513
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24069,
+          "cpu_ns": 23230,
+          "wall_minus_cpu_ns": 839
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 27629,
+          "cpu_ns": 27618,
+          "wall_minus_cpu_ns": 11
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5558,
+          "cpu_ns": 5509,
+          "wall_minus_cpu_ns": 49
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 25025,
+          "cpu_ns": 25057,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10996,
+          "cpu_ns": 10954,
+          "wall_minus_cpu_ns": 42
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 757,
+          "cpu_ns": 757,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 508,
+          "cpu_ns": 494,
+          "wall_minus_cpu_ns": 14
+        }
+      },
+      "acquisition_to_publication_ns": 41579,
+      "publication_to_native_upper_ns": 958072,
+      "acquisition_to_native_ns": 1027280,
+      "native_service_ns": 167610,
+      "native_cpu_ns": 194126,
+      "max_pump_gap_ns": 1879641,
+      "max_rpc_ns": 113117
+    },
+    {
+      "frame": 12350,
+      "ticket": 12054,
+      "normal": false,
+      "acquisition_ns": 1998820538974416,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 212318,
+          "cpu_ns": 212614,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4609,
+          "cpu_ns": 4029,
+          "wall_minus_cpu_ns": 580
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1044830,
+          "cpu_ns": 921229,
+          "wall_minus_cpu_ns": 123601
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 34903,
+          "cpu_ns": 33914,
+          "wall_minus_cpu_ns": 989
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 72754,
+          "cpu_ns": 73340,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8396,
+          "cpu_ns": 7775,
+          "wall_minus_cpu_ns": 621
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 34444,
+          "cpu_ns": 34541,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 13599,
+          "cpu_ns": 13541,
+          "wall_minus_cpu_ns": 58
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 786,
+          "cpu_ns": 740,
+          "wall_minus_cpu_ns": 46
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 546,
+          "cpu_ns": 533,
+          "wall_minus_cpu_ns": 13
+        }
+      },
+      "acquisition_to_publication_ns": 56439,
+      "publication_to_native_upper_ns": 498230,
+      "acquisition_to_native_ns": 627423,
+      "native_service_ns": 114550,
+      "native_cpu_ns": 132267,
+      "max_pump_gap_ns": 3012193,
+      "max_rpc_ns": 333561
+    },
+    {
+      "frame": 12351,
+      "ticket": 12055,
+      "normal": false,
+      "acquisition_ns": 1998820543630550,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 176909,
+          "cpu_ns": 177165,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3013,
+          "cpu_ns": 2697,
+          "wall_minus_cpu_ns": 316
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 789418,
+          "cpu_ns": 710135,
+          "wall_minus_cpu_ns": 79283
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22367,
+          "cpu_ns": 21869,
+          "wall_minus_cpu_ns": 498
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26019,
+          "cpu_ns": 26023,
+          "wall_minus_cpu_ns": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 12071,
+          "cpu_ns": 12056,
+          "wall_minus_cpu_ns": 15
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 15371,
+          "cpu_ns": 15370,
+          "wall_minus_cpu_ns": 1
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10389,
+          "cpu_ns": 10384,
+          "wall_minus_cpu_ns": 5
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 847,
+          "cpu_ns": 834,
+          "wall_minus_cpu_ns": 13
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 536,
+          "cpu_ns": 511,
+          "wall_minus_cpu_ns": 25
+        }
+      },
+      "acquisition_to_publication_ns": 37831,
+      "publication_to_native_upper_ns": 890957,
+      "acquisition_to_native_ns": 954807,
+      "native_service_ns": 75997,
+      "native_cpu_ns": 81819,
+      "max_pump_gap_ns": 2546935,
+      "max_rpc_ns": 2893
+    },
+    {
+      "frame": 12352,
+      "ticket": 12056,
+      "normal": false,
+      "acquisition_ns": 1998820548647190,
+      "owner_spans": {
+        "admitted_to_staged": {
+          "wall_ns": 174447,
+          "cpu_ns": 174686,
+          "wall_minus_cpu_ns": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2910,
+          "cpu_ns": 2645,
+          "wall_minus_cpu_ns": 265
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 820919,
+          "cpu_ns": 739400,
+          "wall_minus_cpu_ns": 81519
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23783,
+          "cpu_ns": 23375,
+          "wall_minus_cpu_ns": 408
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26709,
+          "cpu_ns": 26665,
+          "wall_minus_cpu_ns": 44
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4780,
+          "cpu_ns": 4733,
+          "wall_minus_cpu_ns": 47
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 18277,
+          "cpu_ns": 18307,
+          "wall_minus_cpu_ns": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10548,
+          "cpu_ns": 10555,
+          "wall_minus_cpu_ns": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 796,
+          "cpu_ns": 760,
+          "wall_minus_cpu_ns": 36
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 540,
+          "cpu_ns": 547,
+          "wall_minus_cpu_ns": 0
+        }
+      },
+      "acquisition_to_publication_ns": 33605,
+      "publication_to_native_upper_ns": 884480,
+      "acquisition_to_native_ns": 944794,
+      "native_service_ns": 72818,
+      "native_cpu_ns": 80411,
+      "max_pump_gap_ns": 1803704,
+      "max_rpc_ns": 97715
+    }
+  ],
+  "first_fault_hv_window": [
+    {
+      "service_begin_ns": 1998820154585998,
+      "service_end_ns": 1998820154668503,
+      "source_ns": 1998820153626956,
+      "dependency_ns": 1998820144031333,
+      "source_frame": 12273,
+      "actuator_source_ns": 1998820144031333,
+      "coil_source_ns": 1998820146594288,
+      "applied_ns": 1998820152826705,
+      "dependency_age_ns": 10554665
+    },
+    {
+      "service_begin_ns": 1998820160599953,
+      "service_end_ns": 1998820160715303,
+      "source_ns": 1998820160104114,
+      "dependency_ns": 1998820153626956,
+      "source_frame": 12274,
+      "actuator_source_ns": 1998820153626956,
+      "coil_source_ns": 1998820157595657,
+      "applied_ns": 1998820159033630,
+      "dependency_age_ns": 6972997
+    },
+    {
+      "service_begin_ns": 1998820164609965,
+      "service_end_ns": 1998820164725146,
+      "source_ns": 1998820163634461,
+      "dependency_ns": 1998820153626956,
+      "source_frame": 12275,
+      "actuator_source_ns": 1998820153626956,
+      "coil_source_ns": 1998820157595657,
+      "applied_ns": 1998820162867668,
+      "dependency_age_ns": 10983009
+    },
+    {
+      "service_begin_ns": 1998820169595016,
+      "service_end_ns": 1998820169680759,
+      "source_ns": 1998820168794606,
+      "dependency_ns": 1998820153626956,
+      "source_frame": 12276,
+      "actuator_source_ns": 1998820153626956,
+      "coil_source_ns": 1998820157595657,
+      "applied_ns": 1998820167917264,
+      "dependency_age_ns": 15968060
+    },
+    {
+      "service_begin_ns": 1998820174587397,
+      "service_end_ns": 1998820174664928,
+      "source_ns": 1998820173665905,
+      "dependency_ns": 1998820163634461,
+      "source_frame": 12277,
+      "actuator_source_ns": 1998820163634461,
+      "coil_source_ns": 1998820166597515,
+      "applied_ns": 1998820172847987,
+      "dependency_age_ns": 10952936
+    },
+    {
+      "service_begin_ns": 1998820179597600,
+      "service_end_ns": 1998820179696116,
+      "source_ns": 1998820178626635,
+      "dependency_ns": 1998820173665905,
+      "source_frame": 12278,
+      "actuator_source_ns": 1998820173665905,
+      "coil_source_ns": 1998820176593604,
+      "applied_ns": 1998820177957172,
+      "dependency_age_ns": 5931695
+    },
+    {
+      "service_begin_ns": 1998820184590690,
+      "service_end_ns": 1998820184680426,
+      "source_ns": 1998820183754907,
+      "dependency_ns": 1998820173665905,
+      "source_frame": 12279,
+      "actuator_source_ns": 1998820173665905,
+      "coil_source_ns": 1998820176593604,
+      "applied_ns": 1998820182946586,
+      "dependency_age_ns": 10924785
+    },
+    {
+      "service_begin_ns": 1998820189592849,
+      "service_end_ns": 1998820189673784,
+      "source_ns": 1998820188899822,
+      "dependency_ns": 1998820173665905,
+      "source_frame": 12280,
+      "actuator_source_ns": 1998820173665905,
+      "coil_source_ns": 1998820176593604,
+      "applied_ns": 1998820187920860,
+      "dependency_age_ns": 15926944
+    },
+    {
+      "service_begin_ns": 1998820194596288,
+      "service_end_ns": 1998820194678574,
+      "source_ns": 1998820193913572,
+      "dependency_ns": 1998820183754907,
+      "source_frame": 12281,
+      "actuator_source_ns": 1998820183754907,
+      "coil_source_ns": 1998820186597413,
+      "applied_ns": 1998820192870699,
+      "dependency_age_ns": 10841381
+    },
+    {
+      "service_begin_ns": 1998820199592549,
+      "service_end_ns": 1998820199678898,
+      "source_ns": 1998820198821030,
+      "dependency_ns": 1998820193913572,
+      "source_frame": 12282,
+      "actuator_source_ns": 1998820193913572,
+      "coil_source_ns": 1998820196613941,
+      "applied_ns": 1998820197996817,
+      "dependency_age_ns": 5678977
+    },
+    {
+      "service_begin_ns": 1998820204609045,
+      "service_end_ns": 1998820204720380,
+      "source_ns": 1998820204237978,
+      "dependency_ns": 1998820193913572,
+      "source_frame": 12283,
+      "actuator_source_ns": 1998820193913572,
+      "coil_source_ns": 1998820196613941,
+      "applied_ns": 1998820203029176,
+      "dependency_age_ns": 10695473
+    },
+    {
+      "service_begin_ns": 1998820209596452,
+      "service_end_ns": 1998820209693685,
+      "source_ns": 1998820208537230,
+      "dependency_ns": 1998820193913572,
+      "source_frame": 12284,
+      "actuator_source_ns": 1998820193913572,
+      "coil_source_ns": 1998820196613941,
+      "applied_ns": 1998820207851782,
+      "dependency_age_ns": 15682880
+    },
+    {
+      "service_begin_ns": 1998820213580638,
+      "service_end_ns": 1998820213663248,
+      "source_ns": 1998820213466147,
+      "dependency_ns": 1998820204237978,
+      "source_frame": 12285,
+      "actuator_source_ns": 1998820204237978,
+      "coil_source_ns": 1998820206594628,
+      "applied_ns": 1998820212805517,
+      "dependency_age_ns": 9342660
+    },
+    {
+      "service_begin_ns": 1998820219591800,
+      "service_end_ns": 1998820219674567,
+      "source_ns": 1998820218654073,
+      "dependency_ns": 1998820213466147,
+      "source_frame": 12286,
+      "actuator_source_ns": 1998820213466147,
+      "coil_source_ns": 1998820216600421,
+      "applied_ns": 1998820217955407,
+      "dependency_age_ns": 6125653
+    },
+    {
+      "service_begin_ns": 1998820224597759,
+      "service_end_ns": 1998820224679740,
+      "source_ns": 1998820223643258,
+      "dependency_ns": 1998820213466147,
+      "source_frame": 12287,
+      "actuator_source_ns": 1998820213466147,
+      "coil_source_ns": 1998820216600421,
+      "applied_ns": 1998820222897754,
+      "dependency_age_ns": 11131612
+    },
+    {
+      "service_begin_ns": 1998820228595660,
+      "service_end_ns": 1998820228680357,
+      "source_ns": 1998820228516359,
+      "dependency_ns": 1998820213466147,
+      "source_frame": 12288,
+      "actuator_source_ns": 1998820213466147,
+      "coil_source_ns": 1998820216600421,
+      "applied_ns": 1998820227808318,
+      "dependency_age_ns": 15129513
+    },
+    {
+      "service_begin_ns": 1998820234595092,
+      "service_end_ns": 1998820234687073,
+      "source_ns": 1998820233582216,
+      "dependency_ns": 1998820223643258,
+      "source_frame": 12289,
+      "actuator_source_ns": 1998820223643258,
+      "coil_source_ns": 1998820226598605,
+      "applied_ns": 1998820232850541,
+      "dependency_age_ns": 10951834
+    },
+    {
+      "service_begin_ns": 1998820239629799,
+      "service_end_ns": 1998820239803812,
+      "source_ns": 1998820238746897,
+      "dependency_ns": 1998820233582216,
+      "source_frame": 12290,
+      "actuator_source_ns": 1998820233582216,
+      "coil_source_ns": 1998820236593140,
+      "applied_ns": 1998820237966718,
+      "dependency_age_ns": 6047583
+    },
+    {
+      "service_begin_ns": 1998820244597281,
+      "service_end_ns": 1998820244698795,
+      "source_ns": 1998820243720935,
+      "dependency_ns": 1998820233582216,
+      "source_frame": 12291,
+      "actuator_source_ns": 1998820233582216,
+      "coil_source_ns": 1998820236593140,
+      "applied_ns": 1998820242912785,
+      "dependency_age_ns": 11015065
+    },
+    {
+      "service_begin_ns": 1998820249591424,
+      "service_end_ns": 1998820249666361,
+      "source_ns": 1998820248593981,
+      "dependency_ns": 1998820233582216,
+      "source_frame": 12292,
+      "actuator_source_ns": 1998820233582216,
+      "coil_source_ns": 1998820236593140,
+      "applied_ns": 1998820247858931,
+      "dependency_age_ns": 16009208
+    },
+    {
+      "service_begin_ns": 1998820254596250,
+      "service_end_ns": 1998820254687385,
+      "source_ns": 1998820253665870,
+      "dependency_ns": 1998820243720935,
+      "source_frame": 12293,
+      "actuator_source_ns": 1998820243720935,
+      "coil_source_ns": 1998820246595748,
+      "applied_ns": 1998820252863387,
+      "dependency_age_ns": 10875315
+    },
+    {
+      "service_begin_ns": 1998820260585508,
+      "service_end_ns": 1998820260663811,
+      "source_ns": 1998820259789185,
+      "dependency_ns": 1998820253665870,
+      "source_frame": 12294,
+      "actuator_source_ns": 1998820253665870,
+      "coil_source_ns": 1998820257589377,
+      "applied_ns": 1998820259008902,
+      "dependency_age_ns": 6919638
+    },
+    {
+      "service_begin_ns": 1998820264613031,
+      "service_end_ns": 1998820264696050,
+      "source_ns": 1998820263617573,
+      "dependency_ns": 1998820253665870,
+      "source_frame": 12295,
+      "actuator_source_ns": 1998820253665870,
+      "coil_source_ns": 1998820257589377,
+      "applied_ns": 1998820262841279,
+      "dependency_age_ns": 10947161
+    },
+    {
+      "service_begin_ns": 1998820269589245,
+      "service_end_ns": 1998820269682037,
+      "source_ns": 1998820268655752,
+      "dependency_ns": 1998820253665870,
+      "source_frame": 12296,
+      "actuator_source_ns": 1998820253665870,
+      "coil_source_ns": 1998820257589377,
+      "applied_ns": 1998820267873815,
+      "dependency_age_ns": 15923375
+    },
+    {
+      "service_begin_ns": 1998820274632967,
+      "service_end_ns": 1998820274823676,
+      "source_ns": 1998820273604418,
+      "dependency_ns": 1998820263617573,
+      "source_frame": 12297,
+      "actuator_source_ns": 1998820263617573,
+      "coil_source_ns": 1998820267591289,
+      "applied_ns": 1998820272833912,
+      "dependency_age_ns": 11015394
+    },
+    {
+      "service_begin_ns": 1998820279599385,
+      "service_end_ns": 1998820279714813,
+      "source_ns": 1998820279256612,
+      "dependency_ns": 1998820273604418,
+      "source_frame": 12298,
+      "actuator_source_ns": 1998820273604418,
+      "coil_source_ns": 1998820276625522,
+      "applied_ns": 1998820278144359,
+      "dependency_age_ns": 5994967
+    },
+    {
+      "service_begin_ns": 1998820284598229,
+      "service_end_ns": 1998820284666129,
+      "source_ns": 1998820283598153,
+      "dependency_ns": 1998820273604418,
+      "source_frame": 12299,
+      "actuator_source_ns": 1998820273604418,
+      "coil_source_ns": 1998820276625522,
+      "applied_ns": 1998820282830705,
+      "dependency_age_ns": 10993811
+    },
+    {
+      "service_begin_ns": 1998820289581269,
+      "service_end_ns": 1998820289648524,
+      "source_ns": 1998820288603730,
+      "dependency_ns": 1998820273604418,
+      "source_frame": 12300,
+      "actuator_source_ns": 1998820273604418,
+      "coil_source_ns": 1998820276625522,
+      "applied_ns": 1998820287825236,
+      "dependency_age_ns": 15976851
+    },
+    {
+      "service_begin_ns": 1998820294596353,
+      "service_end_ns": 1998820294675187,
+      "source_ns": 1998820293695315,
+      "dependency_ns": 1998820283598153,
+      "source_frame": 12301,
+      "actuator_source_ns": 1998820283598153,
+      "coil_source_ns": 1998820287579904,
+      "applied_ns": 1998820292841758,
+      "dependency_age_ns": 10998200
+    },
+    {
+      "service_begin_ns": 1998820299612437,
+      "service_end_ns": 1998820299705038,
+      "source_ns": 1998820299300841,
+      "dependency_ns": 1998820293695315,
+      "source_frame": 12302,
+      "actuator_source_ns": 1998820293695315,
+      "coil_source_ns": 1998820296617455,
+      "applied_ns": 1998820298150247,
+      "dependency_age_ns": 5917122
+    },
+    {
+      "service_begin_ns": 1998820304595797,
+      "service_end_ns": 1998820304681489,
+      "source_ns": 1998820303569931,
+      "dependency_ns": 1998820293695315,
+      "source_frame": 12303,
+      "actuator_source_ns": 1998820293695315,
+      "coil_source_ns": 1998820296617455,
+      "applied_ns": 1998820302825783,
+      "dependency_age_ns": 10900482
+    },
+    {
+      "service_begin_ns": 1998820309594631,
+      "service_end_ns": 1998820309681173,
+      "source_ns": 1998820309071755,
+      "dependency_ns": 1998820293695315,
+      "source_frame": 12304,
+      "actuator_source_ns": 1998820293695315,
+      "coil_source_ns": 1998820296617455,
+      "applied_ns": 1998820307925652,
+      "dependency_age_ns": 15899316
+    },
+    {
+      "service_begin_ns": 1998820313591513,
+      "service_end_ns": 1998820313673255,
+      "source_ns": 1998820313502696,
+      "dependency_ns": 1998820303569931,
+      "source_frame": 12305,
+      "actuator_source_ns": 1998820303569931,
+      "coil_source_ns": 1998820306605246,
+      "applied_ns": 1998820312792243,
+      "dependency_age_ns": 10021582
+    },
+    {
+      "service_begin_ns": 1998820319580804,
+      "service_end_ns": 1998820319642297,
+      "source_ns": 1998820318604818,
+      "dependency_ns": 1998820313502696,
+      "source_frame": 12306,
+      "actuator_source_ns": 1998820313502696,
+      "coil_source_ns": 1998820316592439,
+      "applied_ns": 1998820317962402,
+      "dependency_age_ns": 6078108
+    },
+    {
+      "service_begin_ns": 1998820323590261,
+      "service_end_ns": 1998820323673963,
+      "source_ns": 1998820323445611,
+      "dependency_ns": 1998820313502696,
+      "source_frame": 12307,
+      "actuator_source_ns": 1998820313502696,
+      "coil_source_ns": 1998820316592439,
+      "applied_ns": 1998820322794690,
+      "dependency_age_ns": 10087565
+    },
+    {
+      "service_begin_ns": 1998820342600268,
+      "service_end_ns": 1998820342703320,
+      "source_ns": 1998820342261714,
+      "dependency_ns": 1998820323445611,
+      "source_frame": 12308,
+      "actuator_source_ns": 1998820323445611,
+      "coil_source_ns": 1998820337605892,
+      "applied_ns": 1998820341456438,
+      "dependency_age_ns": 19154657
+    },
+    {
+      "service_begin_ns": 1998820344604806,
+      "service_end_ns": 1998820344681890,
+      "source_ns": 1998820344078025,
+      "dependency_ns": 1998820323445611,
+      "source_frame": 12309,
+      "actuator_source_ns": 1998820323445611,
+      "coil_source_ns": 1998820337605892,
+      "applied_ns": 1998820343290005,
+      "dependency_age_ns": 21159195
+    },
+    {
+      "service_begin_ns": 1998820346596897,
+      "service_end_ns": 1998820346692463,
+      "source_ns": 1998820345806990,
+      "dependency_ns": 1998820323445611,
+      "source_frame": 12310,
+      "actuator_source_ns": 1998820323445611,
+      "coil_source_ns": 1998820337605892,
+      "applied_ns": 1998820345102682,
+      "dependency_age_ns": 23151286
+    },
+    {
+      "service_begin_ns": 1998820348583625,
+      "service_end_ns": 1998820348662577,
+      "source_ns": 1998820347721672,
+      "dependency_ns": 1998820323445611,
+      "source_frame": 12311,
+      "actuator_source_ns": 1998820323445611,
+      "coil_source_ns": 1998820337605892,
+      "applied_ns": 1998820346979937,
+      "dependency_age_ns": 25138014
+    },
+    {
+      "service_begin_ns": 1998820359593245,
+      "service_end_ns": 1998820359683257,
+      "source_ns": 1998820358939496,
+      "dependency_ns": 1998820356610872,
+      "source_frame": 12312,
+      "actuator_source_ns": 1998820356610872,
+      "coil_source_ns": 1998820356610872,
+      "applied_ns": 1998820358121273,
+      "dependency_age_ns": 2982373
+    },
+    {
+      "service_begin_ns": 1998820361593612,
+      "service_end_ns": 1998820361681522,
+      "source_ns": 1998820360625062,
+      "dependency_ns": 1998820356610872,
+      "source_frame": 12313,
+      "actuator_source_ns": 1998820356610872,
+      "coil_source_ns": 1998820358598002,
+      "applied_ns": 1998820359937492,
+      "dependency_age_ns": 4982740
+    },
+    {
+      "service_begin_ns": 1998820363582403,
+      "service_end_ns": 1998820363658133,
+      "source_ns": 1998820362608874,
+      "dependency_ns": 1998820356610872,
+      "source_frame": 12314,
+      "actuator_source_ns": 1998820356610872,
+      "coil_source_ns": 1998820360597340,
+      "applied_ns": 1998820361888650,
+      "dependency_age_ns": 6971531
+    },
+    {
+      "service_begin_ns": 1998820365585012,
+      "service_end_ns": 1998820365661602,
+      "source_ns": 1998820364608147,
+      "dependency_ns": 1998820356610872,
+      "source_frame": 12315,
+      "actuator_source_ns": 1998820356610872,
+      "coil_source_ns": 1998820362585943,
+      "applied_ns": 1998820363904189,
+      "dependency_age_ns": 8974140
+    },
+    {
+      "service_begin_ns": 1998820369595482,
+      "service_end_ns": 1998820369692073,
+      "source_ns": 1998820369160248,
+      "dependency_ns": 1998820356610872,
+      "source_frame": 12316,
+      "actuator_source_ns": 1998820356610872,
+      "coil_source_ns": 1998820365585012,
+      "applied_ns": 1998820367828432,
+      "dependency_age_ns": 12984610
+    },
+    {
+      "service_begin_ns": 1998820374591499,
+      "service_end_ns": 1998820374689237,
+      "source_ns": 1998820373614497,
+      "dependency_ns": 1998820366598614,
+      "source_frame": 12317,
+      "actuator_source_ns": 1998820366598614,
+      "coil_source_ns": 1998820370607101,
+      "applied_ns": 1998820372844201,
+      "dependency_age_ns": 7992885
+    },
+    {
+      "service_begin_ns": 1998820379593403,
+      "service_end_ns": 1998820379684285,
+      "source_ns": 1998820378606408,
+      "dependency_ns": 1998820366598614,
+      "source_frame": 12318,
+      "actuator_source_ns": 1998820366598614,
+      "coil_source_ns": 1998820375582841,
+      "applied_ns": 1998820377822594,
+      "dependency_age_ns": 12994789
+    },
+    {
+      "service_begin_ns": 1998820384599056,
+      "service_end_ns": 1998820384690252,
+      "source_ns": 1998820383573573,
+      "dependency_ns": 1998820376594073,
+      "source_frame": 12319,
+      "actuator_source_ns": 1998820376594073,
+      "coil_source_ns": 1998820380595192,
+      "applied_ns": 1998820382823386,
+      "dependency_age_ns": 8004983
+    },
+    {
+      "service_begin_ns": 1998820388614380,
+      "service_end_ns": 1998820388689451,
+      "source_ns": 1998820388527802,
+      "dependency_ns": 1998820376594073,
+      "source_frame": 12320,
+      "actuator_source_ns": 1998820376594073,
+      "coil_source_ns": 1998820385594189,
+      "applied_ns": 1998820387811668,
+      "dependency_age_ns": 12020307
+    },
+    {
+      "service_begin_ns": 1998820394610722,
+      "service_end_ns": 1998820394685063,
+      "source_ns": 1998820393529600,
+      "dependency_ns": 1998820386596603,
+      "source_frame": 12321,
+      "actuator_source_ns": 1998820386596603,
+      "coil_source_ns": 1998820390584068,
+      "applied_ns": 1998820392794878,
+      "dependency_age_ns": 8014119
+    },
+    {
+      "service_begin_ns": 1998820399592763,
+      "service_end_ns": 1998820399680092,
+      "source_ns": 1998820398742323,
+      "dependency_ns": 1998820386596603,
+      "source_frame": 12322,
+      "actuator_source_ns": 1998820386596603,
+      "coil_source_ns": 1998820395590396,
+      "applied_ns": 1998820397854040,
+      "dependency_age_ns": 12996160
+    },
+    {
+      "service_begin_ns": 1998820404596303,
+      "service_end_ns": 1998820404675812,
+      "source_ns": 1998820403744226,
+      "dependency_ns": 1998820397588967,
+      "source_frame": 12323,
+      "actuator_source_ns": 1998820397588967,
+      "coil_source_ns": 1998820400595813,
+      "applied_ns": 1998820402834605,
+      "dependency_age_ns": 7007336
+    },
+    {
+      "service_begin_ns": 1998820408582697,
+      "service_end_ns": 1998820408669976,
+      "source_ns": 1998820408500235,
+      "dependency_ns": 1998820397588967,
+      "source_frame": 12324,
+      "actuator_source_ns": 1998820397588967,
+      "coil_source_ns": 1998820405588993,
+      "applied_ns": 1998820407796970,
+      "dependency_age_ns": 10993730
+    },
+    {
+      "service_begin_ns": 1998820414597006,
+      "service_end_ns": 1998820414672512,
+      "source_ns": 1998820413574264,
+      "dependency_ns": 1998820407580217,
+      "source_frame": 12325,
+      "actuator_source_ns": 1998820407580217,
+      "coil_source_ns": 1998820410594691,
+      "applied_ns": 1998820412809251,
+      "dependency_age_ns": 7016789
+    },
+    {
+      "service_begin_ns": 1998820419592079,
+      "service_end_ns": 1998820419673474,
+      "source_ns": 1998820418705233,
+      "dependency_ns": 1998820407580217,
+      "source_frame": 12326,
+      "actuator_source_ns": 1998820407580217,
+      "coil_source_ns": 1998820415589212,
+      "applied_ns": 1998820417878447,
+      "dependency_age_ns": 12011862
+    },
+    {
+      "service_begin_ns": 1998820424597892,
+      "service_end_ns": 1998820424680335,
+      "source_ns": 1998820423604963,
+      "dependency_ns": 1998820416594070,
+      "source_frame": 12327,
+      "actuator_source_ns": 1998820416594070,
+      "coil_source_ns": 1998820420602026,
+      "applied_ns": 1998820422825783,
+      "dependency_age_ns": 8003822
+    },
+    {
+      "service_begin_ns": 1998820429592308,
+      "service_end_ns": 1998820429673145,
+      "source_ns": 1998820428964497,
+      "dependency_ns": 1998820416594070,
+      "source_frame": 12328,
+      "actuator_source_ns": 1998820416594070,
+      "coil_source_ns": 1998820425589658,
+      "applied_ns": 1998820427873672,
+      "dependency_age_ns": 12998238
+    },
+    {
+      "service_begin_ns": 1998820434585945,
+      "service_end_ns": 1998820434663965,
+      "source_ns": 1998820433641026,
+      "dependency_ns": 1998820426594432,
+      "source_frame": 12329,
+      "actuator_source_ns": 1998820426594432,
+      "coil_source_ns": 1998820430593303,
+      "applied_ns": 1998820432818972,
+      "dependency_age_ns": 7991513
+    },
+    {
+      "service_begin_ns": 1998820439582990,
+      "service_end_ns": 1998820439647307,
+      "source_ns": 1998820438558083,
+      "dependency_ns": 1998820426594432,
+      "source_frame": 12330,
+      "actuator_source_ns": 1998820426594432,
+      "coil_source_ns": 1998820435590180,
+      "applied_ns": 1998820437809718,
+      "dependency_age_ns": 12988558
+    },
+    {
+      "service_begin_ns": 1998820444598782,
+      "service_end_ns": 1998820444699133,
+      "source_ns": 1998820443672066,
+      "dependency_ns": 1998820436595598,
+      "source_frame": 12331,
+      "actuator_source_ns": 1998820436595598,
+      "coil_source_ns": 1998820440612544,
+      "applied_ns": 1998820442834915,
+      "dependency_age_ns": 8003184
+    },
+    {
+      "service_begin_ns": 1998820449592833,
+      "service_end_ns": 1998820449673393,
+      "source_ns": 1998820448734984,
+      "dependency_ns": 1998820436595598,
+      "source_frame": 12332,
+      "actuator_source_ns": 1998820436595598,
+      "coil_source_ns": 1998820445581989,
+      "applied_ns": 1998820447840045,
+      "dependency_age_ns": 12997235
+    },
+    {
+      "service_begin_ns": 1998820454609659,
+      "service_end_ns": 1998820454695429,
+      "source_ns": 1998820454143622,
+      "dependency_ns": 1998820446596346,
+      "source_frame": 12333,
+      "actuator_source_ns": 1998820446596346,
+      "coil_source_ns": 1998820450598281,
+      "applied_ns": 1998820452937588,
+      "dependency_age_ns": 8013313
+    },
+    {
+      "service_begin_ns": 1998820459594294,
+      "service_end_ns": 1998820459690643,
+      "source_ns": 1998820458727022,
+      "dependency_ns": 1998820446596346,
+      "source_frame": 12334,
+      "actuator_source_ns": 1998820446596346,
+      "coil_source_ns": 1998820455595462,
+      "applied_ns": 1998820457863379,
+      "dependency_age_ns": 12997948
+    },
+    {
+      "service_begin_ns": 1998820464613246,
+      "service_end_ns": 1998820464713540,
+      "source_ns": 1998820464269868,
+      "dependency_ns": 1998820456618581,
+      "source_frame": 12335,
+      "actuator_source_ns": 1998820456618581,
+      "coil_source_ns": 1998820460596257,
+      "applied_ns": 1998820462906528,
+      "dependency_age_ns": 7994665
+    },
+    {
+      "service_begin_ns": 1998820469595364,
+      "service_end_ns": 1998820469681286,
+      "source_ns": 1998820468588942,
+      "dependency_ns": 1998820456618581,
+      "source_frame": 12336,
+      "actuator_source_ns": 1998820456618581,
+      "coil_source_ns": 1998820465580960,
+      "applied_ns": 1998820467803041,
+      "dependency_age_ns": 12976783
+    },
+    {
+      "service_begin_ns": 1998820473590072,
+      "service_end_ns": 1998820473658663,
+      "source_ns": 1998820473511908,
+      "dependency_ns": 1998820467581706,
+      "source_frame": 12337,
+      "actuator_source_ns": 1998820467581706,
+      "coil_source_ns": 1998820470597460,
+      "applied_ns": 1998820472793490,
+      "dependency_age_ns": 6008366
+    },
+    {
+      "service_begin_ns": 1998820479591588,
+      "service_end_ns": 1998820479682483,
+      "source_ns": 1998820478573986,
+      "dependency_ns": 1998820467581706,
+      "source_frame": 12338,
+      "actuator_source_ns": 1998820467581706,
+      "coil_source_ns": 1998820475592278,
+      "applied_ns": 1998820477797461,
+      "dependency_age_ns": 12009882
+    },
+    {
+      "service_begin_ns": 1998820484597597,
+      "service_end_ns": 1998820484676526,
+      "source_ns": 1998820483707954,
+      "dependency_ns": 1998820476597105,
+      "source_frame": 12339,
+      "actuator_source_ns": 1998820476597105,
+      "coil_source_ns": 1998820480596869,
+      "applied_ns": 1998820482844876,
+      "dependency_age_ns": 8000492
+    },
+    {
+      "service_begin_ns": 1998820489591253,
+      "service_end_ns": 1998820489657846,
+      "source_ns": 1998820488582721,
+      "dependency_ns": 1998820476597105,
+      "source_frame": 12340,
+      "actuator_source_ns": 1998820476597105,
+      "coil_source_ns": 1998820485589591,
+      "applied_ns": 1998820487814621,
+      "dependency_age_ns": 12994148
+    },
+    {
+      "service_begin_ns": 1998820494598823,
+      "service_end_ns": 1998820494664248,
+      "source_ns": 1998820493663357,
+      "dependency_ns": 1998820486597118,
+      "source_frame": 12341,
+      "actuator_source_ns": 1998820486597118,
+      "coil_source_ns": 1998820490589111,
+      "applied_ns": 1998820492827245,
+      "dependency_age_ns": 8001705
+    },
+    {
+      "service_begin_ns": 1998820499620687,
+      "service_end_ns": 1998820499781233,
+      "source_ns": 1998820499075275,
+      "dependency_ns": 1998820486597118,
+      "source_frame": 12342,
+      "actuator_source_ns": 1998820486597118,
+      "coil_source_ns": 1998820495587771,
+      "applied_ns": 1998820497785678,
+      "dependency_age_ns": 13023569
+    },
+    {
+      "service_begin_ns": 1998820504596108,
+      "service_end_ns": 1998820504671655,
+      "source_ns": 1998820503651746,
+      "dependency_ns": 1998820497579723,
+      "source_frame": 12343,
+      "actuator_source_ns": 1998820497579723,
+      "coil_source_ns": 1998820500624825,
+      "applied_ns": 1998820502811291,
+      "dependency_age_ns": 7016385
+    },
+    {
+      "service_begin_ns": 1998820509592016,
+      "service_end_ns": 1998820509661767,
+      "source_ns": 1998820508581034,
+      "dependency_ns": 1998820497579723,
+      "source_frame": 12344,
+      "actuator_source_ns": 1998820497579723,
+      "coil_source_ns": 1998820505590794,
+      "applied_ns": 1998820507811966,
+      "dependency_age_ns": 12012293
+    },
+    {
+      "service_begin_ns": 1998820514597978,
+      "service_end_ns": 1998820514681101,
+      "source_ns": 1998820513610713,
+      "dependency_ns": 1998820506594529,
+      "source_frame": 12345,
+      "actuator_source_ns": 1998820506594529,
+      "coil_source_ns": 1998820510607350,
+      "applied_ns": 1998820512817608,
+      "dependency_age_ns": 8003449
+    },
+    {
+      "service_begin_ns": 1998820519591479,
+      "service_end_ns": 1998820519671039,
+      "source_ns": 1998820518550967,
+      "dependency_ns": 1998820506594529,
+      "source_frame": 12346,
+      "actuator_source_ns": 1998820506594529,
+      "coil_source_ns": 1998820515590434,
+      "applied_ns": 1998820517771331,
+      "dependency_age_ns": 12996950
+    },
+    {
+      "service_begin_ns": 1998820523592944,
+      "service_end_ns": 1998820523673691,
+      "source_ns": 1998820523521385,
+      "dependency_ns": 1998820516594918,
+      "source_frame": 12347,
+      "actuator_source_ns": 1998820516594918,
+      "coil_source_ns": 1998820520594163,
+      "applied_ns": 1998820522740396,
+      "dependency_age_ns": 6998026
+    },
+    {
+      "service_begin_ns": 1998820529584639,
+      "service_end_ns": 1998820529667272,
+      "source_ns": 1998820528647561,
+      "dependency_ns": 1998820516594918,
+      "source_frame": 12348,
+      "actuator_source_ns": 1998820516594918,
+      "coil_source_ns": 1998820525589530,
+      "applied_ns": 1998820527838003,
+      "dependency_age_ns": 12989721
+    },
+    {
+      "service_begin_ns": 1998820534639816,
+      "service_end_ns": 1998820534807426,
+      "source_ns": 1998820533612518,
+      "dependency_ns": 1998820526594105,
+      "source_frame": 12349,
+      "actuator_source_ns": 1998820526594105,
+      "coil_source_ns": 1998820530594661,
+      "applied_ns": 1998820532807109,
+      "dependency_age_ns": 8045711
+    },
+    {
+      "service_begin_ns": 1998820539602167,
+      "service_end_ns": 1998820539716717,
+      "source_ns": 1998820538974416,
+      "dependency_ns": 1998820526594105,
+      "source_frame": 12350,
+      "actuator_source_ns": 1998820526594105,
+      "coil_source_ns": 1998820535617447,
+      "applied_ns": 1998820537898856,
+      "dependency_age_ns": 13008062
+    },
+    {
+      "service_begin_ns": 1998820544585378,
+      "service_end_ns": 1998820544661375,
+      "source_ns": 1998820543630550,
+      "dependency_ns": 1998820536639584,
+      "source_frame": 12351,
+      "actuator_source_ns": 1998820536639584,
+      "coil_source_ns": 1998820540595120,
+      "applied_ns": 1998820542822340,
+      "dependency_age_ns": 7945794
+    },
+    {
+      "service_begin_ns": 1998820549592093,
+      "service_end_ns": 1998820549664911,
+      "source_ns": 1998820548647190,
+      "dependency_ns": 1998820536639584,
+      "source_frame": 12352,
+      "actuator_source_ns": 1998820536639584,
+      "coil_source_ns": 1998820545591535,
+      "applied_ns": 1998820547806076,
+      "dependency_age_ns": 12952509
+    }
+  ]
+}

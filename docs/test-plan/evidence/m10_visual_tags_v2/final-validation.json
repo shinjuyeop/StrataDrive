@@ -1,0 +1,695 @@
+{
+  "status": "PASS_EVIDENCE_AND_RESTORATION_ONLY",
+  "cases": {
+    "normal-300s-01": {
+      "disposition": {
+        "runner": 1,
+        "physical_audit": 1,
+        "shadow_audit": 0,
+        "admission_window": 1,
+        "owner_gc": 1,
+        "workspace": 0,
+        "replay": 0,
+        "state_path": 0,
+        "structured_state": 1,
+        "monitor_timing": 0,
+        "host_clock": 0,
+        "owner_wait": 0,
+        "drive_fault_replay": true,
+        "archive": "PASS",
+        "finite_diagnostic_pass": false,
+        "native_perception_accepted": false,
+        "milestone_closed": false
+      },
+      "analysis": {
+        "case": "normal-300s-01",
+        "normal_intervals": 652,
+        "protection_intervals": 11219,
+        "init_intervals": 162,
+        "normal_model_seconds": 3.2600000000000002,
+        "physical_intervals": 12033,
+        "fault_after_initial_ms": 4099.010053,
+        "first_fault": "native credit/gate closed leaf=2 code=5 leaf=3 code=2 leaf=4 code=14",
+        "raw": 560,
+        "inferences": 556,
+        "overflow": [],
+        "phases": {
+          "preparation": {
+            "seconds": 104.609220634,
+            "samples": 210,
+            "cpu_seconds": {
+              "observer_setup": 7.259999999999995,
+              "renderer": 43.730000000000004,
+              "owner": 32.04000000000004,
+              "image_pipeline": 4.349999999999999,
+              "native": 0.0
+            },
+            "average_cores": {
+              "observer_setup": 0.0694011479676425,
+              "renderer": 0.41803198355716376,
+              "owner": 0.3062827521877783,
+              "image_pipeline": 0.041583332459951106,
+              "native": 0.0
+            },
+            "hottest_c": 73.0,
+            "gpu_percent": {
+              "median": 0.0,
+              "p95": 37.0,
+              "max": 63
+            },
+            "thermal_delta": {
+              "core_throttle_count": 0,
+              "package_throttle_count": 0
+            },
+            "top_threads": [
+              [
+                "renderer / UE4Editor",
+                32.13857892199996
+              ],
+              [
+                "owner / UE4Editor",
+                28.53004479099999
+              ],
+              [
+                "observer_setup / python",
+                6.983935325000001
+              ],
+              [
+                "renderer / TaskGraphHP 2",
+                2.8395534120000003
+              ],
+              [
+                "image_pipeline / m10-inference",
+                2.6163659719999997
+              ],
+              [
+                "owner / TaskGraphHP 3",
+                2.346774045
+              ],
+              [
+                "renderer / RenderThread 0",
+                2.0019190569999994
+              ],
+              [
+                "renderer / RenderThread 1",
+                1.466720845
+              ],
+              [
+                "renderer / RHIThread",
+                1.4129630199999998
+              ],
+              [
+                "image_pipeline / python",
+                1.265162513
+              ],
+              [
+                "renderer / PoolThread 5",
+                0.7227391539999999
+              ],
+              [
+                "renderer / TaskGraphHP 3",
+                0.482110379
+              ],
+              [
+                "renderer / PoolThread 4",
+                0.444579497
+              ],
+              [
+                "image_pipeline / m10-recorder",
+                0.179503424
+              ],
+              [
+                "renderer / RTHeartBeat 1",
+                0.15035224099999991
+              ]
+            ]
+          },
+          "before_fault": {
+            "seconds": 4.099010053,
+            "samples": 8,
+            "cpu_seconds": {
+              "observer_setup": 0.6199999999999999,
+              "native": 0.31,
+              "image_pipeline": 3.99,
+              "owner": 1.71,
+              "renderer": 3.2300000000000004
+            },
+            "average_cores": {
+              "observer_setup": 0.1512560330380824,
+              "native": 0.07562801651904122,
+              "image_pipeline": 0.9734057610031435,
+              "owner": 0.41717389757277573,
+              "renderer": 0.7879951398596876
+            },
+            "hottest_c": 74.0,
+            "gpu_percent": {
+              "median": 32.0,
+              "p95": 35.0,
+              "max": 35
+            },
+            "thermal_delta": {
+              "core_throttle_count": 0,
+              "package_throttle_count": 0
+            },
+            "top_threads": [
+              [
+                "image_pipeline / m10-inference",
+                2.1315106269999995
+              ],
+              [
+                "owner / UE4Editor",
+                1.4967641020000004
+              ],
+              [
+                "image_pipeline / m10-recorder",
+                1.317963548
+              ],
+              [
+                "renderer / RHIThread",
+                1.030487649
+              ],
+              [
+                "renderer / RenderThread 1",
+                0.739848334
+              ],
+              [
+                "observer_setup / python",
+                0.5888985690000004
+              ],
+              [
+                "image_pipeline / python",
+                0.48746313399999974
+              ],
+              [
+                "renderer / TaskGraphNP 0",
+                0.430081516
+              ],
+              [
+                "renderer / TaskGraphNP 1",
+                0.371998232
+              ],
+              [
+                "renderer / UE4Editor",
+                0.35426404999999994
+              ],
+              [
+                "native / m7_carla_wall_o",
+                0.30888129099999995
+              ],
+              [
+                "owner / TaskGraphHP 3",
+                0.12338326399999999
+              ],
+              [
+                "renderer / TaskGraphHP 2",
+                0.10019460799999999
+              ],
+              [
+                "renderer / TaskGraphHP 3",
+                0.06955599500000001
+              ],
+              [
+                "renderer / StatsThread",
+                0.050363123
+              ]
+            ]
+          },
+          "physical_all": {
+            "seconds": 60.165675264,
+            "samples": 120,
+            "cpu_seconds": {
+              "observer_setup": 10.659999999999993,
+              "native": 4.849999999999999,
+              "image_pipeline": 67.98000000000005,
+              "owner": 23.219999999999995,
+              "renderer": 55.539999999999985
+            },
+            "average_cores": {
+              "observer_setup": 0.1771774346955328,
+              "native": 0.08061074655472181,
+              "image_pipeline": 1.129880113564947,
+              "owner": 0.3859343371135341,
+              "renderer": 0.923117703845206
+            },
+            "hottest_c": 83.0,
+            "gpu_percent": {
+              "median": 33.0,
+              "p95": 34.05,
+              "max": 35
+            },
+            "thermal_delta": {
+              "core_throttle_count": 0,
+              "package_throttle_count": 0
+            },
+            "top_threads": [
+              [
+                "image_pipeline / m10-inference",
+                37.13320310399998
+              ],
+              [
+                "image_pipeline / m10-recorder",
+                22.716951050000002
+              ],
+              [
+                "owner / UE4Editor",
+                19.93145649799999
+              ],
+              [
+                "renderer / RHIThread",
+                18.501823457999997
+              ],
+              [
+                "renderer / RenderThread 1",
+                12.601513513999999
+              ],
+              [
+                "observer_setup / python",
+                10.095609734999984
+              ],
+              [
+                "image_pipeline / python",
+                7.570873531000014
+              ],
+              [
+                "renderer / TaskGraphNP 0",
+                7.3341436510000015
+              ],
+              [
+                "renderer / TaskGraphNP 1",
+                6.629165687000004
+              ],
+              [
+                "renderer / UE4Editor",
+                5.934527413999999
+              ],
+              [
+                "native / m7_carla_wall_o",
+                4.851048991
+              ],
+              [
+                "owner / TaskGraphHP 3",
+                1.8761167360000004
+              ],
+              [
+                "renderer / TaskGraphHP 2",
+                1.6444026329999997
+              ],
+              [
+                "renderer / TaskGraphHP 3",
+                1.2109881739999997
+              ],
+              [
+                "renderer / StatsThread",
+                0.8741574790000002
+              ]
+            ]
+          },
+          "protected": {
+            "seconds": 56.066665211,
+            "samples": 112,
+            "cpu_seconds": {
+              "observer_setup": 9.949999999999992,
+              "native": 4.509999999999999,
+              "image_pipeline": 63.49000000000006,
+              "owner": 21.279999999999998,
+              "renderer": 51.79999999999999
+            },
+            "average_cores": {
+              "observer_setup": 0.17746730543995065,
+              "native": 0.08043995452604803,
+              "image_pipeline": 1.1324019318977372,
+              "owner": 0.3795481668102666,
+              "renderer": 0.9239001428934119
+            },
+            "hottest_c": 83.0,
+            "gpu_percent": {
+              "median": 33.0,
+              "p95": 34.0,
+              "max": 35
+            },
+            "thermal_delta": {
+              "core_throttle_count": 0,
+              "package_throttle_count": 0
+            },
+            "top_threads": [
+              [
+                "image_pipeline / m10-inference",
+                34.73335020599999
+              ],
+              [
+                "image_pipeline / m10-recorder",
+                21.240701963
+              ],
+              [
+                "owner / UE4Editor",
+                18.234375613999983
+              ],
+              [
+                "renderer / RHIThread",
+                17.240933797999997
+              ],
+              [
+                "renderer / RenderThread 1",
+                11.763742668000004
+              ],
+              [
+                "observer_setup / python",
+                9.425283376999994
+              ],
+              [
+                "image_pipeline / python",
+                7.009796953000015
+              ],
+              [
+                "renderer / TaskGraphNP 0",
+                6.844022045000003
+              ],
+              [
+                "renderer / TaskGraphNP 1",
+                6.213688339000003
+              ],
+              [
+                "renderer / UE4Editor",
+                5.529794759
+              ],
+              [
+                "native / m7_carla_wall_o",
+                4.502216161
+              ],
+              [
+                "owner / TaskGraphHP 3",
+                1.7362058270000007
+              ],
+              [
+                "renderer / TaskGraphHP 2",
+                1.531424401
+              ],
+              [
+                "renderer / TaskGraphHP 3",
+                1.1323316199999995
+              ],
+              [
+                "renderer / StatsThread",
+                0.8173476700000002
+              ]
+            ]
+          },
+          "normal": {
+            "seconds": 3.257006938,
+            "samples": 7,
+            "cpu_seconds": {
+              "observer_setup": 0.5399999999999999,
+              "native": 0.28,
+              "image_pipeline": 3.4000000000000004,
+              "owner": 1.46,
+              "renderer": 2.8100000000000005
+            },
+            "average_cores": {
+              "observer_setup": 0.16579639229494325,
+              "native": 0.08596849970848912,
+              "image_pipeline": 1.0439032107459394,
+              "owner": 0.4482643199085503,
+              "renderer": 0.8627553006459087
+            },
+            "hottest_c": 74.0,
+            "gpu_percent": {
+              "median": 32,
+              "p95": 35.0,
+              "max": 35
+            },
+            "thermal_delta": {
+              "core_throttle_count": 0,
+              "package_throttle_count": 0
+            },
+            "top_threads": [
+              [
+                "image_pipeline / m10-inference",
+                1.825500737
+              ],
+              [
+                "owner / UE4Editor",
+                1.2896020240000008
+              ],
+              [
+                "image_pipeline / m10-recorder",
+                1.1221543379999999
+              ],
+              [
+                "renderer / RHIThread",
+                0.9009447319999999
+              ],
+              [
+                "renderer / RenderThread 1",
+                0.642180509
+              ],
+              [
+                "observer_setup / python",
+                0.5138527570000002
+              ],
+              [
+                "image_pipeline / python",
+                0.4167587679999999
+              ],
+              [
+                "renderer / TaskGraphNP 0",
+                0.373454288
+              ],
+              [
+                "renderer / TaskGraphNP 1",
+                0.32582601
+              ],
+              [
+                "renderer / UE4Editor",
+                0.3085148439999999
+              ],
+              [
+                "native / m7_carla_wall_o",
+                0.27028473099999994
+              ],
+              [
+                "owner / TaskGraphHP 3",
+                0.10579607299999999
+              ],
+              [
+                "renderer / TaskGraphHP 2",
+                0.087277836
+              ],
+              [
+                "renderer / TaskGraphHP 3",
+                0.061995352000000004
+              ],
+              [
+                "renderer / StatsThread",
+                0.043768354
+              ]
+            ]
+          }
+        },
+        "scene_result_ms": {
+          "median": 92.14555100000001,
+          "p95": 100.2845905,
+          "max": 219.846237
+        },
+        "stages": {
+          "preprocess_ns": {
+            "median": 25.2973685,
+            "p95": 29.020626749999998,
+            "max": 44.273369
+          },
+          "inference_ns": {
+            "median": 26.171737,
+            "p95": 28.84861025,
+            "max": 36.977126
+          },
+          "postprocess_ns": {
+            "median": 0.408127,
+            "p95": 0.439604,
+            "max": 0.85168
+          },
+          "thread_cpu_ns": {
+            "median": 29.6207275,
+            "p95": 31.69400625,
+            "max": 38.08764
+          }
+        },
+        "recorder_stages": {
+          "compression_ns": {
+            "median": 0.0028209999999999997,
+            "p95": 0.0036480500000000003,
+            "max": 0.009589
+          },
+          "compression_cpu_ns": {
+            "median": 0.0013714999999999999,
+            "p95": 0.0019392,
+            "max": 0.009031
+          },
+          "hash_conversion_ns": {
+            "median": 34.3094315,
+            "p95": 37.836157400000005,
+            "max": 46.163983
+          },
+          "hash_conversion_cpu_ns": {
+            "median": 32.2446015,
+            "p95": 33.4095091,
+            "max": 46.152054
+          }
+        },
+        "host_pipeline": {
+          "thread_id": 3890488,
+          "cv_threads": 4,
+          "tensor_workspace": true,
+          "resize_threads": 4,
+          "cuda_wait": {
+            "runtime": "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+            "before": 8,
+            "after": 12,
+            "scope": "current process CUDA device"
+          }
+        },
+        "monitor": {
+          "samples": 607,
+          "wall_seconds": 303.78349970607087,
+          "monitor_cpu_seconds": 6.273710591,
+          "max_sample_ms": 23.384322,
+          "ticks_per_second": 100,
+          "root_pid": 3888366,
+          "root_start_ticks": 198980757,
+          "schedstat_wait_enabled": false
+        },
+        "shutdown": {
+          "renderer": {
+            "begin_wall_ns": 1990091369121389,
+            "limit_seconds": 30,
+            "diagnostic_after_seconds": 10,
+            "diagnostics_enabled": true,
+            "diagnostic": {
+              "status": "CAPTURED",
+              "begin_wall_ns": 1990101369756686,
+              "pid": 3888387,
+              "timeout_seconds": 8,
+              "intrusive_after_exit_request": true,
+              "argv": [
+                "/usr/bin/gdb",
+                "-nx",
+                "-nh",
+                "-batch",
+                "-iex",
+                "set auto-solib-add off",
+                "-iex",
+                "set debuginfod enabled off",
+                "-iex",
+                "set index-cache enabled off",
+                "-iex",
+                "set pagination off",
+                "-iex",
+                "set print thread-events off",
+                "-iex",
+                "set print frame-arguments none",
+                "-p",
+                "3888387",
+                "-ex",
+                "sharedlibrary libpthread|libc\\.so|libstdc\\+\\+|libUE4Editor-Core\\.so|libUE4Editor-Carla\\.so|libUE4Editor-VulkanRHI\\.so",
+                "-ex",
+                "info threads",
+                "-ex",
+                "thread apply all bt 16",
+                "-ex",
+                "detach"
+              ],
+              "gdb_exit": 0,
+              "log_bytes": 21963,
+              "end_wall_ns": 1990104902170828
+            },
+            "end_wall_ns": 1990109827686971,
+            "server_exit": 130
+          },
+          "owner": {
+            "begin_wall_ns": 1990109827719627,
+            "limit_seconds": 30,
+            "diagnostic_after_seconds": 10,
+            "diagnostics_enabled": true,
+            "end_wall_ns": 1990110943643096,
+            "server_exit": 130
+          }
+        },
+        "latency_components_ms": {
+          "source_to_callback": {
+            "median": 37.924931,
+            "p95": 43.2525125,
+            "max": 143.224359
+          },
+          "callback_to_start": {
+            "median": 1.516574,
+            "p95": 6.892500249999999,
+            "max": 7.831268
+          },
+          "compute": {
+            "median": 52.296538,
+            "p95": 55.8403895,
+            "max": 76.656249
+          }
+        },
+        "over_100ms": 29,
+        "camera_callbacks_during_physical": 555,
+        "camera_hz_during_physical": 9.224528729457859,
+        "renderer_ticks_during_physical": 1112,
+        "renderer_hz_during_physical": 18.482299003886734,
+        "live_stored_bytes": 8808038400
+      },
+      "fast_clock": {
+        "samples": 1201,
+        "sample_interval_ms": {
+          "count": 1200,
+          "median": 50.075390999999996,
+          "p95": 50.099057450000004,
+          "maximum": 61.077273
+        },
+        "sample_cost_ms": {
+          "count": 1201,
+          "median": 0.323705,
+          "p95": 0.467743,
+          "maximum": 1.340303
+        },
+        "hottest_c": 83.0,
+        "all_cpus_at_most_850mhz": 0,
+        "observer_average_cores": 0.006686017727233924,
+        "read_error_samples": 0,
+        "unavailable": {
+          "/sys/class/powercap/intel-rapl:0/energy_uj": "[Errno 13] Permission denied: '/sys/class/powercap/intel-rapl:0/energy_uj'",
+          "/sys/class/powercap/intel-rapl:0:0/energy_uj": "[Errno 13] Permission denied: '/sys/class/powercap/intel-rapl:0:0/energy_uj'",
+          "/sys/class/powercap/intel-rapl:0:1/energy_uj": "[Errno 13] Permission denied: '/sys/class/powercap/intel-rapl:0:1/energy_uj'"
+        },
+        "thermal_delta": {
+          "core_throttle_count": 0,
+          "package_throttle_count": 0
+        }
+      },
+      "gc": {
+        "status": "FAIL",
+        "error": "unchanged periodic GC not observed throughout five minutes"
+      },
+      "native_deadlines": {
+        "all": {
+          "eligible": 303520,
+          "missing": 0,
+          "late": 0
+        },
+        "before_first_fault": {
+          "eligible": 20470,
+          "missing": 0,
+          "late": 0
+        },
+        "at_or_after_first_fault": {
+          "eligible": 283050,
+          "missing": 0,
+          "late": 0
+        }
+      }
+    }
+  },
+  "original_verdicts_preserved": true,
+  "all_declared_finite_cases_pass": false,
+  "continuous_driving_accepted": false,
+  "native_perception_accepted": false,
+  "milestone_closed": false
+}

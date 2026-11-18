@@ -1,0 +1,38 @@
+{
+  "status": "PASS_EVIDENCE_AND_RESTORATION_ONLY",
+  "cases": {
+    "normal-300s-01": {
+      "disposition": {
+        "runner": 1,
+        "physical_audit": 1,
+        "shadow_audit": 1,
+        "admission_window": 1,
+        "owner_gc": 1,
+        "workspace": 1,
+        "replay": 1,
+        "state_path": 1,
+        "structured_state": 1,
+        "monitor_timing": 1,
+        "host_clock": 1,
+        "owner_wait": 1,
+        "drive_fault_replay": false,
+        "archive": "PASS",
+        "finite_diagnostic_pass": false,
+        "native_perception_accepted": false,
+        "milestone_closed": false
+      },
+      "native_started": false,
+      "raw_images": 0,
+      "server_error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/perception/run_carla_paired_v1.py\", line 175, in main\n    if getattr(a,'park_preparation',False):ready_and_park(role,2300 if role=='renderer' else 2200)\n  File \"/d/shin/StrataDrive/tests/integration/perception/run_carla_paired_v1.py\", line 154, in ready_and_park\n    report.setdefault('readiness',{})[str(port)]=wait_ready(a.python,port,a.output/f'readiness-{port}.log',common)\n  File \"/d/shin/StrataDrive/tests/integration/perception/carla_readiness_v1.py\", line 48, in wait_ready\n    return wait_probe([str(python), '-c', PROBE, str(port)], output, env=env)\n  File \"/d/shin/StrataDrive/tests/integration/perception/carla_readiness_v1.py\", line 44, in wait_probe\n    raise TimeoutError('original180s readiness horizon exhausted')\nTimeoutError: original180s readiness horizon exhausted\n",
+      "retained_setup": {
+        "bytes": 1125897,
+        "sha256": "7e9ebdd5a125b11dd7c3a3ccfe82073b34e525564f4887c6cf61deedd3a71eab"
+      }
+    }
+  },
+  "original_verdicts_preserved": true,
+  "all_declared_finite_cases_pass": false,
+  "continuous_driving_accepted": false,
+  "native_perception_accepted": false,
+  "milestone_closed": false
+}

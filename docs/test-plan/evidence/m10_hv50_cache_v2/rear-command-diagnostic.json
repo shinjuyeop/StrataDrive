@@ -1,0 +1,85 @@
+{
+  "status": "PASS_EXACT_POSTRUN_DIAGNOSTIC",
+  "live_execution": false,
+  "scope": "Original rear command expired before sequential Front ACK -> Rear message delivery; no modified physical verdict",
+  "native_initial_ns": 1998760267575412,
+  "first_fault_ns": 1998820353591382,
+  "old_rear_command_valid_until_ns": 1998820353445612,
+  "rear_delivery_after_expiry_ns": 145770,
+  "front_command_enqueue_ns": 1998820351591663,
+  "rear_command_enqueue_after_front_ack_ns": 1998820352594892,
+  "new_command_valid_until_ns": 1998820375806991,
+  "gc_begin_ns": 1998820323614844,
+  "gc_end_ns": 1998820340337447,
+  "root_zone": "rear",
+  "root_fault": "CommandExpired",
+  "propagated_faults": [
+    "RearPower UpstreamLost",
+    "Power ContinuityLost",
+    "BMS Protection",
+    "Drive UpstreamProtection"
+  ],
+  "archive": {
+    "path": "rear-command-diagnostic.tar.gz",
+    "bytes": 40741,
+    "sha256": "703a112ca9ed86fbdba0380bbbd27496426b5988981ea2e36d8b36da7e8d013e"
+  },
+  "files": {
+    "fault-replay-diagnostic/result.json": {
+      "bytes": 2758,
+      "sha256": "d4c775038b0b6a482f45b7304ded9b1471df16aa6a5568994d917710c289d1c6"
+    },
+    "fault-replay-diagnostic/link.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fault-replay-diagnostic/result-drive-fault.json": {
+      "bytes": 440,
+      "sha256": "db0b3fdf691444982a510c937e0c966373c3cf7f806cdd04869061252cfd4bc7"
+    },
+    "fault-replay-diagnostic/build.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fault-replay-diagnostic/manifest.json": {
+      "bytes": 5187,
+      "sha256": "bfaf026344c174b624fd599c105a69eeba0f0467adea26ee0c8e3ee0adf43903"
+    },
+    "fault-replay-diagnostic/validation.json": {
+      "bytes": 161,
+      "sha256": "ad525f979de534bdbc7c80a684f45ab43381a17898bfea9188f95c6d9425de93"
+    },
+    "fault-replay-diagnostic/functional_rig.cpp": {
+      "bytes": 68316,
+      "sha256": "b4f5b87fe49019e4c2d7a192c1981fb733666f4224a37a2820275ff7b5c84f23"
+    },
+    "fault-replay-trace/result.json": {
+      "bytes": 2758,
+      "sha256": "d4c775038b0b6a482f45b7304ded9b1471df16aa6a5568994d917710c289d1c6"
+    },
+    "fault-replay-trace/link.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fault-replay-trace/result-drive-fault.json": {
+      "bytes": 440,
+      "sha256": "db0b3fdf691444982a510c937e0c966373c3cf7f806cdd04869061252cfd4bc7"
+    },
+    "fault-replay-trace/build.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fault-replay-trace/validation.json": {
+      "bytes": 248,
+      "sha256": "f7c7de31cd5b255b4a63b818b30b70d7fcb0b8deb79c7062e07ecd27bf66e049"
+    },
+    "fault-replay-trace/trace.log": {
+      "bytes": 48248,
+      "sha256": "b8f89c68cdc24118251e26fa69e2406d07347a9d35426974227e99c1cedd3bf3"
+    },
+    "fault-replay-trace/functional_rig.cpp": {
+      "bytes": 69344,
+      "sha256": "538d4332ca974ef4b5f80ac1d418292f900fa8a5378cb3617b1e98e5f5a66832"
+    }
+  }
+}

@@ -132,7 +132,7 @@ def main(a):
         complete_visual_scene=False,perception_publications=0,endurance_seconds=a.endurance_seconds)
     client=carla.Client('127.0.0.1',a.port);client.set_timeout(2)
     world=sensor=history=inference=None;clones={};records=deque();consumed=0
-    recorder=ShardRecorder(a.output,bounds['camera_frames'],bounds['stored_bytes'],encoding='bgra' if raw_recording else 'zstd1') if a.endurance_seconds else MemoryRecorder(a.output/'spill',96)
+    recorder=ShardRecorder(a.output,bounds['camera_frames'],bounds['stored_bytes'],encoding='bgra' if raw_recording else 'zstd1',release_cache=os.environ.get('STRATADRIVE_M10_RELEASE_RECORDING_CACHE')=='1') if a.endurance_seconds else MemoryRecorder(a.output/'spill',96)
     lock=threading.Lock();accepting=True;held=None
     try:
         world=client.get_world();road=world.get_map()

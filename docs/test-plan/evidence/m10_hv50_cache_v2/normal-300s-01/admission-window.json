@@ -1,0 +1,106 @@
+{
+  "status": "PASS_HV50_CACHE_INTEGRITY",
+  "receipts": 60000,
+  "normal": 11853,
+  "preview_reserve_ns": 300000,
+  "physics_interval_ns": 5000000,
+  "original_age_ns": 30000000,
+  "scope": "existing ADR-0066 policy and cache hints; original physical audit still required",
+  "purges": [
+    {
+      "slices": 483,
+      "completion_span_ns": 2393162615,
+      "work_ns": 54639521,
+      "longest_slice_ns": 182090
+    },
+    {
+      "slices": 2,
+      "completion_span_ns": 1752029,
+      "work_ns": 11391,
+      "longest_slice_ns": 7672
+    },
+    {
+      "slices": 2,
+      "completion_span_ns": 2432948,
+      "work_ns": 11231,
+      "longest_slice_ns": 6914
+    },
+    {
+      "slices": 2,
+      "completion_span_ns": 1305158,
+      "work_ns": 9989,
+      "longest_slice_ns": 6379
+    }
+  ],
+  "requested_slice_ns": 100000,
+  "owner_cpus": [
+    2,
+    3,
+    4,
+    5,
+    10,
+    11,
+    12,
+    13
+  ],
+  "renderer_cpus": [
+    6,
+    7,
+    14,
+    15
+  ],
+  "measured_placement_samples": {
+    "owner": 298,
+    "renderer": 298,
+    "client": 298,
+    "native": 298,
+    "pipeline": 298
+  },
+  "library_prefetch": {
+    "owner": {
+      "files": 12,
+      "bytes": 1909074752,
+      "elapsed_ns": 1605850167
+    },
+    "renderer": {
+      "files": 12,
+      "bytes": 1909074752,
+      "elapsed_ns": 1592602551
+    }
+  },
+  "checks": {
+    "renderer": {
+      "executable": "/d/shin/stratadrive-tools/carla-0.9.16/server/CarlaUE4/Binaries/Linux/CarlaUE4-Linux-Shipping",
+      "sha256": "03bcd413615fa1fc61a5b846342dbdc4e6b3541320a40d6bf17ff927039731f9",
+      "server_version": "0.9.16",
+      "map": "Carla/Maps/Town03_Opt",
+      "xodr_sha256": "abf177bcd9b66cfefb7ac4919f6456815f1384f4229f1343c8a6a90bbb7713c9",
+      "editor_idle_wait": false,
+      "viewport_fps_cap": null,
+      "scope": "SDK rendering only; no native physics or perception authority",
+      "original_ini_sha256": null,
+      "preparation": {
+        "version": "0.9.16",
+        "world": 15529496844061173432,
+        "initial_map": "Carla/Maps/Town03_Opt",
+        "map": "Carla/Maps/Town03_Opt",
+        "xodr_sha256": "abf177bcd9b66cfefb7ac4919f6456815f1384f4229f1343c8a6a90bbb7713c9",
+        "empty": {
+          "vehicle.*": 0,
+          "walker.*": 0,
+          "sensor.*": 0
+        },
+        "parked": true,
+        "completed_ns": 1998680838438425
+      },
+      "restored_ini_sha256": null
+    },
+    "owner_code_read_bytes": 661445520
+  },
+  "declared_policy": {
+    "hv_dependency_ns": 50000000,
+    "source_and_actual_policy": "original 30ms gates",
+    "completed_cache_hints": 69,
+    "raw_bytes_retained": true
+  }
+}

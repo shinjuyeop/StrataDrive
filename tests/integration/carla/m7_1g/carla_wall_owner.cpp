@@ -9,6 +9,7 @@
 #include "perception_2k_ipc.hpp"
 #include "wall_startup_trace.hpp"
 #include "wall_drive_fault_trace.hpp"
+#include "wall_service_options.hpp"
 #include <atomic>
 #include <fcntl.h>
 #include <poll.h>
@@ -77,9 +78,7 @@ void emit(const Report& r,bool ready,const m7_native::Output& out,const std::str
 }
 int main(int argc,char** argv) {
     try {
-        if(argc<4 || (argc>6 && argc!=8 && argc!=10 && argc!=11))throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms] [--perception-shadow fd:source-clock:wall-clock]");
-        const bool profile_path=argc==11;
-        if(profile_path && std::string(argv[10])!="--profile-state-path")throw std::runtime_error("explicit state path option");
+        if(argc<4 || argc==7 || argc==9)throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms] [--perception-shadow fd:source-clock:wall-clock]");
         const Time model_step=argc>=5?std::stoull(argv[4])*ms:10*ms;
         const Time hv_dependency=argc>=6?std::stoull(argv[5])*ms:30*ms;
         if(model_step!=5*ms && model_step!=10*ms)throw std::runtime_error("wall model step");
@@ -91,9 +90,12 @@ int main(int argc,char** argv) {
             const std::string duration(argv[9]);
             if(duration!="30" && duration!="300")throw std::runtime_error("declared endurance duration");
             endurance=duration=="30"?30:300;
-            if((endurance!=30 && endurance!=300) || model_step!=5*ms || hv_dependency!=30*ms)throw std::runtime_error("endurance profile");
+            if((endurance!=30 && endurance!=300) || model_step!=5*ms)throw std::runtime_error("endurance profile");
         }
         const Time diagnostic_horizon=(endurance?endurance+5:19)*1000*ms;
+        const auto service=wall_service_options(argc,argv,endurance);
+        const bool profile_path=service.profile_path;
+        const Time service_period=service.period_ns;
         const auto perception_capacity=static_cast<std::size_t>(endurance?(endurance+5)*50+1:1000);
         if(argc>=8) {
             if(std::string(argv[6])!="--perception-shadow")throw std::runtime_error("shadow-only perception option");
@@ -135,16 +137,16 @@ int main(int argc,char** argv) {
         m7_native::SharedReader<m7_native::SharedReceipt> reader;
         m7_native::SharedWriter<m7_native::SharedProof> writer;
         struct Row {Time now,energy,source,protect;bool armed;Time hv_source,hv_dependency;};
-        std::vector<Row> rows;rows.reserve(static_cast<std::size_t>(diagnostic_horizon/ms)+1);std::string failure;
+        std::vector<Row> rows;rows.reserve(static_cast<std::size_t>(diagnostic_horizon/service_period)+1);std::string failure;
         std::vector<m7_native::NativePath> path_rows;
-        if(profile_path)path_rows.reserve(static_cast<std::size_t>(diagnostic_horizon/ms)+1);
+        if(profile_path)path_rows.reserve(static_cast<std::size_t>(diagnostic_horizon/service_period)+1);
         struct PerceptionRow {central::PerceptionIpcView view;Time native_observed,enable,ipc_service_ns;bool armed,failed;std::array<m7_native::Packet,3> actual;};
         std::vector<PerceptionRow> perception_rows;if(perception)perception_rows.reserve(perception_capacity);
         std::optional<central::PerceptionIpcView> perception_latest;
         Time next_perception=0;bool perception_root_error=false;
         simulation::runtime_support::ThreadInfo owner_info,io_info;owner_info.capture();
         simulation::runtime_support::sleep_until(initial);
-        std::cout<<"{\"initial\":"<<initial<<",\"bridge_bytes\":"<<sizeof(*bridge)<<",\"model_step_ns\":"<<model_step<<",\"hv_dependency_ns\":"<<hv_dependency<<"}"<<std::endl;
+        std::cout<<"{\"initial\":"<<initial<<",\"bridge_bytes\":"<<sizeof(*bridge)<<",\"model_step_ns\":"<<model_step<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"service_period_ns\":"<<service_period<<"}"<<std::endl;
         std::thread io([&] {
             io_info.capture();
             try {
@@ -159,7 +161,7 @@ int main(int argc,char** argv) {
             }catch(const std::exception& e){std::cerr<<"IO "<<e.what()<<'\n';trip.store(true);}
             __atomic_store_n(&bridge->stop,1ULL,__ATOMIC_RELEASE);done.store(true);
         });
-        Time consumed=0;auto wake=initial+ms;
+        Time consumed=0;auto wake=initial+service_period;
         try {
             while(!done.load() && wake<initial+diagnostic_horizon) {
                 simulation::runtime_support::sleep_until(wake);auto now=WallExecutionWatch::now();
@@ -213,7 +215,7 @@ int main(int argc,char** argv) {
                     path_rows.push_back(path);
                 }
                 rows.push_back({now,shared.energy_end,n.sensor_wheel?n.sensor_wheel->source:0,r.protected_at,n.armed,n.hv_source,n.hv_dependency});
-                wake=initial+((WallExecutionWatch::now()-initial)/ms+1)*ms;
+                wake=next_wall_service(initial,WallExecutionWatch::now(),service_period);
             }
         }catch(const std::exception& e){failure=std::string("owner exception: ")+e.what();}
         __atomic_store_n(&bridge->stop,1ULL,__ATOMIC_RELEASE);m7_native::wall_trip(&bridge->signal);done.store(true);io.join();
@@ -227,7 +229,7 @@ int main(int argc,char** argv) {
             for(const auto& r:path_rows)path<<r.wake<<','<<r.read_begin<<','<<r.read_end<<','<<r.frame<<','<<r.acquired_begin<<','<<r.service_begin<<','<<r.service_end<<','<<r.published<<','<<r.cpu_begin<<','<<r.cpu_end<<'\n';
             if(!path)throw std::runtime_error("state path trace write");
         }
-        std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"diagnostic_horizon_ns\":"<<diagnostic_horizon<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
+        std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"diagnostic_horizon_ns\":"<<diagnostic_horizon<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"service_period_ns\":"<<service_period<<",\"owner\":";
         owner_info.write_json(meta);meta<<",\"io\":";io_info.write_json(meta);meta<<"}\n";
         std::ofstream drive_fault(std::string(argv[2])+"-drive-fault.json");
         write_drive_fault(drive_fault,rig.drive_fault_observation());

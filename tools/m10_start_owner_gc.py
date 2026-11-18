@@ -13,8 +13,8 @@ import time
 
 
 def check(root):
-    series = root/'docs/test-plan/evidence/m10_gc_owner4_v1'
-    work = root/'build/m10-gc-owner4-v1'
+    series = root/'docs/test-plan/evidence/m10_service_half_v1'
+    work = root/'build/m10-service-half-v1'
     if os.geteuid() == 0:
         raise RuntimeError('Run this launcher as your normal user, without sudo.')
     prepared = json.loads((series/'prepared.json').read_text())

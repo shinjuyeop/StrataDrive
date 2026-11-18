@@ -1,0 +1,130 @@
+{
+  "scope": "completed original delegates; partial horizon is not acceptance",
+  "original_gc_audit": {
+    "status": "FAIL",
+    "error": "unchanged periodic GC not observed throughout five minutes"
+  },
+  "cycles": [
+    {
+      "completed_frame": 12299,
+      "begin": {
+        "wall_ns": 1995577216694448,
+        "cpu_ns": 55164650066,
+        "voluntary": 522921,
+        "involuntary": 460,
+        "minor_faults": 2394130,
+        "major_faults": 95,
+        "processor": 4,
+        "valid": 1
+      },
+      "memory_trim": {
+        "wall_ns": 1995578803947152,
+        "cpu_ns": 55167011078,
+        "voluntary": 522940,
+        "involuntary": 460,
+        "minor_faults": 2394183,
+        "major_faults": 111,
+        "processor": 10,
+        "valid": 1
+      },
+      "end": {
+        "wall_ns": 1995578848639840,
+        "cpu_ns": 55172481760,
+        "voluntary": 522946,
+        "involuntary": 460,
+        "minor_faults": 2394184,
+        "major_faults": 117,
+        "processor": 10,
+        "valid": 1
+      },
+      "delta": {
+        "wall_ns": 1631945392,
+        "cpu_ns": 7831694,
+        "voluntary": 25,
+        "involuntary": 0,
+        "minor_faults": 54,
+        "major_faults": 22
+      },
+      "before_memory_trim": {
+        "wall_ns": 1587252704,
+        "cpu_ns": 2361012,
+        "voluntary": 19,
+        "involuntary": 0,
+        "minor_faults": 53,
+        "major_faults": 16
+      },
+      "allocator_trim_to_gc_end": {
+        "wall_ns": 44692688,
+        "cpu_ns": 5470682,
+        "voluntary": 6,
+        "involuntary": 0,
+        "minor_faults": 1,
+        "major_faults": 6
+      }
+    }
+  ],
+  "incremental_purge": {
+    "enabled": true,
+    "budget_ns": "100000",
+    "errors": "0",
+    "cycles": [
+      {
+        "pending_at_collection_end": true,
+        "complete": false,
+        "first_frame": "12298",
+        "last_frame": "12298",
+        "first": {
+          "wall_ns": "1995578901745330",
+          "cpu_ns": "55173414078",
+          "voluntary": "522951",
+          "involuntary": "460",
+          "minor_faults": "2394192",
+          "major_faults": "122",
+          "processor": "10",
+          "valid": "1"
+        },
+        "last": {
+          "wall_ns": "1995579047748363",
+          "cpu_ns": "55174078057",
+          "voluntary": "522962",
+          "involuntary": "460",
+          "minor_faults": "2394198",
+          "major_faults": "132",
+          "processor": "10",
+          "valid": "1"
+        },
+        "work": {
+          "count": "1",
+          "wall_ns": "146003033",
+          "cpu_ns": "663979",
+          "errors": "0",
+          "longest_begin": {
+            "wall_ns": "1995578901745330",
+            "cpu_ns": "55173414078",
+            "voluntary": "522951",
+            "involuntary": "460",
+            "minor_faults": "2394192",
+            "major_faults": "122",
+            "processor": "10",
+            "valid": "1"
+          },
+          "longest_end": {
+            "wall_ns": "1995579047748363",
+            "cpu_ns": "55174078057",
+            "voluntary": "522962",
+            "involuntary": "460",
+            "minor_faults": "2394198",
+            "major_faults": "132",
+            "processor": "10",
+            "valid": "1"
+          }
+        }
+      }
+    ]
+  },
+  "integrity": {
+    "status": "FAIL",
+    "error": "'final_server'"
+  },
+  "first_fault_ns": 1995526032060452
+}

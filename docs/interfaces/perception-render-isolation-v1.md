@@ -1,14 +1,15 @@
 # Physics and camera rendering separation
 
 One physical owner supplies authoritative state; a separate world renders camera
-images from bounded completed snapshots. The selected Host configuration passes
-three finite30s diagnostic cases, but its subsequent300s case failed the original
-HV dependency freshness bound. Complete visual-scene admission, stable300s
+images from bounded completed snapshots. The latest HV50/cache V2 passes its
+30s diagnostic but fails the 300s case on Rear command expiry after GC. Exact
+original replay identifies sequential Front ACK → Rear delivery 145770ns after
+the previous command's expiry. Complete visual-scene admission, stable 300s
 operation and native perception-control acceptance remain OPEN.
 
-Current settings, timing/thermal limits and test counts are maintained in
+Current settings and results are maintained in
 [project status](../project-status.md#최신-m10-판단) and the
-[structured-state candidate and watchdog failure](../test-plan/evidence/m10_structured_state_v1/README.md).
+[explicit 500us service candidate](../test-plan/evidence/m10_service_half_v1/README.md).
 Earlier normal/failed experiments and the DXC lifecycle fix are indexed in
 [Host execution history](../archive/implementation-history.md#m10-host-실행-이력).
 The contractual ownership and timestamp rules below apply to every configuration.
@@ -93,7 +94,9 @@ or moving only Python inference does not establish this boundary.
 ## Ordered implementation checks
 
 1. The explicit5ms physical owner and trusted5ms/10ms observer are implemented.
-   Native ECU periods,2/4ms deadlines and HV30ms remain unchanged.
+   Native ECU periods and 2/4ms deadlines stay fixed. Default HV30ms remains;
+   bounded HV50 trials explicitly select existing ADR-0066 with source30ms.
+   The optional 500us service cadence changes communication polling, not ECU releases.
 2. `physical_ai/perception/scene_mailbox_v1.py` implements one in-flight and one
    pending latest snapshot, trusted inventory/configuration, original acquisition
    age, disconnect/expiry rejection and acknowledgements with no control credit.
@@ -107,30 +110,16 @@ or moving only Python inference does not establish this boundary.
    progression cap and a100ms model camera period (target10Hz). These are distinct
    rates and do not change physical5ms or relabel source timestamps. Live raw BGRA
    is written to NVMe; lossless archive compression runs after control finishes.
-4. Preserve every actual frame and failed verdict. Recovery V3 fixes the earlier
-   standalone auditor import failure without changing runtime or deadlines. Both
-   30s cases and all eight frozen supplemental audits pass. The300s case fails
-   at60.242013606s with held HV dependency age30.883485ms. Its first main GC takes
-   17.925938ms; four normal post-GC frames still inherit the pre-GC dependency.
-   First incremental purge finishes in408 calls over2.017s, maximum156.412us.
-   Original60000 admissions,36009 ingress records and first-fault replay match.
-   At the exact next pump6.955483ms after GC, both the original300us and a
-   counterfactual0 extra preview reject the published proof for wheel freshness.
-   These read-only queries do not establish a different physical trajectory.
-   All1,500,000 eligible native slots complete without missing/late entries in
-   this case; intermittent gaps and cooling margin remain open. Maximum observed
-   CPU temperature is89°C with no observed throttle-counter increase. Camera
-   rate is9.233Hz; pre-fault results have80.227ms median and85.999ms p95, with
-   one100ms exceedance. Protected-hold video is not normal-driving acceptance.
-   The prospective owner4/image2 comparison transfers one whole physical core
-   with its SMT sibling. The unchanged module, model,300us preview, final
-   Admission class, pre-physics guard,5ms interval, HV30ms and held-expiry order
-   remain fixed. Measure both GC recovery and possible image-side contention;
-   preparation success does not establish70% physical acceptance.
-   See the [current decision and evidence](../project-status.md#최신-m10-판단)
-   and [execution history](../archive/implementation-history.md#m10-host-실행-이력).
-   20Hz camera throughput is not a gate; the target remains1× wall behavior
-   without silently slowing simulation.
+4. Preserve every actual frame and failed verdict. Latest physical outcomes,
+   root-cause evidence, restoration and exact replay are indexed in
+   [project status](../project-status.md#최신-m10-판단). Closed raw shards can opt in
+   to bounded sync/cache hints; original bytes and image hashes remain mandatory.
+   Temporary NVMe asset placement retains original asset inodes and restores them.
+   The stock-renderer comparison is not adopted because measured scene age is
+   about 496ms median. The prospective source-editor/500us service trial preserves
+   sequential acknowledgements and original expiry checks. Preparation or replay
+   success is not live physical acceptance. Camera 20Hz is not an acceptance gate;
+   retain 1× wall behavior without silently slowing simulation.
 5. Complete visual state and the typed native mapping before enabling perception
    control. Revalidate Required-mode unavailable/recovery and original100ms
    checks. A diagnostic concurrency pass does not open admission.

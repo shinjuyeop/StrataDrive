@@ -24,6 +24,11 @@ def main():
     f32=lambda v:struct.unpack('<f',struct.pack('<f',v))[0]
     step=run.get('model_step_ns',10_000_000)
     assert step in (5_000_000,10_000_000),'original supported model step'
+    hv=run.get('hv_dependency_ns',30_000_000)
+    assert hv in (30_000_000,50_000_000)
+    if hv==50_000_000:
+        assert run.get('wall_profile')=='wall5-hv50-v1' and step==5_000_000 and run.get('endurance_seconds')
+        assert meta['hv_dependency_ns']==hv==run['native_initial']['hv_dependency_ns']
     dt=f32(f32(step/1e9)*f32(1/320))
     by_end={int(row['receipt']['work_end_ns']):row for row in receipts};used=set()
     lines=[f"{meta['initial']} {run['binding']['logical_begin_ns']} {run['binding']['actor']}"]
@@ -50,6 +55,7 @@ def main():
         bounds=limits(run['endurance_seconds'])
         assert step==5_000_000 and meta['diagnostic_horizon_ns']==(bounds['seconds']+5)*1_000_000_000
         command.append(str(bounds['seconds']))
+        if hv!=30_000_000:command.append(str(hv//1_000_000))
     subprocess.run(command,check=True)
     output=list(csv.DictReader((a.output/'replay.csv').open()));assert len(output)==len(jobs)
     differences=[dict(index=i,original=x,replay=y) for i,(x,y) in enumerate(zip(jobs,output)) if x!=y]

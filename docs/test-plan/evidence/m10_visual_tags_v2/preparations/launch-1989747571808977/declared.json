@@ -1,0 +1,40 @@
+{
+  "status": "FAIL",
+  "scope": "empty renderer cache preparation only; no native, camera, inference or GC intervention",
+  "validation_only": false,
+  "declared_utc": "2026-11-18T03:07:48.682479+00:00",
+  "readiness_limit_seconds": 600,
+  "argv": [
+    "taskset",
+    "-c",
+    "6-7,14-15",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-quality-level=Epic",
+    "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-carla-rpc-port=2300",
+    "-StrataM10IdleWait"
+  ],
+  "script_sha256": "efc59c3832f8026884d4e740f1622b6e378194cdb65137d3540340b3cd34b0c9",
+  "module_sha256": "bdfb14908db58cd49e2abefcc59f6e5c213faf75e0a7577d40e66b08410bd980",
+  "physical_trial_startup_limit_unchanged_seconds": 180,
+  "work": "build/m10-visual-tags-v2/preparations/launch-1989747571808977",
+  "host_policy": {
+    "min_perf_pct": "16",
+    "max_perf_pct": "100",
+    "no_turbo": "0"
+  }
+}

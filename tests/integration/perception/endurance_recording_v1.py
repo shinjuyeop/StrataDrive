@@ -45,7 +45,7 @@ def digest(raw):return hashlib.sha256(raw).hexdigest()
 
 class ShardRecorder:
     """Two workers, queue8, no discarded real frames, finite bytes/frame budget."""
-    def __init__(self,root,max_frames,max_bytes,*,capacity=8,shard_bytes=256*1024**2,codec=None,encoding='zstd1'):
+    def __init__(self,root,max_frames,max_bytes,*,capacity=8,shard_bytes=256*1024**2,codec=None,encoding='zstd1',release_cache=False):
         if not 1<=capacity<=16 or not 1<=max_frames<=6400 or max_bytes<=0 or shard_bytes<=0:
             raise ValueError('finite recorder budget')
         self.root=Path(root);self.root.mkdir(parents=True,exist_ok=True)
@@ -55,6 +55,11 @@ class ShardRecorder:
         self.shard_bytes=shard_bytes;self.codec=codec or Zstd();self.queue=queue.Queue(capacity)
         self.lock=threading.Lock();self.records=[];self.errors=[];self.overflow=[];self.archives=[]
         self.offered=0;self.peak=0;self.closed=False;self.total=0;self.current=None;self.archive_bytes=0
+        self.cache=None
+        if release_cache:
+            if encoding!='bgra':raise ValueError('explicit raw shard cache release only')
+            from recording_cache_v1 import CacheRelease
+            self.cache=CacheRelease()
         self.threads=[threading.Thread(target=self.run,name=f'lossless-shard-{i}',daemon=True) for i in range(2)]
         for thread in self.threads:thread.start()
 
@@ -86,7 +91,7 @@ class ShardRecorder:
                     hash_conversion_cpu_ns=time.thread_time_ns()-cpu_compressed)
             with self.lock:
                 if self.current is None or self.archive_bytes+len(stored)>self.shard_bytes:
-                    if self.current:self.current.close()
+                    self.close_shard()
                     name=f'raw-camera-{len(self.archives)+1:03d}.tar';self.archives.append(name)
                     self.current=tarfile.open(self.root/name,'x');self.archive_bytes=0
                 info=tarfile.TarInfo(item['path']);info.size=len(stored);info.mtime=0
@@ -106,6 +111,11 @@ class ShardRecorder:
                 self.write(*value)
             finally:self.queue.task_done()
 
+    def close_shard(self):
+        if self.current:
+            self.current.close();self.current=None
+            if self.cache:self.cache.offer(self.root/self.archives[-1])
+
     def close(self,timeout=30):
         self.closed=True;until=time.monotonic()+timeout
         for _ in self.threads:
@@ -113,7 +123,9 @@ class ShardRecorder:
             except queue.Full:return False
         for thread in self.threads:thread.join(max(0,until-time.monotonic()))
         stopped=not any(t.is_alive() for t in self.threads)
-        if stopped and self.current:self.current.close();self.current=None
+        if stopped:
+            self.close_shard()
+            if self.cache:stopped=self.cache.close(until)
         return stopped
 
     def report(self):
@@ -121,10 +133,12 @@ class ShardRecorder:
             return dict(mode='bounded-zstd-shards' if self.encoding=='zstd1' else 'bounded-bgra-shards',offered=self.offered,records=sorted(self.records,key=lambda x:x['frame']),
                 capacity=self.queue.maxsize,workers=2,peak_queue_frames=self.peak,stored_bytes=self.total,
                 max_frames=self.max_frames,max_stored_bytes=self.max_bytes,archives=list(self.archives),
-                errors=list(self.errors),overflow=list(self.overflow),stopped=not any(t.is_alive() for t in self.threads))
+                errors=list(self.errors),overflow=list(self.overflow),
+                cache_release=self.cache.report() if self.cache else dict(enabled=False),
+                stopped=not any(t.is_alive() for t in self.threads) and (not self.cache or not self.cache.thread.is_alive()))
 
     def failed(self):
-        with self.lock:return bool(self.errors or self.overflow)
+        with self.lock:return bool(self.errors or self.overflow or (self.cache and self.cache.errors))
 
 
 class RawReader:

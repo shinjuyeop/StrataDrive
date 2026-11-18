@@ -20,12 +20,20 @@ from carla_readiness_v1 import wait_ready
 from endurance_profile_v1 import limits,camera_pacing
 from endurance_resources_v1 import resources,endurance_runtime
 from endurance_host_v1 import load_profile,command as placed_command,owner_command,check_owner,ENV
+from owner_split_profile_v1 import WALL_PROFILES
 
 
 def main(a):
     bounds=limits(a.endurance_seconds)
     if a.endurance_seconds and (a.condition!='normal' or a.export_hz!=20 or a.endurance_build is None):
         raise ValueError('declared normal20Hz endurance build required')
+    wall_profile=getattr(a,'wall_profile','wall5-hv30-v1')
+    if wall_profile not in WALL_PROFILES or (wall_profile=='wall5-hv50-v1' and not a.endurance_seconds):
+        raise ValueError('explicit bounded owner5ms HV policy')
+    if getattr(a,'release_recording_cache',False) and not (a.endurance_seconds and a.raw_recording):
+        raise ValueError('closed raw endurance shards only')
+    if getattr(a,'native_service_us',1000)!=1000 and not (a.endurance_seconds and a.profile_state_path):
+        raise ValueError('profiled endurance native service cadence')
     root=Path(__file__).resolve().parents[3];a.output.mkdir(parents=True,exist_ok=False)
     report=dict(schema='m10-paired-server-v1',status='FAIL',condition=a.condition,attempts=1,
                 started_utc=datetime.now(timezone.utc).isoformat(),export_hz=a.export_hz,endurance_seconds=a.endurance_seconds,
@@ -33,6 +41,7 @@ def main(a):
                 control_authority='unchanged native owner; perception diagnostic only')
     processes={};logs=[];client=None;first_interrupt=first_crash=None;ini=a.source/'Unreal/CarlaUE4/Saved/Config/Linux/GameUserSettings.ini'
     original=ini.read_bytes();report['original_ini_sha256']=hashlib.sha256(original).hexdigest()
+    stock_ini=None;stock_original=None
     def hook():resource.setrlimit(resource.RLIMIT_CORE,(0,0));allow_shutdown_tracer()
     try:
         report['freeze_sha256']=verify(a.freeze)
@@ -56,7 +65,8 @@ def main(a):
         guards=[]
         try:
             for port in (2200,2201,2202,2300,2301,2302):
-                s=socket.socket();guards.append(s);s.bind(('127.0.0.1',port))
+                s=socket.socket();guards.append(s);s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+                s.bind(('127.0.0.1',port));s.listen(1)
         finally:
             for s in guards:s.close()
         base=[str(a.engine/'Engine/Binaries/Linux/UE4Editor'),str(a.source/'Unreal/CarlaUE4/CarlaUE4.uproject'),
@@ -78,6 +88,7 @@ def main(a):
         for option,key in [('profile_host','STRATADRIVE_M10_PROFILE'),('cuda_blocking','STRATADRIVE_CUDA_BLOCKING_SYNC'),('raw_recording','STRATADRIVE_M10_RAW_RECORDING'),
                            ('preprocess_cv_threads','STRATADRIVE_M10_CV_THREADS'),('resize_threads','STRATADRIVE_M10_RESIZE_THREADS'),
                            ('tensor_workspace','STRATADRIVE_M10_TENSOR_WORKSPACE'),
+                           ('release_recording_cache','STRATADRIVE_M10_RELEASE_RECORDING_CACHE'),
                            ('prefetch_inference_libraries','STRATADRIVE_M10_PREFETCH_LIBRARIES')]:
             value=getattr(a,option,0)
             if value:
@@ -129,13 +140,40 @@ def main(a):
                 raise ValueError('recovery preview requires explicit incremental purge candidate')
             commands['owner'].append('-StrataM10RecoveryPreview')
             report['owner_recovery_preview']=True
+        if getattr(a,'owner_no_visual_tags',False):
+            if not a.owner_recovery_preview:
+                raise ValueError('visual tag omission requires the explicit profiled recovery candidate')
+            commands['owner'].append('-StrataM10NoVisualTags')
+            report['owner_no_visual_tags']=True
         if getattr(a,'structured_state',False):
             if not a.endurance_seconds:raise ValueError('explicit endurance structured state')
             commands['owner'].append('-StrataM10StructuredState')
             report['structured_state']=True
+        if getattr(a,'packaged_renderer',None):
+            if not a.endurance_seconds or a.renderer_max_fps or not a.park_preparation or a.condition!='normal':
+                raise ValueError('packaged renderer requires declared endurance, parking and no editor FPS claim')
+            from packaged_renderer_v1 import command as stock_command
+            commands['renderer'],report['packaged_renderer']=stock_command(
+                commands['renderer'],a.packaged_renderer,json.loads(a.freeze.read_text()))
+            if getattr(a,'packaged_target_map',False):
+                config=a.packaged_renderer.resolve().parents[2]/'Config/DefaultEngine.ini'
+                frozen=json.loads(a.freeze.read_text())
+                if frozen['external'].get(str(config))!=sha(config):raise ValueError('frozen stock default map config')
+                report['packaged_target_map']=dict(config=str(config),sha256=sha(config))
+            stock_ini=a.packaged_renderer.resolve().parents[2]/'Saved/Config/Linux/GameUserSettings.ini'
+            stock_original=stock_ini.read_bytes() if stock_ini.exists() else None
+            report['packaged_renderer']['original_ini_sha256']=hashlib.sha256(stock_original).hexdigest() if stock_original is not None else None
         if getattr(a,'park_preparation',False) and not a.endurance_seconds:raise ValueError('explicit preparation parking')
         def ready_and_park(role,port):
             report.setdefault('readiness',{})[str(port)]=wait_ready(a.python,port,a.output/f'readiness-{port}.log',common)
+            if role=='renderer' and getattr(a,'packaged_renderer',None):
+                from packaged_renderer_v1 import prepare
+                ready=prepare(a.python,report['process_started_ns'][role],common)
+                if getattr(a,'packaged_target_map',False) and ready['initial_map']!='Carla/Maps/Town03_Opt':
+                    raise ValueError('stock renderer must start in Town03 without a second map load')
+                report['packaged_renderer']['preparation']=ready
+                report.setdefault('parked',{})[role]=dict(world=ready['world'],synchronous=True,wall_ns=ready['completed_ns'])
+                return
             if getattr(a,'park_preparation',False):
                 # No native bind/session or camera exists. Park the empty world
                 # before launching the next server; clients later configure and
@@ -147,6 +185,7 @@ def main(a):
         for role in ('renderer','owner'):
             log=(a.output/f'{role}.log').open('w');logs.append(log)
             launched=owner_command(report.get('host_resources',{}),commands[role]) if role=='owner' else commands[role]
+            report.setdefault('process_started_ns',{})[role]=time.monotonic_ns()
             processes[role]=subprocess.Popen(placed_command(role,launched),env=owner_env if role=='owner' else common,
                 stdout=log,stderr=subprocess.STDOUT,start_new_session=True,preexec_fn=hook)
             if getattr(a,'park_preparation',False):ready_and_park(role,2300 if role=='renderer' else 2200)
@@ -160,10 +199,23 @@ def main(a):
             '--wall-clock',str(secrets.randbits(63) or 1),'--detector',str(a.detector),'--models',str(a.models),
             '--library',str(a.library),'--paired-renderer-port','2300','--paired-renderer-pid',str(processes['renderer'].pid),
             '--paired-condition',a.condition,'--paired-export-hz',str(a.export_hz),'--endurance-seconds',str(a.endurance_seconds)]
+        command+=['--wall-profile',wall_profile,'--hv-dependency-ms',str(WALL_PROFILES[wall_profile])]
+        report['wall_profile']=wall_profile
         check_owner(report.get('host_resources',{}),processes['owner'].pid)
         if getattr(a,'profile_state_path',False):command.append('--profile-state-path')
+        if getattr(a,'native_service_us',1000)!=1000:
+            if not a.endurance_seconds or not a.profile_state_path:raise ValueError('profiled endurance native service cadence')
+            command+=['--native-service-us',str(a.native_service_us)]
+            report['native_service_us']=a.native_service_us
         if getattr(a,'profile_owner_gc',False):command.append('--profile-owner-gc')
         if getattr(a,'structured_state',False):command.append('--structured-state')
+        if getattr(a,'packaged_renderer',None):
+            command+=['--paired-renderer-executable',str(a.packaged_renderer.resolve())]
+        if getattr(a,'prefetch_owner_code',False):
+            if not a.endurance_seconds or not a.park_preparation:
+                raise ValueError('owner code preparation requires parked endurance')
+            command+=['--prefetch-owner-pid',str(processes['owner'].pid)]
+            report['prefetch_owner_code']=True
         report['client_argv']=command
         log=(a.output/'client.log').open('w');logs.append(log)
         client=subprocess.Popen(placed_command('observer',command),env=owner_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
@@ -196,6 +248,7 @@ def main(a):
             if time.monotonic()>deadline:raise TimeoutError('finite paired client horizon')
             time.sleep(.05)
         report['client_exit']=client.returncode
+        report['client_completed_ns']=time.monotonic_ns()
         if verify(a.freeze)!=report['freeze_sha256']:raise ValueError('frozen input changed during live')
         if client.returncode:raise RuntimeError('paired physical client failed; original failure retained')
         report['status']='EXECUTED_REQUIRES_AUDIT'
@@ -225,12 +278,22 @@ def main(a):
                 elif role=='renderer' and first_crash and process.poll() is not None:
                     result=dict(begin_wall_ns=first_crash,end_wall_ns=time.monotonic_ns(),
                                 server_exit=process.returncode,forced_stop=False,injected_crash=True)
+                elif role=='renderer' and getattr(a,'packaged_renderer',None):
+                    from packaged_renderer_v1 import stop
+                    result=stop(process,a.python,common)
+                    if result.get('unpark_error'):report['status']='FAIL'
                 else:result=shutdown(process,a.output/role,diagnostics=True)
                 report.setdefault('shutdown',{})[role]=result
                 expected_exit=-9 if role=='renderer' and a.condition=='stall-crash' and first_crash else 130
                 if result['server_exit']!=expected_exit or result.get('forced_stop'):report['status']='FAIL'
         if report.get('renderer_injected_forced_stop') or report.get('client_forced_stop'):report['status']='FAIL'
         ini.write_bytes(original);report['restored_ini_sha256']=sha(ini)
+        if stock_ini is not None:
+            if stock_original is None:stock_ini.unlink(missing_ok=True)
+            else:stock_ini.write_bytes(stock_original)
+            after=stock_ini.read_bytes() if stock_ini.exists() else None
+            report['packaged_renderer']['restored_ini_sha256']=hashlib.sha256(after).hexdigest() if after is not None else None
+            if after!=stock_original:report['status']='FAIL'
         for log in logs:log.close()
         (a.output/'server.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:report[k] for k in ('status','error') if k in report}))
@@ -246,6 +309,8 @@ if __name__=='__main__':
     p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     p.add_argument('--endurance-build',type=Path)
     p.add_argument('--resource-profile',type=Path)
+    p.add_argument('--packaged-renderer',type=Path)
+    p.add_argument('--prefetch-owner-code',action='store_true')
     p.add_argument('--idle-wait',action='store_true')
     p.add_argument('--passive-ort',action='store_true')
     p.add_argument('--renderer-wall-hz',type=int,choices=(0,10,20),default=0)
@@ -256,8 +321,13 @@ if __name__=='__main__':
     p.add_argument('--park-preparation',action='store_true')
     p.add_argument('--cuda-blocking',action='store_true')
     p.add_argument('--raw-recording',action='store_true')
+    p.add_argument('--release-recording-cache',action='store_true')
+    p.add_argument('--wall-profile',choices=tuple(WALL_PROFILES),default='wall5-hv30-v1')
+    p.add_argument('--packaged-target-map',action='store_true')
+    p.add_argument('--native-service-us',type=int,choices=(500,1000),default=1000)
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
+    p.add_argument('--owner-no-visual-tags',action='store_true')
     p.add_argument('--owner-serial-gc',action='store_true')
     p.add_argument('--owner-purge-slice',action='store_true')
     p.add_argument('--owner-recovery-preview',action='store_true')

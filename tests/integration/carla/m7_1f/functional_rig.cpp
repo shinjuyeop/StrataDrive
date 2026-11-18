@@ -872,7 +872,7 @@ WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial
     require(model_step==10000000 || (model_initial && model_step==5000000),"wall model step profile");
     require(hv_dependency_ns==30000000 || (model_initial && model_step==5000000 && hv_dependency_ns==50000000),"wall HV dependency profile");
     require(!endurance_seconds || ((endurance_seconds==30 || endurance_seconds==300) && model_initial &&
-        model_step==5000000 && hv_dependency_ns==30000000),"bounded endurance wall profile");
+        model_step==5000000),"bounded endurance wall profile");
     native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial,
         endurance_seconds?horizon_ms_:10000,model_step,hv_dependency_ns);
     native_->wheel_mode=true;

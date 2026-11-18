@@ -5,18 +5,18 @@ using namespace m7_functional;
 namespace {
 constexpr Time wall=1000000000000ULL,model=1000000000ULL;
 m7_external::CarlaWork frame(unsigned i,Time source);
-TEST(M7CarlaClock, EnduranceRequiresOriginalFiveMsThirtyMsScope) {
+TEST(M7CarlaClock, EnduranceRequiresFiveMsAndSupportedDependencyPolicy) {
     for(const unsigned seconds:{1U,29U,31U,301U})
         EXPECT_THROW((WallRig{{1,42,7},99,wall,model,5*ms,30*ms,seconds}),std::runtime_error);
     EXPECT_THROW((WallRig{{1,42,7},99,wall,0,5*ms,30*ms,30}),std::runtime_error);
     EXPECT_THROW((WallRig{{1,42,7},99,wall,model,10*ms,30*ms,30}),std::runtime_error);
-    EXPECT_THROW((WallRig{{1,42,7},99,wall,model,5*ms,50*ms,30}),std::runtime_error);
+    EXPECT_THROW((WallRig{{1,42,7},99,wall,model,5*ms,40*ms,30}),std::runtime_error);
     WallRig original({1,42,7},99,wall,model,5*ms);
     EXPECT_THROW(original.service(wall+30001*ms),std::runtime_error);
 }
 TEST(M7CarlaClock, EnduranceHorizonRetainsMissingInputProtection) {
-    for(const unsigned seconds:{30U,300U}) {
-        WallRig rig({1,42,7},99,wall,model,5*ms,30*ms,seconds);
+    for(const unsigned seconds:{30U,300U})for(const Time hv:{30*ms,50*ms}) {
+        WallRig rig({1,42,7},99,wall,model,5*ms,hv,seconds);
         ASSERT_NO_THROW(rig.request_profile({{3500,1,.02,0,false},{4500,-.3,0,0,false},{6500,0,0,.5,true}}));
         WallReport r;
         for(unsigned i=1;i<=1000;++i) {

@@ -35,20 +35,25 @@ def main():
     p.add_argument('--warmup-ticks',type=int,choices=(0,150),default=0)
     p.add_argument('--step-ms',type=int,choices=(5,10),default=10)
     p.add_argument('--hv-dependency-ms',type=int,choices=(30,50),default=30)
+    p.add_argument('--wall-profile',choices=('wall5-hv30-v1','wall5-hv50-v1'),default='wall5-hv30-v1')
     for name in ("detector", "models", "library"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--wall-clock", type=int, required=True)
     p.add_argument('--paired-renderer-port',type=int)
     p.add_argument('--paired-renderer-pid',type=int)
+    p.add_argument('--paired-renderer-executable',type=Path)
+    p.add_argument('--prefetch-owner-pid',type=int)
     p.add_argument('--paired-condition',choices=('normal','stall-exit','stall-crash'),default='normal')
     p.add_argument('--paired-export-hz',type=int,choices=(20,50),default=20)
     p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     p.add_argument('--profile-state-path',action='store_true')
+    p.add_argument('--native-service-us',type=int,choices=(500,1000),default=1000)
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--structured-state',action='store_true')
     a=p.parse_args()
     bounds=limits(a.endurance_seconds)
     if a.profile_state_path and not a.endurance_seconds:p.error('state path profiling requires endurance')
+    if a.native_service_us!=1000 and not (a.profile_state_path and a.endurance_seconds):p.error('explicit profiled endurance service cadence')
     if a.profile_owner_gc and not a.profile_state_path:p.error('GC profiling requires state path')
     if a.structured_state and not a.endurance_seconds:p.error('structured state requires endurance')
     try:validate_client(a)
@@ -61,10 +66,12 @@ def main():
     report['perception_authority']='shadow only; no torque/planner/protection writes'
     report['world_tick_owner']='existing native server wall owner; no client ticks after bind'
     report['hv_dependency_ns']=a.hv_dependency_ms*1000000
+    report['wall_profile']=a.wall_profile
     report['camera_condition']='absent' if a.camera_absent_control else '2k'
     report['execution_profile']=a.execution_profile
     report['endurance_seconds']=a.endurance_seconds
     report['profile_state_path']=a.profile_state_path
+    report['native_service_us']=a.native_service_us
     report['structured_state']=a.structured_state
     report['requested_intervals']=a.ticks
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
@@ -125,16 +132,22 @@ def main():
             report['paired_condition']=a.paired_condition
             report['paired_export_hz']=a.paired_export_hz
         model=int(binding['logical_begin_ns'])
+        if a.prefetch_owner_pid:
+            require(a.endurance_seconds and paired is not None,'parked paired endurance preparation')
+            from owner_code_prefetch_v1 import prefetch
+            report['owner_code_prefetch']=prefetch(a.prefetch_owner_pid)
         signal=(a.output/'wall-signal').resolve()
         stderr=(a.output/'native.stderr').open('w')
         command=['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms),str(a.hv_dependency_ms), '--perception-shadow', f'{capture.rx.fileno()}:{world.id}:{a.wall_clock}']
         if a.endurance_seconds:command+=['--endurance-seconds',str(a.endurance_seconds)]
         if a.profile_state_path:command.append('--profile-state-path')
+        if a.native_service_us!=1000:command+=['--service-us',str(a.native_service_us)]
         process=subprocess.Popen(placed_command('native',command),
             pass_fds=(capture.rx.fileno(),), stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr,text=True)
         capture.rx.close()
         capture.start_publisher()
         started=native(f'START {actor.id} {model} {session} {binding["physics"]["generation"]} {run}');report['native_initial']=started
+        assert started.get('service_period_ns',1_000_000)==a.native_service_us*1000,'declared native service cadence'
         require(rpc('wall_start',initial=str(started['initial']),signal_path=str(signal),limit=str(a.ticks))['ok'],'same host wall start')
         report['wall_clock_contract']='host CLOCK_MONOTONIC acquisition; separate original CARLA model dt; no offset conversion'
         fault_sent=False;writers_checked=False;deadline=time.monotonic()+bounds['execution_seconds']

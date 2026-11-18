@@ -29,6 +29,8 @@ def audit(directory):
     hv_audit='hv_dependency_ns' in result
     if hv_audit:
         check(meta.get('hv_dependency_ns')==hv_limit==result['native_initial'].get('hv_dependency_ns'),'probe/native HV policy identity')
+        if result.get('endurance_seconds') and hv_limit==50000000:
+            check(result.get('wall_profile')=='wall5-hv50-v1','explicit ADR-0066 endurance policy')
     else:
         check('hv_dependency_ns' not in meta and 'hv_dependency_ns' not in result['native_initial'],'no hidden HV policy')
     model_file=Path(__file__).resolve().parents[3]/'tools/carla/m7_nodrive/virtual_ev_v1.json'

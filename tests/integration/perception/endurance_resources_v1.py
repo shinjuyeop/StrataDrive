@@ -12,8 +12,11 @@ def resources(roots):
         seen.add(pid)
         try:
             proc=Path(f'/proc/{pid}');stat=(proc/'stat').read_text();fields=stat[stat.rfind(')')+2:].split()
+            status=dict(line.split(':',1) for line in (proc/'status').read_text().splitlines())
             records.append(dict(role=role,pid=pid,start_ticks=int(fields[19]),
                 user_ticks=int(fields[11]),system_ticks=int(fields[12]),rss_bytes=int(fields[21])*os.sysconf('SC_PAGE_SIZE'),
+                minor_faults=int(fields[7]),major_faults=int(fields[9]),
+                swap_bytes=int(status.get('VmSwap','0 kB').split()[0])*1024,
                 affinity=sorted(os.sched_getaffinity(pid)),scheduler=os.sched_getscheduler(pid),
                 priority=os.sched_getparam(pid).sched_priority))
             children=(proc/f'task/{pid}/children').read_text().split()
@@ -33,7 +36,11 @@ def resources(roots):
                 for path in folder.glob('temp*_input'):host[str(path)]=int(path.read_text())
         except OSError:pass
     return dict(wall_ns=time.monotonic_ns(),processes=records,free_bytes=free,host_telemetry=host,
-        available_ram_bytes=int(mem['MemAvailable'].split()[0])*1024)
+        available_ram_bytes=int(mem['MemAvailable'].split()[0])*1024,
+        swap_free_bytes=int(mem['SwapFree'].split()[0])*1024,
+        swap_total_bytes=int(mem['SwapTotal'].split()[0])*1024,
+        memory_pressure=Path('/proc/pressure/memory').read_text(),
+        io_pressure=Path('/proc/pressure/io').read_text())
 
 
 def endurance_runtime(freeze,manifest,source,engine,profile):

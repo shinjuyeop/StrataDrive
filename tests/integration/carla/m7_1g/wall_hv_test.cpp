@@ -1,8 +1,36 @@
 #include "drive_controller.hpp"
 #include "wall_rig.hpp"
+#include "wall_service_options.hpp"
 #include <gtest/gtest.h>
 using namespace stratadrive;
 namespace {
+TEST(M7WallService, ExplicitHalfMsRequiresProfiledEnduranceAndRejectsDuplicateOptions) {
+    const auto parse=[](std::initializer_list<const char*> tail,unsigned endurance) {
+        std::vector<std::string> values(10,"base");for(const auto* v:tail)values.emplace_back(v);
+        std::vector<char*> args;for(auto& v:values)args.push_back(v.data());
+        return m7_functional::wall_service_options(static_cast<int>(args.size()),args.data(),endurance);
+    };
+    EXPECT_EQ(parse({},0).period_ns,1000000U);
+    EXPECT_EQ(parse({"--profile-state-path"},300).period_ns,1000000U);
+    EXPECT_EQ(parse({"--profile-state-path","--service-us","500"},300).period_ns,500000U);
+    EXPECT_EQ(parse({"--service-us","500","--profile-state-path"},30).period_ns,500000U);
+    EXPECT_THROW(parse({"--service-us","500"},300),std::runtime_error);
+    EXPECT_THROW(parse({"--profile-state-path","--service-us","500"},0),std::runtime_error);
+    EXPECT_THROW(parse({"--profile-state-path","--profile-state-path"},300),std::runtime_error);
+    EXPECT_THROW(parse({"--profile-state-path","--service-us","500","--service-us","500"},300),std::runtime_error);
+    EXPECT_THROW(parse({"--profile-state-path","--service-us","250"},300),std::runtime_error);
+    EXPECT_THROW(parse({"--profile-state-path","--service-us"},300),std::runtime_error);
+}
+TEST(M7WallService, AbsoluteCadenceSkipsMissedSlotsInsteadOfReplayingOldJobs) {
+    constexpr std::uint64_t begin=1000000000;
+    for(const std::uint64_t period:{500000,1000000}) {
+        EXPECT_EQ(m7_functional::next_wall_service(begin,begin,period),begin+period);
+        EXPECT_EQ(m7_functional::next_wall_service(begin,begin+period-1,period),begin+period);
+        EXPECT_EQ(m7_functional::next_wall_service(begin,begin+period,period),begin+2*period);
+        EXPECT_EQ(m7_functional::next_wall_service(begin,begin+5*period+1,period),begin+6*period);
+    }
+    EXPECT_THROW(m7_functional::next_wall_service(begin,begin-1,500000),std::runtime_error);
+}
 constexpr std::uint64_t ms=1000000,start=1000000000;
 drive::LocalSensors sensors(std::uint64_t source,std::uint64_t dependency) {
     const battery::ModelIdentity id{7,static_cast<std::uint32_t>(source-start),source};
@@ -76,6 +104,10 @@ TEST(M7WallHv, InvalidOrUnscopedBudgetIsRejected) {
     EXPECT_THROW((m7_functional::WallRig{{1,42,7},99,start,0,10*ms,50*ms}),std::runtime_error);
     EXPECT_THROW((m7_functional::WallRig{{1,42,7},99,start,start,10*ms,50*ms}),std::runtime_error);
     EXPECT_NO_THROW((m7_functional::WallRig{{1,42,7},99,start,start,5*ms,50*ms}));
+    for(unsigned horizon:{30U,300U}) {
+        EXPECT_NO_THROW((m7_functional::WallRig{{1,42,7},99,start,start,5*ms,50*ms,horizon}));
+        EXPECT_THROW((m7_functional::WallRig{{1,42,7},99,start,start,10*ms,50*ms,horizon}),std::runtime_error);
+    }
 }
 TEST(M7WallHv, OwnerOptionsCannotChangeAnotherLeafOrUseUnknownIngress) {
     struct Clock : transport::Clock { std::uint64_t now_ns() noexcept override {return start;} } clock;

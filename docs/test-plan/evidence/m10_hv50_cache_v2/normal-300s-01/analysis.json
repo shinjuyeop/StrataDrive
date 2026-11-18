@@ -1,0 +1,584 @@
+{
+  "case": "normal-300s-01",
+  "normal_intervals": 11853,
+  "protection_intervals": 47985,
+  "init_intervals": 162,
+  "normal_model_seconds": 59.265,
+  "physical_intervals": 60000,
+  "fault_after_initial_ms": 60086.01597,
+  "first_fault": "native credit/gate closed leaf=2 code=14 leaf=3 code=2 leaf=4 code=14",
+  "raw": 1169,
+  "inferences": 1165,
+  "overflow": [],
+  "phases": {
+    "preparation": {
+      "seconds": 145.670648485,
+      "samples": 292,
+      "cpu_seconds": {
+        "observer_setup": 8.179999999999998,
+        "renderer": 97.98000000000006,
+        "owner": 32.53000000000001,
+        "image_pipeline": 4.3699999999999966,
+        "native": 0.0
+      },
+      "average_cores": {
+        "observer_setup": 0.05615407142807022,
+        "renderer": 0.6726131929733893,
+        "owner": 0.22331197353974636,
+        "image_pipeline": 0.029999179968296666,
+        "native": 0.0
+      },
+      "hottest_c": 74.0,
+      "gpu_percent": {
+        "median": 0.0,
+        "p95": 0.0,
+        "max": 5
+      },
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "top_threads": [
+        [
+          "renderer / CarlaUE4-Linux-",
+          85.11836138900003
+        ],
+        [
+          "owner / UE4Editor",
+          28.715069189000015
+        ],
+        [
+          "observer_setup / python",
+          7.985666437
+        ],
+        [
+          "renderer / RHIThread",
+          3.0349436519999995
+        ],
+        [
+          "image_pipeline / m10-inference",
+          2.5847682089999995
+        ],
+        [
+          "owner / TaskGraphHP 3",
+          2.3985556379999995
+        ],
+        [
+          "renderer / RenderThread 0",
+          2.108310519999999
+        ],
+        [
+          "renderer / RenderThread 1",
+          1.4002466700000011
+        ],
+        [
+          "renderer / PoolThread 6",
+          1.342639197
+        ],
+        [
+          "renderer / PoolThread 7",
+          1.338257302
+        ],
+        [
+          "image_pipeline / python",
+          1.334029813000001
+        ],
+        [
+          "renderer / PoolThread 5",
+          1.0244684319999995
+        ],
+        [
+          "renderer / PoolThread 4",
+          1.0081291829999999
+        ],
+        [
+          "owner / FMonito-ocess 0",
+          0.500342078
+        ],
+        [
+          "renderer / RTHeartBeat 0",
+          0.324692236
+        ]
+      ]
+    },
+    "before_fault": {
+      "seconds": 60.08601597,
+      "samples": 120,
+      "cpu_seconds": {
+        "observer_setup": 13.169999999999973,
+        "native": 8.170000000000005,
+        "image_pipeline": 32.269999999999996,
+        "owner": 31.970000000000013,
+        "renderer": 28.48999999999999
+      },
+      "average_cores": {
+        "observer_setup": 0.21918577538200482,
+        "native": 0.13597173765155535,
+        "image_pipeline": 0.5370633995123241,
+        "owner": 0.5320705572484974,
+        "renderer": 0.47415358698810384
+      },
+      "hottest_c": 83.0,
+      "gpu_percent": {
+        "median": 0.0,
+        "p95": 20.0,
+        "max": 21
+      },
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "top_threads": [
+        [
+          "owner / UE4Editor",
+          27.531476420000004
+        ],
+        [
+          "image_pipeline / m10-inference",
+          16.269177732000028
+        ],
+        [
+          "observer_setup / python",
+          13.112039841999989
+        ],
+        [
+          "renderer / CarlaUE4-Linux-",
+          11.913357564000007
+        ],
+        [
+          "image_pipeline / m10-recorder",
+          10.87418198900001
+        ],
+        [
+          "renderer / RHIThread",
+          9.244320979999996
+        ],
+        [
+          "native / m7_carla_wall_o",
+          8.165692254000005
+        ],
+        [
+          "renderer / RenderThread 1",
+          3.7277835500000007
+        ],
+        [
+          "image_pipeline / python",
+          3.415732739999997
+        ],
+        [
+          "owner / TaskGraphHP 3",
+          2.5629967429999985
+        ],
+        [
+          "image_pipeline / m10-cache",
+          1.6115443370000002
+        ],
+        [
+          "renderer / TaskGraphNP 0",
+          1.0688761159999995
+        ],
+        [
+          "renderer / TaskGraphNP 1",
+          0.8417037300000006
+        ],
+        [
+          "owner / TaskGraphHP 4",
+          0.6723302399999997
+        ],
+        [
+          "owner / StatsThread",
+          0.6237159759999998
+        ]
+      ]
+    },
+    "physical_all": {
+      "seconds": 300.000976152,
+      "samples": 599,
+      "cpu_seconds": {
+        "observer_setup": 67.10999999999991,
+        "native": 38.55000000000001,
+        "image_pipeline": 162.16999999999987,
+        "owner": 155.55000000000027,
+        "renderer": 142.83999999999986
+      },
+      "average_cores": {
+        "observer_setup": 0.2236992721183601,
+        "native": 0.12849958188292052,
+        "image_pipeline": 0.5405649077549468,
+        "owner": 0.5184983128894505,
+        "renderer": 0.47613178407668855
+      },
+      "hottest_c": 90.0,
+      "gpu_percent": {
+        "median": 0,
+        "p95": 20.0,
+        "max": 21
+      },
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "top_threads": [
+        [
+          "owner / UE4Editor",
+          132.94626765699968
+        ],
+        [
+          "image_pipeline / m10-inference",
+          81.84709995599997
+        ],
+        [
+          "observer_setup / python",
+          66.81550472199974
+        ],
+        [
+          "renderer / CarlaUE4-Linux-",
+          61.13584888600006
+        ],
+        [
+          "image_pipeline / m10-recorder",
+          54.59095472300002
+        ],
+        [
+          "renderer / RHIThread",
+          45.341185183999976
+        ],
+        [
+          "native / m7_carla_wall_o",
+          38.54115884200001
+        ],
+        [
+          "renderer / RenderThread 1",
+          18.509726380000014
+        ],
+        [
+          "image_pipeline / python",
+          16.31928393799996
+        ],
+        [
+          "owner / TaskGraphHP 3",
+          12.774582560999987
+        ],
+        [
+          "image_pipeline / m10-cache",
+          8.878043066999997
+        ],
+        [
+          "renderer / TaskGraphNP 0",
+          5.332381775999995
+        ],
+        [
+          "renderer / TaskGraphNP 1",
+          4.246527353000003
+        ],
+        [
+          "owner / TaskGraphHP 4",
+          3.434729330999997
+        ],
+        [
+          "owner / StatsThread",
+          3.1308546380000024
+        ]
+      ]
+    },
+    "protected": {
+      "seconds": 239.914960182,
+      "samples": 479,
+      "cpu_seconds": {
+        "observer_setup": 53.839999999999996,
+        "native": 30.319999999999922,
+        "image_pipeline": 129.62000000000015,
+        "owner": 123.2400000000003,
+        "renderer": 114.11999999999983
+      },
+      "average_cores": {
+        "observer_setup": 0.22441285011637815,
+        "native": 0.12637811321561235,
+        "image_pipeline": 0.5402747702838961,
+        "owner": 0.513682014270849,
+        "renderer": 0.4756685448603462
+      },
+      "hottest_c": 90.0,
+      "gpu_percent": {
+        "median": 0,
+        "p95": 20.0,
+        "max": 21
+      },
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "top_threads": [
+        [
+          "owner / UE4Editor",
+          105.17429955100023
+        ],
+        [
+          "image_pipeline / m10-inference",
+          65.43320753599986
+        ],
+        [
+          "observer_setup / python",
+          53.597263016000014
+        ],
+        [
+          "renderer / CarlaUE4-Linux-",
+          49.13434651300006
+        ],
+        [
+          "image_pipeline / m10-recorder",
+          43.61667204800001
+        ],
+        [
+          "renderer / RHIThread",
+          36.022645456999975
+        ],
+        [
+          "native / m7_carla_wall_o",
+          30.311991420000048
+        ],
+        [
+          "renderer / RenderThread 1",
+          14.748457055999996
+        ],
+        [
+          "image_pipeline / python",
+          12.875766224000015
+        ],
+        [
+          "owner / TaskGraphHP 3",
+          10.188345738999988
+        ],
+        [
+          "image_pipeline / m10-cache",
+          7.266498730000001
+        ],
+        [
+          "renderer / TaskGraphNP 0",
+          4.253375597
+        ],
+        [
+          "renderer / TaskGraphNP 1",
+          3.398937496999999
+        ],
+        [
+          "owner / TaskGraphHP 4",
+          2.7564302290000007
+        ],
+        [
+          "owner / StatsThread",
+          2.5017752779999993
+        ]
+      ]
+    },
+    "normal": {
+      "seconds": 59.262891656,
+      "samples": 119,
+      "cpu_seconds": {
+        "observer_setup": 13.059999999999972,
+        "native": 8.100000000000005,
+        "image_pipeline": 31.990000000000002,
+        "owner": 31.640000000000015,
+        "renderer": 28.249999999999993
+      },
+      "average_cores": {
+        "observer_setup": 0.22037399180263806,
+        "native": 0.13667912202154467,
+        "image_pipeline": 0.5397981621566927,
+        "owner": 0.5338922741681077,
+        "renderer": 0.47668953050723867
+      },
+      "hottest_c": 83.0,
+      "gpu_percent": {
+        "median": 0,
+        "p95": 20.0,
+        "max": 21
+      },
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "top_threads": [
+        [
+          "owner / UE4Editor",
+          27.24366699900001
+        ],
+        [
+          "image_pipeline / m10-inference",
+          16.125784631000027
+        ],
+        [
+          "observer_setup / python",
+          12.998262075999989
+        ],
+        [
+          "renderer / CarlaUE4-Linux-",
+          11.809505507000006
+        ],
+        [
+          "image_pipeline / m10-recorder",
+          10.77591087700001
+        ],
+        [
+          "renderer / RHIThread",
+          9.169627648999997
+        ],
+        [
+          "native / m7_carla_wall_o",
+          8.101170240000004
+        ],
+        [
+          "renderer / RenderThread 1",
+          3.692471030000001
+        ],
+        [
+          "image_pipeline / python",
+          3.3733588999999977
+        ],
+        [
+          "owner / TaskGraphHP 3",
+          2.538542998999999
+        ],
+        [
+          "image_pipeline / m10-cache",
+          1.6115443370000002
+        ],
+        [
+          "renderer / TaskGraphNP 0",
+          1.0610780549999996
+        ],
+        [
+          "renderer / TaskGraphNP 1",
+          0.8316242600000004
+        ],
+        [
+          "owner / TaskGraphHP 4",
+          0.6661224599999999
+        ],
+        [
+          "owner / StatsThread",
+          0.6180582609999998
+        ]
+      ]
+    }
+  },
+  "scene_result_ms": {
+    "median": 496.454609,
+    "p95": 524.0442513999999,
+    "max": 551.534512
+  },
+  "stages": {
+    "preprocess_ns": {
+      "median": 35.308125,
+      "p95": 45.3081152,
+      "max": 62.702561
+    },
+    "inference_ns": {
+      "median": 22.078731,
+      "p95": 25.3815956,
+      "max": 33.282145
+    },
+    "postprocess_ns": {
+      "median": 0.475826,
+      "p95": 0.8626360000000001,
+      "max": 10.740523
+    },
+    "thread_cpu_ns": {
+      "median": 33.460856,
+      "p95": 36.504563399999995,
+      "max": 40.458348
+    }
+  },
+  "recorder_stages": {
+    "compression_ns": {
+      "median": 0.003177,
+      "p95": 0.0042892,
+      "max": 0.019477
+    },
+    "compression_cpu_ns": {
+      "median": 0.001662,
+      "p95": 0.0023225999999999998,
+      "max": 0.017488
+    },
+    "hash_conversion_ns": {
+      "median": 38.79669,
+      "p95": 48.9522012,
+      "max": 71.195915
+    },
+    "hash_conversion_cpu_ns": {
+      "median": 34.528163,
+      "p95": 37.9676294,
+      "max": 44.171579
+    }
+  },
+  "host_pipeline": {
+    "thread_id": 4012195,
+    "cv_threads": 4,
+    "tensor_workspace": true,
+    "resize_threads": 4,
+    "cuda_wait": {
+      "runtime": "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "before": 8,
+      "after": 12,
+      "scope": "current process CUDA device"
+    }
+  },
+  "monitor": {
+    "samples": 1298,
+    "wall_seconds": 649.6096325879917,
+    "monitor_cpu_seconds": 17.657046192,
+    "max_sample_ms": 29.03629,
+    "ticks_per_second": 100,
+    "root_pid": 4009468,
+    "root_start_ticks": 199861450,
+    "schedstat_wait_enabled": false
+  },
+  "shutdown": {
+    "renderer": {
+      "begin_wall_ns": 1999259266494019,
+      "limit_seconds": 30,
+      "diagnostics_enabled": false,
+      "scope": "post-client shutdown: release synchronous wait before SIGINT",
+      "unpark": {
+        "world": 15529496844061173432,
+        "frame_before": 0,
+        "source_before_ns": 0,
+        "completed_ns": 1999259372290119,
+        "synchronous_after": false
+      },
+      "end_wall_ns": 1999260194703828,
+      "server_exit": 130
+    },
+    "owner": {
+      "begin_wall_ns": 1999260194739957,
+      "limit_seconds": 30,
+      "diagnostic_after_seconds": 10,
+      "diagnostics_enabled": true,
+      "end_wall_ns": 1999263716630667,
+      "server_exit": 130
+    }
+  },
+  "latency_components_ms": {
+    "source_to_callback": {
+      "median": 434.615108,
+      "p95": 459.93591239999995,
+      "max": 480.308664
+    },
+    "callback_to_start": {
+      "median": 2.26083,
+      "p95": 9.026222599999999,
+      "max": 20.057825
+    },
+    "compute": {
+      "median": 58.657794,
+      "p95": 69.55742479999999,
+      "max": 86.958701
+    }
+  },
+  "over_100ms": 1165,
+  "camera_callbacks_during_physical": 1164,
+  "camera_hz_during_physical": 3.879987375141879,
+  "renderer_ticks_during_physical": 2330,
+  "renderer_hz_during_physical": 7.766641395258229,
+  "live_stored_bytes": 18386780160
+}

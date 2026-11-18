@@ -1,0 +1,13 @@
+{
+  "status": "FAIL_PREPARATION_BEFORE_NATIVE_START",
+  "native_started": false,
+  "host_lease_applied": false,
+  "new_images": 0,
+  "owner_ready_s": 69.742089544,
+  "renderer_initial_ready_s": 118.940786849,
+  "error": "TimeoutExpired(['/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python', '-c', \"import carla,hashlib,json,sys,time\\ndeadline=int(sys.argv[1]);c=carla.Client('127.0.0.1',2300)\\nc.set_timeout(max(.01,(deadline-time.monotonic_ns())/1e9))\\nversion=c.get_server_version();assert version=='0.9.16'\\nw=c.get_world();initial_map=w.get_map().name\\nif initial_map!='Carla/Maps/Town03_Opt':w=c.load_world('Town03_Opt')\\nroad=w.get_map();digest=hashlib.sha256(road.to_opendrive().encode()).hexdigest()\\nassert road.name=='Carla/Maps/Town03_Opt' and digest=='abf177bcd9b66cfefb7ac4919f6456815f1384f4229f1343c8a6a90bbb7713c9'\\ncounts={k:len(w.get_actors().filter(k)) for k in ('vehicle.*','walker.*','sensor.*')};assert not any(counts.values())\\ns=w.get_settings();s.synchronous_mode=True;w.apply_settings(s)\\nassert w.get_settings().synchronous_mode and time.monotonic_ns()<deadline\\nprint(json.dumps(dict(version=version,world=w.id,initial_map=initial_map,map=road.name,xodr_sha256=digest,empty=counts,parked=True,completed_ns=time.monotonic_ns())))\\n\", '1997357149142287'], 61.05920279)",
+  "runtime_restored": true,
+  "asset_files_restored": 13947,
+  "all_original_failures_preserved": true,
+  "milestone_closed": false
+}
