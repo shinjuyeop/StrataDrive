@@ -1,0 +1,5 @@
+{
+  "purpose": "Recover YOLOX-S bus proposals missed by the parent, including a frontal bus competing for the same area as a truck. Keep existing parent predictions and require RGB appearance confirmation. No evaluation labels or scene identity are inputs.",
+  "development": "Fit a car/bus/truck crop appearance verifier on the separate 1,128-image training corpus. Filter the full-image YOLOX-S bus proposals using appearance and crop head support. Require all four native development roads and both archive floors across 699 validation images. Rank the worst then summed recovery of correctly localized YOLOX bus proposals with the bus absent, including a separate frontal aspect group. Break ties with intact TP, FP and stricter thresholds. Hash the model and selection before historical replay.",
+  "evaluation": "Require all historical sets including Town07 road 60. Use unused Town06 road 13, site 317, selected with OpenDRIVE geometry alone. Separately prepare its 99 scenes without running a detector, then freeze the signed development selection and preparation record before the new 81-frame evaluation. Keep the original nine absolute gates and six YOLOX-S gates."
+}
