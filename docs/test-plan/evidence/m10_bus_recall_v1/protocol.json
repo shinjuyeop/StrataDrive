@@ -1,0 +1,5 @@
+{
+  "fit": "Trace original and adapted bus and truck boxes from the frozen D-FINE ONNX. Keep existing buses. Consider distinct bus observations by confidence, agreement between heads and score relative to competing truck evidence. Rank training-qualified rules by bus true positives, fewer false positives, then stricter thresholds.",
+  "validate": "On both archived validation groups require nondecreasing bus TP and at most one added bus FP per 300 frames, with an overall TP gain. Require the unchanged six-class absolute and YOLOX-S relative gates on development site 90. Freeze before new evaluation.",
+  "holdout": "Choose the first eligible straight Town04 OpenDRIVE lane on a sorted 10 m waypoint grid, road-disjoint and at least 75 m from historic cameras, including sites 101 and 307. Require model-free 99-frame visibility preparation; score fixed 81 scenes once against the same YOLOX-S baseline and all original gates."
+}
