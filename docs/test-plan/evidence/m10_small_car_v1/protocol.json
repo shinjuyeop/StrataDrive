@@ -1,0 +1,6 @@
+{
+  "purpose": "Recover small cars that disappear when full images are downsampled or the vehicle is partially occluded, using only current RGB evidence, agreement across distinct crop windows and previously fixed detections.",
+  "selection": "Use four independent development roads and 699 archived validation frames. Apply every native quality gate, both archive floors, plus an intact gain or a small-car omission control with a bounded false-positive cost. Rank the additional true detections minus half the additional false detections, then small-car omission recoveries and stricter threshold. Exclude all consumed holdouts from threshold selection.",
+  "evaluation": "Seal source, development selection, the prior nomination and the geometry before new 81-frame acquisition on road 60, site 442. Re-evaluate all seven previous sets and the earlier bus-failure site 307. Preserve original masked GT, metrics, YOLOX comparison and all failure records.",
+  "development_diagnosis": "At a 0.70 two-window confidence threshold, all 43 added false positives on development road 3 matched the same annotated excluded car (visible box height 3.75 in the scoring grid). Require a one-pixel localization margin above the four-pixel annotation floor for additional boxes. Keep the unmodified official scoring rules and count every FP."
+}
