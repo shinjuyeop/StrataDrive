@@ -22,7 +22,9 @@
 
 ## 최신 M10 판단
 
-RTX 3090에서 같은 2K 평가 영상 891장을 두 번 재생했다. 원본 BGRA 입력부터 최종 검출까지 전체 p95는 종전 115.8ms에서 두 차례 모두 94.5ms 수준으로 줄었다. 100ms 이상인 프레임은 143장에서 회당 14장으로 줄었다. 평가 장소 11곳 모두 이전 후보와 모든 박스·클래스·점수가 일치했다. 전체 정밀도 93.61%, 재현율 95.04%이며 Town06 도로 13의 버스는 15/15다. 카메라 전달과 실제 제어 수용은 다음 동시 실행에서 측정한다. [차량 재검사 최적화와 반복 측정](test-plan/evidence/m10_quality_latency_v2/README.md) · [최초 보류 품질 평가](test-plan/evidence/m10_bus_support_v1/README.md)
+같은 RTX 3090에서 6개 클래스 검출기와 CARLA를 30초간 동시에 구동했다. 물리 기록 6,000개는 통과했고, 원본으로 재검출한 277장의 모든 박스·클래스·점수가 일치했다. 장면 취득부터 검출까지 중앙값 154.9ms, p95 178.9ms로 100ms 미만은 0/277장이었다. 30초 동안의 제어기 조회 1,500회 중 시간 조건을 만족한 결과도 0회였다. 제어기로 영상을 송신하는 단계는 여전히 열려 있다. [프레임별 Host 계측](test-plan/evidence/m10_quality_shadow_v1/README.md)
+
+RTX 3090에서 같은 2K 평가 영상 891장을 두 번 재생했다. 원본 BGRA 입력부터 최종 검출까지 전체 p95는 종전 115.8ms에서 두 차례 모두 94.5ms 수준으로 줄었다. 100ms 이상인 프레임은 143장에서 회당 14장으로 줄었다. 평가 장소 11곳 모두 이전 후보와 모든 박스·클래스·점수가 일치했다. 전체 정밀도 93.61%, 재현율 95.04%이며 Town06 도로 13의 버스는 15/15다. [차량 재검사 최적화와 반복 측정](test-plan/evidence/m10_quality_latency_v2/README.md) · [최초 보류 품질 평가](test-plan/evidence/m10_bus_support_v1/README.md)
 
 **M10은 아직 OPEN이다.** [0.5ms 통신 처리 후보](test-plan/evidence/m10_service_half_v1/README.md)가
 30초·5분의 실제 동시 실행, 원본 전체 검증, 추가 감사기 8개 재현을 통과했다.
@@ -139,7 +141,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 30초 Host 동시 실행에서 새 검출기를 관측용으로 구동하고 장면 생성·카메라 도착·검출 완료·제어기 조회를 같은 프레임에 연결한다. 남은 100ms 예산과 실제 지연 원인을 계측한다. [동일 영상 지연과 카메라 전달 비용](test-plan/evidence/m10_quality_latency_v2/README.md)
+1. 전체 화면·확대 영역 검출 비용과 카메라 전달 지연을 줄인다. 후보를 891장의 고정된 품질 평가로 대조한 뒤 같은 30초 조건에서 장면 취득부터 제어기 조회까지 다시 측정한다. [최초 동시 측정과 시간 예산](test-plan/evidence/m10_quality_shadow_v1/README.md)
 2. 물리 서버와 영상 서버의 프레임 일치를 확인하고 실제 영상 결과의 native 수용·만료·중단·재가입과 100ms 제어 지연을 검증한다. [물리·렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 

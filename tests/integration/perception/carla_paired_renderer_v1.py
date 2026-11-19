@@ -52,6 +52,18 @@ class DiagnosticInference:
         backend=None
         try:
             mark_thread('m10-inference')
+            if os.environ.get('STRATADRIVE_M10_QUALITY_SHADOW')=='1':
+                from quality_shadow_v1 import detector,predict
+                with detector() as (model,spec):
+                    self.report['quality_binding']=spec
+                    warm=np.empty((1536,2560,4),np.uint8)
+                    warm[:,:,:3]=(np.arange(2560,dtype=np.uint16)%256)[None,:,None];warm[:,:,3]=255
+                    for _ in range(3):
+                        begin=time.monotonic_ns();predict(model,warm)
+                        self.report['preparation'].append(dict(begin_ns=begin,end_ns=time.monotonic_ns()))
+                    self.ready.set()
+                    self.consume(lambda image:predict(model,image.bgra))
+                return
             import cv2
             cv_threads=int(os.environ.get('STRATADRIVE_M10_CV_THREADS','0'))
             resize_threads=int(os.environ.get('STRATADRIVE_M10_RESIZE_THREADS','0'))
@@ -82,35 +94,42 @@ class DiagnosticInference:
             def retained(feed):
                 raw=original(feed);self.raw.append({k:v.copy() for k,v in raw.items()});return raw
             backend.detector.raw=retained
-            while True:
-                with self.condition:
-                    self.condition.wait_for(lambda:self.closed or self.pending is not None)
-                    if self.closed:break
-                    image=self.pending;self.pending=None
-                a=image.association;begin=time.monotonic_ns();cpu_begin=time.thread_time_ns()
-                row=dict(renderer_frame=a.renderer_frame,physical_frame=a.scene.frame,
-                    original_acquisition_ns=a.scene.acquired_begin_ns,callback_ns=image.received_wall_ns,
-                    begin_ns=begin,scene_sha256=a.scene_sha256,accepted_for_control=False,
-                    unavailable_reason='complete_visual_scene_unavailable')
-                try:
-                    result=backend.infer(BgraPacket(FrameIdentity(42,self.world_id,a.renderer_frame,a.renderer_source_ns),
+            def predict_legacy(image):
+                a=image.association
+                result=backend.infer(BgraPacket(FrameIdentity(42,self.world_id,a.renderer_frame,a.renderer_source_ns),
                                                    image.bgra,image.received_wall_ns))
-                    row.update(detections=[asdict(d) for d in result.detections],model_sha256=result.model_sha256,
+                return dict(detections=[asdict(d) for d in result.detections],model_sha256=result.model_sha256,
                         raw_index=len(self.raw)-1,preprocess_ns=result.preprocess_ns,inference_ns=result.inference_ns,
                         postprocess_ns=result.postprocess_ns)
-                except Exception:row['error']=traceback.format_exc()
-                row['end_ns']=time.monotonic_ns();row['thread_cpu_ns']=time.thread_time_ns()-cpu_begin;self.report['inference'].append(row)
-                if len(self.report['inference'])>=self.max_calls:raise ValueError('bounded diagnostic inference trace')
+            self.consume(predict_legacy)
             self.report['backend_stages']=backend.stages
         except Exception:self.report['errors'].append(traceback.format_exc());self.ready.set()
         finally:
             if backend is not None and callable(getattr(backend,'close',None)):backend.close()
 
+    def consume(self,predict):
+        while True:
+            with self.condition:
+                self.condition.wait_for(lambda:self.closed or self.pending is not None)
+                if self.closed:break
+                image,offered=self.pending;self.pending=None
+            a=image.association;begin=time.monotonic_ns();cpu_begin=time.thread_time_ns()
+            row=dict(renderer_frame=a.renderer_frame,physical_frame=a.scene.frame,
+                original_acquisition_ns=a.scene.acquired_begin_ns,callback_ns=image.received_wall_ns,
+                begin_ns=begin,scene_sha256=a.scene_sha256,accepted_for_control=False,
+                unavailable_reason='complete_visual_scene_unavailable')
+            if 'quality_binding' in self.report:row['worker_offer_ns']=offered
+            try:
+                row.update(predict(image))
+            except Exception:row['error']=traceback.format_exc()
+            row['end_ns']=time.monotonic_ns();row['thread_cpu_ns']=time.thread_time_ns()-cpu_begin;self.report['inference'].append(row)
+            if len(self.report['inference'])>=self.max_calls:raise ValueError('bounded diagnostic inference trace')
+
     def offer(self,image):
         with self.condition:
             if self.closed:raise ValueError('closed diagnostic inference')
             if self.pending is not None:self.replaced+=1
-            self.pending=image;self.condition.notify()
+            self.pending=(image,time.monotonic_ns());self.condition.notify()
 
     def stop(self):
         with self.condition:self.closed=True;self.pending=None;self.condition.notify()

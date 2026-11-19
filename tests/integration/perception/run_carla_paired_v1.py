@@ -88,6 +88,13 @@ def main(a):
             report['cuda_resize']=dict(library=str(path),sha256=digest)
         elif any(key in common for key in ('STRATADRIVE_M10_CUDA_RESIZE_LIBRARY','STRATADRIVE_M10_CUDA_RESIZE_SHA256')):
             raise ValueError('undeclared CUDA resize environment')
+        if getattr(a,'quality_shadow',False):
+            if a.endurance_seconds!=30 or a.condition!='normal' or not a.raw_recording:
+                raise ValueError('quality shadow requires the recorded 30s normal case')
+            common['STRATADRIVE_M10_QUALITY_SHADOW']='1'
+            report['quality_shadow']=True
+        elif 'STRATADRIVE_M10_QUALITY_SHADOW' in common:
+            raise ValueError('undeclared quality shadow')
         camera_period=getattr(a,'camera_period_ms',50)
         camera_pacing(a.renderer_wall_hz,camera_period,getattr(a,'raw_recording',False))
         if (getattr(a,'raw_recording',False) or camera_period!=50) and not a.endurance_seconds:
@@ -337,6 +344,7 @@ if __name__=='__main__':
     p.add_argument('--packaged-target-map',action='store_true')
     p.add_argument('--native-service-us',type=int,choices=(500,1000),default=1000)
     p.add_argument('--cuda-resize-library',type=Path)
+    p.add_argument('--quality-shadow',action='store_true')
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-no-visual-tags',action='store_true')

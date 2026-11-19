@@ -130,17 +130,23 @@ def audit(root):
     starts=[int(r['physics_acquisition_begin_ns']) for r in receipts.values()]
     ends=[int(r['physics_acquisition_end_ns']) for r in receipts.values()]
     overlapping=0;ages=[]
+    quality=server.get('quality_shadow',False)
+    require(quality==('quality_binding' in renderer),'declared renderer model identity')
+    if quality:
+        from quality_shadow_v1 import replay_boxes
+        replay_boxes(folder,renderer,images)
     for call in renderer['inference']:
         m=mapped[call['renderer_frame']]
         require('error' not in call and call['accepted_for_control'] is False,'diagnostic call only')
         require(call['physical_frame']==m['physical_frame'] and call['scene_sha256']==m['scene_sha256'],'inference scene')
         require(call['original_acquisition_ns']==m['original_acquisition_begin_ns'] and call['callback_ns']==m['callback_received_ns']<=call['begin_ns']<=call['end_ns'],'inference original clock')
-        require(call['model_sha256']==MODEL_SHA256,'frozen numerical model')
-        item=renderer['numeric_raw'][call['raw_index']];path=folder/item['path']
-        require(sha(path.read_bytes())==item['sha256'],'original model tensor hash')
-        with np.load(path,allow_pickle=False) as values:decoded=decode_detection(dict(values),4)
-        expected=[dict(class_id=d.class_id,score=d.score,box=[v*4 for v in d.box]) for d in decoded]
-        require(call['detections']==expected,'retained tensors reproduce decoded detections')
+        if not quality:
+            require(call['model_sha256']==MODEL_SHA256,'frozen numerical model')
+            item=renderer['numeric_raw'][call['raw_index']];path=folder/item['path']
+            require(sha(path.read_bytes())==item['sha256'],'original model tensor hash')
+            with np.load(path,allow_pickle=False) as values:decoded=decode_detection(dict(values),4)
+            expected=[dict(class_id=d.class_id,score=d.score,box=[v*4 for v in d.box]) for d in decoded]
+            require(call['detections']==expected,'retained tensors reproduce decoded detections')
         overlapping+=min(starts)<=call['begin_ns']<max(ends)
         ages.append((call['end_ns']-call['original_acquisition_ns'])/1e6)
     require(len(ticks)>=5 and len(mapped)>=3 and overlapping>=2,'actual simultaneous physics/rendering/inference')
