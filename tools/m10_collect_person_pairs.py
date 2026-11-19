@@ -10,7 +10,9 @@ from m10_collect_occlusion_transfer import TESTS
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("root", type=Path)
-    p.add_argument("--town", choices=("Town01_Opt", "Town02_Opt"), required=True)
+    p.add_argument(
+        "--town", choices=("Town01_Opt", "Town02_Opt", "Town05_Opt"), required=True
+    )
     p.add_argument("--port", type=int, default=2460)
     a = p.parse_args()
     collect(

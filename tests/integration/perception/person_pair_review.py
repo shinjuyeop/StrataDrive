@@ -12,8 +12,8 @@ from camera_resolution_v1_common import annotate
 from person_pair_candidate import TOWNS, dump, read
 
 
-def audit(root, split):
-    town = TOWNS[split]
+def audit(root, split, town=None):
+    town = town or TOWNS[split]
     run = root / town
     server = read(run / "server.json")
     ds = run / "dataset"

@@ -1,0 +1,6 @@
+{
+  "model": "../m10_person_zoom_v1/protocol.json",
+  "selection": "Town01 training only. Compare complete full and zoom person views. If an unconfirmed zoom person has insufficient predicted support, use the full-frame person list for the whole frame. Retain both observation sets and per-person support flags. Strictly score every selected detection.",
+  "grid": "Canonical short-side 4, 4.25, 4.5, 4.75, 5, 5.5, 6, 7, 8; area floor 25. Require original training gates; maximize both-matched, pedestrian TP, then minimize FP and threshold.",
+  "validation": "Original archive and Town02 gates unchanged. Replicate on 120 new paired Town05 frames, on roads excluded from archived Town05 geometry. Require the same paired gates. Independent six-class check on existing site 90. Fresh holdout only after development qualification."
+}

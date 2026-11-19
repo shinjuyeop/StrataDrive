@@ -6,9 +6,9 @@ import math
 from pathlib import Path
 
 from occlusion_transfer_capture import capture
-from person_proposal_diagnosis import PARK, read
+from person_proposal_diagnosis import PARK, PREV, read
 
-TOWNS = {"Town01_Opt": "train", "Town02_Opt": "validation"}
+TOWNS = {"Town01_Opt": "train", "Town02_Opt": "validation", "Town05_Opt": "validation"}
 
 
 def pose(tr):
@@ -27,7 +27,14 @@ def plan(world, town):
     used_roads = set()
     origins = []
     if split == "validation":
-        old = read(PARK / "Town02_Opt-stock-02/dataset/plan.json")
+        old = read(
+            (
+                PREV / "parked-03"
+                if town == "Town05_Opt"
+                else PARK / "Town02_Opt-stock-02"
+            )
+            / "dataset/plan.json"
+        )
         if (
             old["xodr_sha256"]
             != hashlib.sha256(road.to_opendrive().encode()).hexdigest()
