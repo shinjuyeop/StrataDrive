@@ -1,0 +1,5 @@
+{
+  "purpose": "Recover a passenger-car box missed by the primary detector while excluding partial duplicates of cars already present and objects with stronger incompatible vehicle evidence. Use full-frame YOLOX-S, independent localized car confidence and existing parent detections only.",
+  "selection": "On the same 699 original archived validation frames and four 81-frame development roads, first require every original quality gate and both archived group floors on intact predictions. Also simulate one missing correctly matched passenger-car box at a time where YOLOX-S has a real matching proposal. Select by worst-group omission recovery then sum of group recovery, intact TP, intact FP and stricter thresholds. Require at least 65% omission recovery on every development group. Controls do not contribute to the reported intact or prospective metrics.",
+  "evaluation": "Seal before 81 new RGB/instance captures on Town07 road 55. It is the first eligible previously unobserved road, previously reserved but never acquired. Include all six consumed sets in subsequent regression checks. Preserve unchanged baseline, absolute gates and relative gates."
+}
