@@ -81,7 +81,7 @@ def audit(run, work, evidence, name):
             min=float(min(lat)),
             max=float(max(lat)),
         ),
-        distinct_masks_replayed=len(rows),
+        mask_frames_replayed=len(rows),
         visibility=read(run / "visibility.json"),
         boot_restoration=read(run / "boot-restoration.json"),
     )
