@@ -7,9 +7,7 @@
 ## 현재 판단
 
 기본 실행 모델은 YOLOX-S/640이며 최종 Reference 모델은 미채택이다.
-D-FINE-M/960의 opt-in2K 개발 구성은 기본 S 경계와 구분한다. 최근 제한된 지연 비교 이후의
-우선순위는 unavailable 보호·기능 연결이고, 새 독립 품질과 각 Jetson 배포/최적화는 남아 있다.
-실측과 다음 작업은 [프로젝트 상태](project-status.md#최신-m10-판단)를 따른다.
+D-FINE-M/960과 YOLOX-S의 다중 배율 후보가 독립 2K 보류 81장에서 6개 클래스 오프라인 품질 기준을 통과했다. 다음 단계는 추론 비용을 줄이고 동일 영상 품질과 Host 100ms 제어 입력 수용을 함께 검증하는 것이다. 각 Jetson의 배포 측정이 남아 있다. [최종 품질](test-plan/evidence/m10_bus_support_v1/README.md) · [프로젝트 상태](project-status.md#최신-m10-판단)
 
 ## 기준 모델과 개발 비교 V1
 
