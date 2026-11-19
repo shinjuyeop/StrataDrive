@@ -1,0 +1,40 @@
+{
+  "config": {
+    "minimum": 5,
+    "iou": 0.45,
+    "confidence": 0.85
+  },
+  "train": {
+    "before": {
+      "tp": 72,
+      "fp": 1,
+      "fn": 22,
+      "frames": 120,
+      "pedestrian_tp": 24,
+      "pedestrian_fn": 22,
+      "rider_tp": 48,
+      "both_eligible": 14,
+      "both_matched": 1
+    },
+    "after": {
+      "tp": 77,
+      "fp": 1,
+      "fn": 17,
+      "frames": 120,
+      "pedestrian_tp": 29,
+      "rider_tp": 48,
+      "both_eligible": 14,
+      "both_matched": 6,
+      "pedestrian_fn": 17
+    },
+    "gates": {
+      "walker": true,
+      "rider": true,
+      "fp": true,
+      "precision": true,
+      "both": true
+    },
+    "passed": true
+  },
+  "model": "cebce257cc2cd456a229467f47d19101ee0cad336833e6627d29ecf640c52683"
+}

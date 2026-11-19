@@ -1,0 +1,6 @@
+{
+  "inference": "Preserve every full-frame detection. Append distinct zoom people in decreasing score order using predicted short side, area, confidence and maximum IoU to the already retained boxes. No ground truth at inference.",
+  "selection": "Use Town01 train only. Require original paired gates. Among passing alternatives minimize strict FP, then maximize both matched, walker TP, confidence and short side, then minimize overlap cutoff.",
+  "development": "Require original archive, Town02 and first Town05 paired gates, then apply the same thresholds on two further Town05 roads disjoint from all previously captured roads and at least 50m from prior cameras. Require all original six-class gates at site 90. No tuning on the additional roads.",
+  "holdout": "After all development gates pass and model-free preparation passes, evaluate site 307 once against the unchanged absolute and paired YOLOX-S criteria. Site 101 remains consumed."
+}
