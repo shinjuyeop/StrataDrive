@@ -108,12 +108,67 @@ def review(work):
     )
 
 
+def paired(work):
+    """Run the previous detector on exactly the same evaluation pixels."""
+    from person_support_replay import six_class
+    from person_additive_transfer import infer_additive
+    from bus_recall_fit import PERSON
+    from quality_benchmark_v3 import measure
+
+    run = work / "holdout/runs/evaluation-holdout-01"
+    parent = work / "parent-replay"
+    parent.mkdir(exist_ok=True)
+    six_class(parent, run, read(PERSON)["config"], detector=infer_additive)
+    name = run.name + "-detections.json"
+    original = read(parent / name)
+    fixed = read(work / name)
+    changes = dict(frames=0, new_bus_tp=0, new_bus_fp=0)
+    for old, new, truth in zip(
+        original, fixed, read(run / "evaluation-only-gt.json")["frames"], strict=True
+    ):
+        if old["rgb"] != new["rgb"]:
+            raise ValueError("parent replay RGB")
+        old_bus = [d for d in old["detections"] if d["class_id"] == 5]
+        other_old = [d for d in old["detections"] if d["class_id"] != 5]
+        other_new = [d for d in new["detections"] if d["class_id"] != 5]
+        for actual, retained in ((old_bus, new["bus_full"]), (other_old, other_new)):
+            for a, b in zip(actual, retained, strict=True):
+                if (
+                    a["class_id"] != b["class_id"]
+                    or abs(a["score"] - b["score"]) >= 0.0001
+                    or max(abs(x - y) for x, y in zip(a["box"], b["box"], strict=True))
+                    >= 0.02
+                ):
+                    raise ValueError("original detector output changed")
+            if (
+                measure(actual, truth["objects"], truth["excluded"])[:2]
+                != measure(retained, truth["objects"], truth["excluded"])[:2]
+            ):
+                raise ValueError("original matches changed")
+        before = measure(old["detections"], truth["objects"], truth["excluded"])[0]["5"]
+        after = measure(new["detections"], truth["objects"], truth["excluded"])[0]["5"]
+        changes["new_bus_tp"] += after["tp"] - before["tp"]
+        changes["new_bus_fp"] += after["fp"] - before["fp"]
+        changes["frames"] += 1
+    if changes["frames"] != 81:
+        raise ValueError("parent denominator")
+    return dict(
+        counts=changes,
+        frame_level_nonbus_matches_identical=True,
+        original_bus=read(parent / (run.name + "-score.json"))["card"]["per_class"][
+            "5"
+        ],
+    )
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("work", type=Path)
-    p.add_argument("action", choices=("predecessor", "review"))
+    p.add_argument("action", choices=("predecessor", "review", "paired"))
     a = p.parse_args()
     write(
         a.work / (a.action + ".json"),
-        predecessor() if a.action == "predecessor" else review(a.work),
+        predecessor()
+        if a.action == "predecessor"
+        else {"review": review, "paired": paired}[a.action](a.work),
     )
