@@ -1,0 +1,757 @@
+{
+  "passed": true,
+  "groups": {
+    "dev90": {
+      "score": {
+        "card": {
+          "frames": 81,
+          "micro": {
+            "tp": 442,
+            "fp": 10,
+            "fn": 92,
+            "precision": 0.9778761061946902,
+            "recall": 0.8277153558052435,
+            "f1": 0.896551724137931
+          },
+          "per_class": {
+            "0": {
+              "tp": 40,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.9523809523809523,
+              "f1": 0.975609756097561
+            },
+            "1": {
+              "tp": 12,
+              "fp": 1,
+              "fn": 3,
+              "precision": 0.9230769230769231,
+              "recall": 0.8,
+              "f1": 0.8571428571428571
+            },
+            "2": {
+              "tp": 351,
+              "fp": 5,
+              "fn": 87,
+              "precision": 0.9859550561797753,
+              "recall": 0.8013698630136986,
+              "f1": 0.8841309823677582
+            },
+            "3": {
+              "tp": 12,
+              "fp": 3,
+              "fn": 0,
+              "precision": 0.8,
+              "recall": 1.0,
+              "f1": 0.8888888888888888
+            },
+            "5": {
+              "tp": 15,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0.9375,
+              "recall": 1.0,
+              "f1": 0.967741935483871
+            },
+            "7": {
+              "tp": 12,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          },
+          "macro_f1": 0.9289190699968227,
+          "minimum_class_recall": 0.8,
+          "strata": {
+            "near": {
+              "frames": 18,
+              "tp": 96,
+              "fp": 1,
+              "fn": 18,
+              "target_visible": 18,
+              "target_detected": 18,
+              "target_recall": 1.0
+            },
+            "medium": {
+              "frames": 18,
+              "tp": 95,
+              "fp": 1,
+              "fn": 19,
+              "target_visible": 18,
+              "target_detected": 18,
+              "target_recall": 1.0
+            },
+            "far": {
+              "frames": 18,
+              "tp": 90,
+              "fp": 5,
+              "fn": 24,
+              "target_visible": 18,
+              "target_detected": 15,
+              "target_recall": 0.8333333333333334
+            },
+            "occluded": {
+              "frames": 18,
+              "tp": 112,
+              "fp": 3,
+              "fn": 20,
+              "target_visible": 18,
+              "target_detected": 18,
+              "target_recall": 1.0
+            },
+            "negative": {
+              "frames": 3,
+              "tp": 11,
+              "fp": 0,
+              "fn": 4,
+              "target_visible": 0,
+              "target_detected": 0,
+              "target_recall": null
+            },
+            "overlap_vehicles": {
+              "frames": 3,
+              "tp": 18,
+              "fp": 0,
+              "fn": 3,
+              "target_visible": 0,
+              "target_detected": 0,
+              "target_recall": null
+            },
+            "overlap_vru": {
+              "frames": 3,
+              "tp": 20,
+              "fp": 0,
+              "fn": 4,
+              "target_visible": 0,
+              "target_detected": 0,
+              "target_recall": null
+            }
+          },
+          "near_person": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "recall": 1.0
+          },
+          "riders": {
+            "visible": 27,
+            "detected": 25
+          },
+          "gates": {
+            "no_model_errors": true,
+            "all_planned_actors_visible": true,
+            "all_riders_visible": true,
+            "coverage": true,
+            "precision": true,
+            "recall": true,
+            "per_class_recall": true,
+            "near_person": true,
+            "negative_fp": true
+          },
+          "absolute_quality": "PASS",
+          "admitted_micro": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 534,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "sizes": {
+            "lt32sq": {
+              "visible": 384,
+              "detected": 292,
+              "recall": 0.7604166666666666
+            },
+            "other_person": {
+              "visible": 15,
+              "detected": 15,
+              "recall": 1.0
+            },
+            "not_person": {
+              "visible": 492,
+              "detected": 402,
+              "recall": 0.8170731707317073
+            },
+            "32sq_to96sq": {
+              "visible": 144,
+              "detected": 144,
+              "recall": 1.0
+            },
+            "rider13": {
+              "visible": 27,
+              "detected": 25,
+              "recall": 0.9259259259259259
+            },
+            "ge96sq": {
+              "visible": 6,
+              "detected": 6,
+              "recall": 1.0
+            }
+          },
+          "fn_buckets": {}
+        },
+        "relative": {
+          "status": "PASS",
+          "gates": {
+            "precision": true,
+            "recall": true,
+            "per_class": true,
+            "far_occluded": true,
+            "near_person": true,
+            "negatives": true
+          }
+        },
+        "passed": true
+      },
+      "parent": {
+        "0": {
+          "tp": 34,
+          "fp": 0,
+          "fn": 8,
+          "precision": 1.0,
+          "recall": 0.8095238095238095,
+          "f1": 0.8947368421052632
+        },
+        "1": {
+          "tp": 11,
+          "fp": 1,
+          "fn": 4,
+          "precision": 0.9166666666666666,
+          "recall": 0.7333333333333333,
+          "f1": 0.8148148148148148
+        },
+        "2": {
+          "tp": 351,
+          "fp": 5,
+          "fn": 87,
+          "precision": 0.9859550561797753,
+          "recall": 0.8013698630136986,
+          "f1": 0.8841309823677582
+        },
+        "3": {
+          "tp": 10,
+          "fp": 3,
+          "fn": 2,
+          "precision": 0.7692307692307693,
+          "recall": 0.8333333333333334,
+          "f1": 0.8
+        },
+        "5": {
+          "tp": 15,
+          "fp": 1,
+          "fn": 0,
+          "precision": 0.9375,
+          "recall": 1.0,
+          "f1": 0.967741935483871
+        },
+        "7": {
+          "tp": 11,
+          "fp": 0,
+          "fn": 1,
+          "precision": 1.0,
+          "recall": 0.9166666666666666,
+          "f1": 0.9565217391304348
+        }
+      }
+    },
+    "dev608": {
+      "score": {
+        "card": {
+          "frames": 81,
+          "micro": {
+            "tp": 128,
+            "fp": 8,
+            "fn": 1,
+            "precision": 0.9411764705882353,
+            "recall": 0.9922480620155039,
+            "f1": 0.9660377358490566
+          },
+          "per_class": {
+            "0": {
+              "tp": 42,
+              "fp": 3,
+              "fn": 0,
+              "precision": 0.9333333333333333,
+              "recall": 1.0,
+              "f1": 0.9655172413793104
+            },
+            "1": {
+              "tp": 14,
+              "fp": 0,
+              "fn": 1,
+              "precision": 1.0,
+              "recall": 0.9333333333333333,
+              "f1": 0.9655172413793104
+            },
+            "2": {
+              "tp": 33,
+              "fp": 4,
+              "fn": 0,
+              "precision": 0.8918918918918919,
+              "recall": 1.0,
+              "f1": 0.9428571428571428
+            },
+            "3": {
+              "tp": 12,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0.9230769230769231,
+              "recall": 1.0,
+              "f1": 0.96
+            },
+            "5": {
+              "tp": 15,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "7": {
+              "tp": 12,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          },
+          "macro_f1": 0.9723152709359605,
+          "minimum_class_recall": 0.9333333333333333,
+          "strata": {
+            "near": {
+              "frames": 18,
+              "tp": 24,
+              "fp": 0,
+              "fn": 0,
+              "target_visible": 18,
+              "target_detected": 18,
+              "target_recall": 1.0
+            },
+            "medium": {
+              "frames": 18,
+              "tp": 24,
+              "fp": 0,
+              "fn": 0,
+              "target_visible": 18,
+              "target_detected": 18,
+              "target_recall": 1.0
+            },
+            "far": {
+              "frames": 18,
+              "tp": 23,
+              "fp": 3,
+              "fn": 1,
+              "target_visible": 18,
+              "target_detected": 17,
+              "target_recall": 0.9444444444444444
+            },
+            "occluded": {
+              "frames": 18,
+              "tp": 42,
+              "fp": 5,
+              "fn": 0,
+              "target_visible": 18,
+              "target_detected": 18,
+              "target_recall": 1.0
+            },
+            "negative": {
+              "frames": 3,
+              "tp": 0,
+              "fp": 0,
+              "fn": 0,
+              "target_visible": 0,
+              "target_detected": 0,
+              "target_recall": null
+            },
+            "overlap_vehicles": {
+              "frames": 3,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0,
+              "target_visible": 0,
+              "target_detected": 0,
+              "target_recall": null
+            },
+            "overlap_vru": {
+              "frames": 3,
+              "tp": 9,
+              "fp": 0,
+              "fn": 0,
+              "target_visible": 0,
+              "target_detected": 0,
+              "target_recall": null
+            }
+          },
+          "near_person": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "recall": 1.0
+          },
+          "riders": {
+            "visible": 27,
+            "detected": 27
+          },
+          "gates": {
+            "no_model_errors": true,
+            "all_planned_actors_visible": true,
+            "all_riders_visible": true,
+            "coverage": true,
+            "precision": true,
+            "recall": true,
+            "per_class_recall": true,
+            "near_person": true,
+            "negative_fp": true
+          },
+          "absolute_quality": "PASS",
+          "admitted_micro": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 129,
+            "precision": null,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "sizes": {
+            "lt32sq": {
+              "visible": 60,
+              "detected": 59,
+              "recall": 0.9833333333333333
+            },
+            "other_person": {
+              "visible": 15,
+              "detected": 15,
+              "recall": 1.0
+            },
+            "32sq_to96sq": {
+              "visible": 60,
+              "detected": 60,
+              "recall": 1.0
+            },
+            "not_person": {
+              "visible": 87,
+              "detected": 86,
+              "recall": 0.9885057471264368
+            },
+            "rider13": {
+              "visible": 27,
+              "detected": 27,
+              "recall": 1.0
+            },
+            "ge96sq": {
+              "visible": 9,
+              "detected": 9,
+              "recall": 1.0
+            }
+          },
+          "fn_buckets": {}
+        },
+        "relative": {
+          "status": "PASS",
+          "gates": {
+            "precision": true,
+            "recall": true,
+            "per_class": true,
+            "far_occluded": true,
+            "near_person": true,
+            "negatives": true
+          }
+        },
+        "passed": true
+      },
+      "parent": {
+        "0": {
+          "tp": 35,
+          "fp": 1,
+          "fn": 7,
+          "precision": 0.9722222222222222,
+          "recall": 0.8333333333333334,
+          "f1": 0.8974358974358975
+        },
+        "1": {
+          "tp": 14,
+          "fp": 0,
+          "fn": 1,
+          "precision": 1.0,
+          "recall": 0.9333333333333333,
+          "f1": 0.9655172413793104
+        },
+        "2": {
+          "tp": 33,
+          "fp": 4,
+          "fn": 0,
+          "precision": 0.8918918918918919,
+          "recall": 1.0,
+          "f1": 0.9428571428571428
+        },
+        "3": {
+          "tp": 12,
+          "fp": 1,
+          "fn": 0,
+          "precision": 0.9230769230769231,
+          "recall": 1.0,
+          "f1": 0.96
+        },
+        "5": {
+          "tp": 15,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "7": {
+          "tp": 12,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "previous": {
+      "micro": {
+        "tp": 410,
+        "fp": 41,
+        "fn": 53,
+        "precision": 0.9090909090909091,
+        "recall": 0.8855291576673866,
+        "f2": 0.8901432913590968
+      },
+      "selected": {
+        "0": {
+          "tp": 137,
+          "fp": 5,
+          "fn": 6,
+          "negative_fp": 0,
+          "precision": 0.9647887323943662,
+          "recall": 0.958041958041958,
+          "f2": 0.9593837535014004
+        },
+        "1": {
+          "tp": 21,
+          "fp": 9,
+          "fn": 15,
+          "negative_fp": 0,
+          "precision": 0.7,
+          "recall": 0.5833333333333334,
+          "f2": 0.6034482758620691
+        },
+        "2": {
+          "tp": 118,
+          "fp": 7,
+          "fn": 22,
+          "precision": 0.944,
+          "recall": 0.8428571428571429,
+          "f2": 0.8613138686131387
+        },
+        "3": {
+          "tp": 42,
+          "fp": 6,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 0.875,
+          "recall": 1.0,
+          "f2": 0.9722222222222222
+        },
+        "5": {
+          "tp": 43,
+          "fp": 0,
+          "fn": 8,
+          "precision": 1.0,
+          "recall": 0.8431372549019608,
+          "f2": 0.8704453441295548
+        },
+        "7": {
+          "tp": 49,
+          "fp": 14,
+          "fn": 2,
+          "negative_fp": 0,
+          "precision": 0.7777777777777778,
+          "recall": 0.9607843137254902,
+          "f2": 0.9176029962546817
+        }
+      },
+      "parent": {
+        "0": {
+          "tp": 124,
+          "fp": 3,
+          "fn": 19,
+          "negative_fp": 0,
+          "precision": 0.9763779527559056,
+          "recall": 0.8671328671328671,
+          "f2": 0.8869814020028612
+        },
+        "1": {
+          "tp": 21,
+          "fp": 9,
+          "fn": 15,
+          "negative_fp": 0,
+          "precision": 0.7,
+          "recall": 0.5833333333333334,
+          "f2": 0.6034482758620691
+        },
+        "2": {
+          "tp": 118,
+          "fp": 7,
+          "fn": 22,
+          "precision": 0.944,
+          "recall": 0.8428571428571429,
+          "f2": 0.8613138686131387
+        },
+        "3": {
+          "tp": 36,
+          "fp": 2,
+          "fn": 6,
+          "negative_fp": 0,
+          "precision": 0.9473684210526315,
+          "recall": 0.8571428571428571,
+          "f2": 0.8737864077669902
+        },
+        "5": {
+          "tp": 43,
+          "fp": 0,
+          "fn": 8,
+          "precision": 1.0,
+          "recall": 0.8431372549019608,
+          "f2": 0.8704453441295548
+        },
+        "7": {
+          "tp": 43,
+          "fp": 6,
+          "fn": 8,
+          "negative_fp": 0,
+          "precision": 0.8775510204081632,
+          "recall": 0.8431372549019608,
+          "f2": 0.849802371541502
+        }
+      },
+      "passed": true
+    },
+    "Town02_Opt": {
+      "micro": {
+        "tp": 777,
+        "fp": 134,
+        "fn": 135,
+        "precision": 0.8529088913282108,
+        "recall": 0.8519736842105263,
+        "f2": 0.8521605615266504
+      },
+      "selected": {
+        "0": {
+          "tp": 18,
+          "fp": 0,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f2": 1.0
+        },
+        "1": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f2": 1.0
+        },
+        "2": {
+          "tp": 634,
+          "fp": 124,
+          "fn": 127,
+          "precision": 0.8364116094986808,
+          "recall": 0.8331143232588699,
+          "f2": 0.8337716991057338
+        },
+        "3": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f2": 1.0
+        },
+        "5": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 2,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f2": 0.7894736842105263
+        },
+        "7": {
+          "tp": 107,
+          "fp": 10,
+          "fn": 6,
+          "negative_fp": 0,
+          "precision": 0.9145299145299145,
+          "recall": 0.9469026548672567,
+          "f2": 0.9402460456942004
+        }
+      },
+      "parent": {
+        "0": {
+          "tp": 18,
+          "fp": 0,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f2": 1.0
+        },
+        "1": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f2": 1.0
+        },
+        "2": {
+          "tp": 634,
+          "fp": 124,
+          "fn": 127,
+          "precision": 0.8364116094986808,
+          "recall": 0.8331143232588699,
+          "f2": 0.8337716991057338
+        },
+        "3": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 0,
+          "negative_fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f2": 1.0
+        },
+        "5": {
+          "tp": 6,
+          "fp": 0,
+          "fn": 2,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f2": 0.7894736842105263
+        },
+        "7": {
+          "tp": 85,
+          "fp": 5,
+          "fn": 28,
+          "negative_fp": 0,
+          "precision": 0.9444444444444444,
+          "recall": 0.7522123893805309,
+          "f2": 0.7841328413284133
+        }
+      },
+      "passed": true
+    }
+  }
+}

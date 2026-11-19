@@ -322,26 +322,71 @@ def combine(base, suggestions, policy):
     return result
 
 
-def cache_predictions(work, name, run=None):
+def load_verifier(work):
     bundle = joblib.load(work / "verifier.joblib")
-    for f, b in bundle["models"].values():
-        f.n_jobs = 1
+    for forest, _ in bundle["models"].values():
+        forest.n_jobs = 1
+    return bundle
+
+
+def verified_row(bundle, row, image):
+    return dict(
+        rgb=row["rgb"],
+        base=row["base"],
+        new=predict_proposals(bundle, image, row),
+        gt=row["gt"],
+        excluded=row["excluded"],
+    )
+
+
+def init_validation_worker(work):
+    global validation_bundle
+    cv2.setNumThreads(1)
+    validation_bundle = load_verifier(work)
+
+
+def verify_archive_row(item):
+    from PIL import Image
+
+    row, (path, gt, key, _) = item
+    with Image.open(path) as im:
+        image = im.convert("RGB")
+    if (
+        row["gt"] != gt["objects"]
+        or row["rgb"] != key
+        or hashlib.sha256(image.tobytes()).hexdigest() != key
+    ):
+        raise ValueError("validation image association")
+    return verified_row(validation_bundle, row, image)
+
+
+def cache_predictions(work, name, run=None):
+    from multiprocessing import Pool
+    from person_pair_candidate import frames
+    from person_zoom_validation import CACHE
+
     dest = work / (name + "-verified.jsonl.gz")
-    with gzip.open(dest, "wt", compresslevel=3) as out:
-        for r, im in paired_rows(work, name, run):
-            out.write(
-                json.dumps(
-                    dict(
-                        rgb=r["rgb"],
-                        base=r["base"],
-                        new=predict_proposals(bundle, im, r),
-                        gt=r["gt"],
-                        excluded=r["excluded"],
-                    ),
-                    separators=(",", ":"),
-                )
-                + "\n"
+    temp = dest.with_suffix(".partial")
+    with gzip.open(temp, "wt", compresslevel=3) as out:
+
+        def write_rows(rows):
+            for r in rows:
+                out.write(json.dumps(r, separators=(",", ":")) + "\n")
+
+        if run is None and name == "validation":
+            pairs = zip(
+                records(work / "validation.jsonl.gz"),
+                frames(CACHE, "validation", False),
+                strict=True,
             )
+            with Pool(6, initializer=init_validation_worker, initargs=(work,)) as pool:
+                write_rows(pool.imap(verify_archive_row, pairs, chunksize=4))
+        else:
+            bundle = load_verifier(work)
+            write_rows(
+                verified_row(bundle, r, im) for r, im in paired_rows(work, name, run)
+            )
+    temp.rename(dest)
 
 
 def score_run(run, rows, policy):
@@ -400,14 +445,20 @@ class Detector:
         return combine(base, suggestions, self.policy)
 
 
-def evaluate_run(run, work, selection):
+def evaluate_run(run, work, selection, name="holdout"):
     import time
     from PIL import Image
     from fresh_quality_2k_review import rgb_bytes
     from physical_ai.perception.camera_resolution_v1 import unpack
 
     model = Detector(work, selection)
-    dest = work / "holdout-verified.jsonl.gz"
+    binding = dict(
+        selection=hashlib.sha256(
+            json.dumps(selection, sort_keys=True).encode()
+        ).hexdigest(),
+        images=hashlib.sha256((run / "images.json").read_bytes()).hexdigest(),
+    )
+    dest = work / (name + "-verified.jsonl.gz")
     if not dest.exists():
         tmp = dest.with_suffix(".partial")
         with gzip.open(tmp, "wt", compresslevel=3) as out:
@@ -423,6 +474,7 @@ def evaluate_run(run, work, selection):
                 out.write(
                     json.dumps(
                         dict(
+                            binding=binding,
                             rgb=f["rgb_sha256"],
                             base=base,
                             new=new,
@@ -435,13 +487,15 @@ def evaluate_run(run, work, selection):
                 )
         tmp.rename(dest)
     rows = list(records(dest))
+    if len(rows) != 81 or any(r["binding"] != binding for r in rows):
+        raise ValueError("evaluation manifest or selected model changed")
     score, traces = score_run(run, rows, selection["thresholds"])
     if any(
         t["detections"] != r["detections"] for t, r in zip(traces, rows, strict=True)
     ):
         raise ValueError("detector replay drift")
-    dump(work / "holdout-score.json", score)
-    dump(work / "holdout-detections.json", traces)
+    dump(work / (name + "-score.json"), score)
+    dump(work / (name + "-detections.json"), traces)
 
 
 if __name__ == "__main__":

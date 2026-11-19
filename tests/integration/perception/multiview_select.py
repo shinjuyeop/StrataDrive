@@ -82,7 +82,7 @@ def select(work):
         sets.setdefault(memberships[r["rgb"]], []).append(r)
     if sum(len(s) for s in sets.values()) != 861:
         raise ValueError("calibration denominator")
-    seen = set()
+    seen = {r["rgb"] for r in records(work / "train.jsonl.gz")}
     for ds in sets.values():
         for r in ds:
             if r["rgb"] in seen:
