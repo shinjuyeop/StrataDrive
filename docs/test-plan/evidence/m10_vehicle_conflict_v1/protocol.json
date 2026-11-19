@@ -1,0 +1,6 @@
+{
+  "scope": "Six-class offline Host quality under the original absolute and paired YOLOX-S gates. Preserve every cycle candidate detection except truck hypotheses with a competing passenger car and independent visual corroboration.",
+  "model": "Fit a balanced vehicle-appearance classifier from vehicle boxes and jittered crops of archive training RGB only. If a truck largely overlaps a confident passenger-car detection, combine the learned crop appearance with car versus truck/bus evidence in a separate zoomed D-FINE call.",
+  "selection": "Qualify on 699 archived validation images and four development roads. Compare real decoder truck proposals overlapping a confident passenger car against the held-back development masks. Select among qualified thresholds by the smaller of passenger-car rejection and true-truck retention, then their sum and the change in actual FP versus lost TP. No threshold selection on evaluated roads 492, 1576 or Town07 road 7.",
+  "evaluation": "Prepare disjoint Town07 roads 15 and 17 without predictions. Seal detector, annotations protocol, threshold, weights, training record and development evidence before acquiring the one road-17 holdout. Apply original six-class absolute and YOLOX-S relative gates and replay the fixed policy on three historical roads."
+}
