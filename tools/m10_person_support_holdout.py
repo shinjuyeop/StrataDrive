@@ -16,7 +16,8 @@ from person_support_plan import plans, validate_retained
 
 WORK = ROOT / "build/m10-person-support-v1"
 BASE = WORK / "holdout"
-SERIES = ROOT / "docs/test-plan/evidence/m10_person_support_v1"
+ADDITIVE = ROOT / "build/m10-person-additive-v2"
+SERIES = ROOT / "docs/test-plan/evidence/m10_person_additive_v2"
 PLAN = BASE / "plan"
 
 
@@ -44,18 +45,21 @@ def nomination():
     for key, expected in read(OLD / "freeze.json")["files"].items():
         if sha(ROOT / key) != expected:
             raise ValueError(f"original dependency changed: {key}")
+    selected = ADDITIVE / "additive-selection.json"
+    if read(selected) != read(SERIES / selected.name) or not all(
+        r["passed"] for r in read(selected)["scores"].values()
+    ):
+        raise ValueError("registered multi-road selection")
     cards = [
-        WORK / n
+        ADDITIVE / n
         for n in (
-            "fresh.json",
-            "validation.json",
+            "archive.json",
+            "replication.json",
             "evaluation-development-01-score.json",
         )
     ]
-    if not all(v["passed"] for v in read(cards[1]).values()) or not all(
-        read(p)["passed"] for p in (cards[0], cards[2])
-    ):
-        raise ValueError("development gates")
+    if not all(read(p)["passed"] for p in cards):
+        raise ValueError("development or replication gates")
     prep = [
         p
         for p in sorted((BASE / "runs").glob("preparation-*/visibility.json"))
@@ -67,7 +71,7 @@ def nomination():
     paths = [
         *cards,
         prep[-1],
-        WORK / "selection.json",
+        selected,
         SERIES / "protocol.json",
         OLD / "freeze.json",
         BUNDLE / "manifest.json",
@@ -77,6 +81,8 @@ def nomination():
         *(
             TESTS / name
             for name in (
+                "person_additive.py",
+                "person_additive_transfer.py",
                 "person_support_plan.py",
                 "person_support_replay.py",
                 "person_zoom_validation.py",
@@ -105,7 +111,7 @@ def review_run(run):
         "archive-validation",
     ):
         prior.update(x["rgb"] for x in read(CACHE / name / "index.json"))
-    for ds in WORK.glob("*/dataset"):
+    for ds in (*WORK.glob("*/dataset"), *ADDITIVE.glob("*/dataset")):
         if (ds / "labels.json").exists():
             prior.update(x["rgb_sha256"] for x in read(ds / "labels.json"))
         else:
@@ -188,7 +194,8 @@ def acquire(phase, attempt):
     if phase == "evaluation":
         if any((BASE / "runs").glob("evaluation-*/dataset/rgb/*.bgra.z")):
             raise ValueError("evaluation previously acquired")
-        record(mark, nomination())
+        if read(mark) != nomination():
+            raise ValueError("prospective nomination changed")
     if run.exists():
         raise FileExistsError(run)
     boot_cache(run, False)
@@ -241,13 +248,21 @@ def adjudicate():
     if not all(r["valid"] for r in read(run / "baseline/predictions.json")["rows"]):
         raise ValueError("invalid baseline predictions")
     record(run / "baseline/score.json", score(run, "baseline"))
-    six_class(WORK, run, read(WORK / "selection.json")["minimum"])
+    from person_additive_transfer import infer_additive
+
+    six_class(
+        ADDITIVE,
+        run,
+        read(ADDITIVE / "additive-selection.json")["config"],
+        detector=infer_additive,
+    )
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
-        "action", choices=("client", "preparation", "evaluation", "score", "plan")
+        "action",
+        choices=("client", "preparation", "evaluation", "score", "plan", "nominate"),
     )
     p.add_argument("--attempt", type=int, default=1)
     p.add_argument("--plan", type=Path)
@@ -259,6 +274,10 @@ if __name__ == "__main__":
         client.validate_retained = validate_retained
         args.port, args.partition = 2400, "holdout"
         raise SystemExit(client.capture(args))
+    elif args.action == "nominate":
+        if any((BASE / "runs").glob("evaluation-*/dataset/rgb/*.bgra.z")):
+            raise ValueError("holdout already consumed")
+        record(SERIES / "nomination.json", nomination())
     elif args.action == "plan":
         materialize()
     elif args.action == "score":

@@ -32,3 +32,28 @@ class PersonSupportTest(unittest.TestCase):
                 self.assertEqual(use_zoom, accepted)
                 self.assertEqual(len(selected), int(accepted))
                 self.assertEqual(flags[0]["small"], not accepted)
+
+
+class AdditivePersonTest(unittest.TestCase):
+    def test_full_people_survive_and_only_one_distinct_zoom_proposal_is_added(self):
+        from person_additive import combine
+
+        config = dict(confidence=0.85, minimum=4, iou=0.5)
+        original = {"box": [10, 10, 20, 35], "score": 0.62}
+        same = {"box": [11, 10, 21, 35], "score": 0.99}
+        second = {"box": [24, 10, 29, 35], "score": 0.90}
+        duplicate = dict(second, score=0.86)
+        small = {"box": [40, 10, 43, 35], "score": 0.99}
+        weak = {"box": [55, 10, 60, 35], "score": 0.84}
+        self.assertEqual(
+            combine([original], [duplicate, small, weak, same, second], config),
+            [original, second],
+        )
+
+    def test_no_zoom_people_keeps_original_rider(self):
+        from person_additive import combine
+
+        rider = {"box": [0, 0, 10, 15], "score": 0.60}
+        self.assertEqual(
+            combine([rider], [], dict(confidence=0.85, minimum=4, iou=0.5)), [rider]
+        )

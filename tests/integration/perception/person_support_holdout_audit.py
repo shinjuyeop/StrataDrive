@@ -12,9 +12,14 @@ from quality_benchmark_v3 import measure
 from run_resolution_v2 import quality
 
 
-def audit(out, run):
+def audit(out, run, additive=False):
     got = read(out / (run.name + "-score.json"))
-    minimum = read(out / "selection.json")["minimum"]
+    if additive:
+        from person_additive import combine
+
+        config = read(out / "additive-selection.json")["config"]
+    else:
+        minimum = read(out / "selection.json")["minimum"]
     counts = Counter()
     rows = []
     preds = out / (run.name + "-detections.json")
@@ -30,13 +35,17 @@ def audit(out, run):
             or not source["scene"] == gt["scene"] == scene["scene"]
         ):
             raise ValueError("scene association")
-        people, zoom, flags = choose(pred["full"], pred["zoom"], minimum)
-        if (
-            people != [d for d in pred["detections"] if d["class_id"] == 0]
-            or flags != pred["flags"]
-            or bool(pred["bounds"] and zoom) != pred["use_zoom"]
-        ):
-            raise ValueError("stored decisions do not reproduce")
+        if additive:
+            people = combine(pred["full"], pred["zoom"], config)
+        else:
+            people, zoom, flags = choose(pred["full"], pred["zoom"], minimum)
+            if (
+                flags != pred["flags"]
+                or bool(pred["bounds"] and zoom) != pred["use_zoom"]
+            ):
+                raise ValueError("stored view decisions do not reproduce")
+        if people != [d for d in pred["detections"] if d["class_id"] == 0]:
+            raise ValueError("stored people do not reproduce")
         objects = [o for o in gt["objects"] if o["class_id"] == 0]
         _, matched, *_ = measure(people, objects, gt["excluded"])
         for i, obj in enumerate(objects):
@@ -77,5 +86,6 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("work", type=Path)
     p.add_argument("run", type=Path)
+    p.add_argument("--additive", action="store_true")
     a = p.parse_args()
-    print(json.dumps(audit(a.work, a.run), indent=2))
+    print(json.dumps(audit(a.work, a.run, a.additive), indent=2))
