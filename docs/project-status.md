@@ -16,11 +16,13 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **30초·5분 동시 실행 및 개발 인지 품질 PASS / 보류 인지 품질 FAIL · 실시간 수용 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [보류 장소 101 평가](test-plan/evidence/m10_parking_holdout_v1/README.md) |
+| M10 | **30초·5분 동시 실행 및 개발 인지 품질 PASS / 보류 인지 품질 FAIL · 실시간 수용 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [최종 보류 장소 307 평가](test-plan/evidence/m10_person_additive_v2/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
+
+장소 307의 보류 영상 81장에서 사람 재현율은 36/42(85.71%)로 통과했다. 전체 정밀도 95.76%·재현율 87.60%와 YOLOX-S 대비 상대 기준을 모두 충족했지만, 버스가 10/15(66.67%)로 클래스별 최소 70%에 미달해 최종 품질 판정은 FAIL이다. [점수와 재검산](test-plan/evidence/m10_person_additive_v2/README.md)
 
 **M10은 아직 OPEN이다.** [0.5ms 통신 처리 후보](test-plan/evidence/m10_service_half_v1/README.md)가
 30초·5분의 실제 동시 실행, 원본 전체 검증, 추가 감사기 8개 재현을 통과했다.
@@ -137,7 +139,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 확대 원본 검출을 보존하면서 작은 사람의 예측 크기를 별도 표시하고, 새 개발 자료에서 평가 가능한 보행자 손실과 실제 작은 사람·배경 오검출 구분을 검증한다. 현재 엄격 기준은 유지한다. [검증 결과와 학습 크기 진단](test-plan/evidence/m10_person_zoom_v1/README.md)
+1. 별도 개발 자료에서 버스의 원거리·근거리 누락을 재현하고 검출 과정에서 버스 후보가 사라지는 지점을 확인한다. 개선 후보는 사람과 다른 클래스의 기존 기준을 유지한 채 새 독립 장소에서 평가한다. [장소 307 평가와 버스 누락](test-plan/evidence/m10_person_additive_v2/README.md)
 2. 보류 기준을 통과하면 물리 서버와 영상 서버의 동일 프레임을 대조하고, 실제 영상 결과의 native 수신·만료·중단·재가입과 제어 지연을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
