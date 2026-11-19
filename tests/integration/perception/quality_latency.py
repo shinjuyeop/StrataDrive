@@ -24,6 +24,7 @@ from person_pair_candidate import dump
 class Detector:
     def __init__(self, crops=None, mode="reference", engine=None):
         self.model, self.app, self.yolo = typed.sessions()
+        self.direct = mode == "targeted"
         self.views = None
         if engine is not None:
             self.model.session = engine
@@ -32,8 +33,25 @@ class Detector:
 
             self.views = Views(self.model, crops, mode)
         self.types = typed.classifier()
+        if self.direct:
+            from quality_features import PackedClassifier, PackedForest
+
+            self.appearance_forest = PackedForest(self.app)
+            self.vehicle_classifier = PackedClassifier(self.types)
+            # Pay the float64 scorer's first-use cost during model initialization.
+            self.vehicle_classifier.probability(
+                np.zeros((1, self.types[0].n_features_in_))
+            )
         self.bus_model = bus.classifier()
         self.bus_policy = read(bus.EVIDENCE / "selection.json")["policy"]
+
+    def decode(self, bgra):
+        if not self.direct:
+            return Image.frombytes("RGB", (2560, 1536), bgra, "raw", "BGRX")
+        import cv2
+
+        pixels = np.frombuffer(bgra, np.uint8).reshape(1536, 2560, 4)
+        return cv2.cvtColor(pixels, cv2.COLOR_BGRA2RGB, dst=self.views.rgb_buffer)
 
     def predict(self, image):
         start = time.perf_counter()
@@ -60,14 +78,21 @@ class Detector:
             fixed, proposals = tiles.cycle.expand(self.model, image, base, new, obs)
         ds = prior.restored_cycle(fixed, {"1": proposals})
         stage("rider_crops")
-        ds = prior.filter_detections(
-            ds, prior.evidence(image, ds, self.model, self.app), typed.FIX["threshold"]
-        )
-        ds = prior.filter_detections(
-            ds,
-            typed.competition(image, ds, self.model, self.yolo, self.types),
-            recovery.FIX["threshold"],
-        )
+        if self.direct:
+            from quality_vehicle_windows import resolve_conflicts
+
+            ds = resolve_conflicts(self, ds)
+        else:
+            ds = prior.filter_detections(
+                ds,
+                prior.evidence(image, ds, self.model, self.app),
+                typed.FIX["threshold"],
+            )
+            ds = prior.filter_detections(
+                ds,
+                typed.competition(image, ds, self.model, self.yolo, self.types),
+                recovery.FIX["threshold"],
+            )
         stage("vehicle_conflicts")
         if self.views:
             from quality_views import vehicle_candidates
@@ -123,7 +148,7 @@ def replay(detector, run, reference, output, limit=None):
         f = frames[i]
         bgra = unpack(run / "dataset", f["rgb_raw"], 2560, 1536)
         raw_start = time.perf_counter()
-        im = Image.frombytes("RGB", (2560, 1536), bgra, "raw", "BGRX")
+        im = detector.decode(bgra)
         start = time.perf_counter()
         ds, times = detector.predict(im)
         stop = time.perf_counter()
@@ -175,7 +200,16 @@ if __name__ == "__main__":
     p.add_argument("--limit", type=int)
     p.add_argument(
         "--mode",
-        choices=("reference", "native", "shared", "compact", "lite", "focus", "guided"),
+        choices=(
+            "reference",
+            "native",
+            "shared",
+            "compact",
+            "lite",
+            "focus",
+            "guided",
+            "targeted",
+        ),
         default="reference",
     )
     p.add_argument("--library", type=Path)

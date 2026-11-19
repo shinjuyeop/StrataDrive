@@ -7,7 +7,7 @@
 ## 현재 판단
 
 기본 실행 모델은 YOLOX-S/640이며 최종 Reference 모델은 미채택이다.
-D-FINE-M/960과 YOLOX-S의 RTX 3090 최적화 후보는 기존 평가 11곳의 2K 영상 891장에서 여섯 클래스 품질 기준을 통과했다. 동일 Town06 RGB에서 중앙값은 903.4→72.7ms였다. 전체 평가의 원본 BGRA 입력부터 검출까지 p95는 115.8ms로, Host 100ms 제어 수용과 각 Jetson의 배포 측정이 남아 있다. [동일 영상 측정](test-plan/evidence/m10_quality_latency_v1/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
+D-FINE-M/960과 YOLOX-S 후보는 2K 영상의 6개 클래스 품질 기준을 평가 장소 11곳에서 통과했다. 차량 재검사를 최적화한 RTX 3090 후보의 BGRA → 검출 p95는 891장 두 번 측정에서 각각 94.49ms와 94.55ms였다. 이전 후보와 검출 결과가 일치했다. Host 100ms 제어 수용과 두 Jetson의 개별 배포 성능이 남아 있다. [동일 영상 반복 측정](test-plan/evidence/m10_quality_latency_v2/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
 
 ## 기준 모델과 개발 비교 V1
 

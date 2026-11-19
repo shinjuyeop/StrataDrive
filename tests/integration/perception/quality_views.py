@@ -1,15 +1,17 @@
 """Evaluate native RGB crops once and share the resulting dual-head observations."""
 
+from numba import njit
 import numpy as np
 
 import bus_recall_fit as primary
 import multiview_observations as obs
 import small_car as tiles
-from quality_features import PackedClassifier, proposals as predict_proposals
+from quality_features import PackedClassifier, overlap, proposals as predict_proposals
 from quality_latency_cuda import Engine
 
 
 def base_from_raw(image, model, raw, config, forward):
+    image_size = image.shape[:2][::-1] if isinstance(image, np.ndarray) else image.size
     base = primary.detections(raw, model.spec)
     people = [d for d in base if d["class_id"] == 0]
     zoom = people
@@ -19,9 +21,9 @@ def base_from_raw(image, model, raw, config, forward):
         default=None,
     )
     if anchor:
-        bounds = primary.crop_bounds(image.size, anchor["box"])
+        bounds = primary.crop_bounds(image_size, anchor["box"])
         local = primary.detections(forward(bounds), model.spec)
-        zoom = primary.merge(people, local, bounds, image.size)
+        zoom = primary.merge(people, local, bounds, image_size)
     buses = [d for d in base if d["class_id"] == 5]
     return (
         [d for d in base if d["class_id"] not in (0, 5)]
@@ -30,64 +32,109 @@ def base_from_raw(image, model, raw, config, forward):
     )
 
 
-def box_observations(raw, rect, flip, view, collect_other=True):
+@njit(cache=True)
+def decode_head(boxes, labels, scores, rect, flip, collect_other):
     x, y, r, b = rect
-    scale = np.array([(r - x) / 2560, (b - y) / 1536] * 2)
-    offset = np.array([x / 4, y / 4] * 2)
+    sx, sy = (r - x) / 2560, (b - y) / 1536
+    cars = np.empty((len(scores), 5), np.float64)
+    others = np.empty((len(scores), 6), np.float64)
+    nc = no = 0
+    for j in range(len(scores)):
+        cls = labels[j]
+        score = np.float64(scores[j])
+        if not np.isfinite(score):
+            continue
+        if cls == 2:
+            if score < np.float32(0.25):
+                continue
+        elif (
+            not collect_other or cls not in (0, 1, 3, 5, 7) or score < np.float32(0.09)
+        ):
+            continue
+        left, top, right, bottom = (
+            np.float64(boxes[j, 0]),
+            np.float64(boxes[j, 1]),
+            np.float64(boxes[j, 2]),
+            np.float64(boxes[j, 3]),
+        )
+        if flip:
+            left, right = 640 - right, 640 - left
+        if cls == 2:
+            if min(left, top, 640 - right, 384 - bottom) < 2:
+                continue
+            left, right = left * sx + x / 4, right * sx + x / 4
+            top, bottom = top * sy + y / 4, bottom * sy + y / 4
+            w, h = right - left, bottom - top
+            if min(w, h) >= 4 and max(w, h) <= 40 and w * h >= 42:
+                cars[nc] = (score, left, top, right, bottom)
+                nc += 1
+        else:
+            left, top = max(0.0, left), max(0.0, top)
+            right, bottom = min(640.0, right), min(384.0, bottom)
+            if (
+                right <= left
+                or bottom <= top
+                or (x > 0 and left < 2)
+                or (r < 2560 and right > 638)
+                or (y > 0 and top < 2)
+                or (b < 1536 and bottom > 382)
+            ):
+                continue
+            others[no] = (
+                np.float64(cls),
+                score,
+                left * sx + x / 4,
+                top * sy + y / 4,
+                right * sx + x / 4,
+                bottom * sy + y / 4,
+            )
+            no += 1
+    return others[:no], cars[:nc]
+
+
+def box_observations(raw, rect, flip, view, collect_other=True):
     cars = []
     others = []
     for head, prefix in enumerate(("", "original_")):
-        labels = raw[prefix + "labels"].ravel()
-        scores = raw[prefix + "scores"].ravel()
-        boxes = raw[prefix + "boxes"].reshape(-1, 4)
-        keep = (labels == 2) & (scores >= 0.25)
-        if collect_other:
-            keep |= np.isin(labels, obs.CLASSES) & (scores >= 0.09)
-        for j in np.flatnonzero(keep):
-            cls = int(labels[j])
-            s = float(scores[j])
-            box = boxes[j].astype(float)
-            if flip:
-                box[[0, 2]] = 640 - box[[2, 0]]
-            if cls == 2:
-                if min(box[0], box[1], 640 - box[2], 384 - box[3]) < 2:
-                    continue
-                box = box * scale + offset
-                w, h = box[2:] - box[:2]
-                if min(w, h) >= 4 and max(w, h) <= 40 and w * h >= 42:
-                    cars.append((view, s, box.tolist()))
-            else:
-                box = box.clip([0, 0, 0, 0], [640, 384, 640, 384])
-                if box[2] <= box[0] or box[3] <= box[1]:
-                    continue
-                if (
-                    (x > 0 and box[0] < 2)
-                    or (r < 2560 and box[2] > 638)
-                    or (y > 0 and box[1] < 2)
-                    or (b < 1536 and box[3] > 382)
-                ):
-                    continue
-                others.append(
-                    [
-                        view,
-                        head,
-                        cls,
-                        round(s, 6),
-                        *np.round(box * scale + offset, 3).tolist(),
-                    ]
-                )
+        objs, found = decode_head(
+            raw[prefix + "boxes"].reshape(-1, 4),
+            raw[prefix + "labels"].ravel(),
+            raw[prefix + "scores"].ravel(),
+            rect,
+            flip,
+            collect_other,
+        )
+        cars.extend((view, s, box) for s, *box in found.tolist())
+        coords = np.round(objs[:, 2:], 3).tolist()
+        others.extend(
+            [view, head, int(cls), round(score, 6), *box]
+            for (cls, score), box in zip(objs[:, :2].tolist(), coords, strict=True)
+        )
     return others, cars
 
 
+@njit(cache=True)
+def pair_scores(rows):
+    out = np.zeros(len(rows))
+    for i, a in enumerate(rows):
+        other = 0.0
+        for b in rows:
+            if b[0] != a[0] and b[1] > other and overlap(a[2:], b[2:]) >= 0.55:
+                other = b[1]
+        out[i] = min(a[1], other)
+    return out
+
+
 def paired_cars(cars):
-    out = []
-    for view, s, b in cars:
-        other = max(
-            (sc for k, sc, q in cars if k != view and tiles.iou(b, q) >= 0.55),
-            default=0.0,
-        )
-        if other:
-            out.append(dict(class_id=2, score=min(s, other), box=b))
+    if not cars:
+        return []
+    rows = np.asarray([[view, score, *box] for view, score, box in cars], float)
+    scores = pair_scores(rows)
+    out = [
+        dict(class_id=2, score=float(s), box=box)
+        for (_, _, box), s in zip(cars, scores, strict=True)
+        if s
+    ]
     return sorted(out, key=lambda d: -d["score"])
 
 
@@ -96,6 +143,8 @@ class Views:
         self.model = model
         self.crops = crops
         self.mode = mode
+        if mode == "targeted":
+            self.rgb_buffer = np.empty((1536, 2560, 3), np.uint8)
         self.config = primary.read(primary.PERSON)["config"]
         self.count = 0
         self.classifiers = {
@@ -157,6 +206,10 @@ class Views:
         return base, new, others
 
     def small_cars(self, parent):
+        if self.mode == "targeted":
+            from quality_vehicle_windows import confirm_cars
+
+            return confirm_cars(self, parent)
         if self.mode in ("native", "focus", "guided"):
             cars = []
             seeds = (
@@ -308,4 +361,8 @@ def expand(views, base, new, observations):
                         box=(box * scale + offset).tolist(),
                     )
                 )
+    if views.mode == "targeted":
+        from quality_features import rider_suggestions
+
+        return parent, rider_suggestions(verified, parent, observations, local)
     return parent, suggestions(verified, parent, observations, local)

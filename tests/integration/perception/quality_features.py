@@ -231,10 +231,8 @@ def pack(trees):
     )
 
 
-class PackedClassifier:
-    def __init__(self, models):
-        forest, boost = models
-
+class PackedForest:
+    def __init__(self, forest):
         def trees():
             for est in forest.estimators_:
                 t = est.tree_
@@ -246,6 +244,18 @@ class PackedClassifier:
                     t.threshold,
                     counts[:, 1] / counts.sum(axis=1),
                 )
+
+        self.nodes = pack(trees())
+        self.count = len(forest.estimators_)
+
+    def probability(self, samples):
+        # sklearn decision trees convert input to float32 before traversing.
+        return tree_sum(np.asarray(samples, dtype=np.float32), *self.nodes) / self.count
+
+
+class PackedClassifier:
+    def __init__(self, models):
+        forest, boost = models
 
         def predictions():
             for iteration in boost._predictors:
@@ -260,14 +270,110 @@ class PackedClassifier:
                     n["value"],
                 )
 
-        self.forest = pack(trees())
+        self.forest = PackedForest(forest)
         self.boost = pack(predictions())
-        self.count = len(forest.estimators_)
         self.bias = float(boost._baseline_prediction[0, 0])
 
     def probability(self, samples):
         if not np.isfinite(samples).all():
             raise ValueError("nonfinite verifier input")
-        f = tree_sum(samples, *self.forest) / self.count
+        f = self.forest.probability(samples)
         h = tree_sum(samples, *self.boost) + self.bias
         return (f + 1 / (1 + np.exp(-h))) / 2
+
+
+@njit(cache=True)
+def rider_strengths(seeds, verified, zoom, votes, bikes, people):
+    """Score the frozen rider rule in stable seed order, retaining its accepted-box NMS."""
+    result = np.zeros(len(seeds))
+    accepted = np.empty(len(seeds), np.int64)
+    count = 0
+    for i, b in enumerate(seeds):
+        duplicate = False
+        for p in bikes:
+            if overlap(b, p) >= 0.4:
+                duplicate = True
+                break
+        if not duplicate:
+            for j in accepted[:count]:
+                if overlap(b, seeds[j]) > 0.87:
+                    duplicate = True
+                    break
+        if duplicate:
+            continue
+        score = 0.0
+        for p in verified:
+            if overlap(b, p[1:]) >= 0.55:
+                score = max(score, p[0])
+        local = 0.0
+        for p in zoom:
+            if overlap(b, p[1:]) >= 0.5:
+                local = max(local, p[0])
+        if local < 0.45:
+            aligned = False
+            for p in people:
+                if (
+                    b[0] <= (p[0] + p[2]) / 2 <= b[2]
+                    and p[1] < (b[1] + b[3]) / 2
+                    and b[1] <= p[3] <= b[3] + 0.35 * (b[3] - b[1])
+                ):
+                    aligned = True
+                    break
+            if not aligned:
+                continue
+        global_score = 0.0
+        views = 0
+        seen = 0
+        for p in votes:
+            if overlap(b, p[2:]) >= 0.45:
+                global_score = max(global_score, p[1])
+                bit = 1 << int(p[0])
+                if p[1] >= 0.2 and not (seen & bit):
+                    seen |= bit
+                    views += 1
+        confirm = max(
+            local,
+            min(global_score, score),
+            min(global_score, 0.8) if views >= 3 else 0.0,
+        )
+        strength = max((score * confirm) ** 0.5, (local * global_score) ** 0.5)
+        if strength:
+            accepted[count] = i
+            count += 1
+            result[i] = strength
+    return result
+
+
+def rider_suggestions(verified, parent, observations, local):
+    zoom = [d for d in local if d["class_id"] == 1]
+    seeds = sorted([*verified, *zoom], key=lambda d: -d["score"])
+    if not seeds:
+        return []
+
+    def scored(rows):
+        return np.array([[d["score"], *d["box"]] for d in rows], float).reshape(-1, 5)
+
+    strength = rider_strengths(
+        np.array([d["box"] for d in seeds], float),
+        scored(verified),
+        scored(zoom),
+        np.array(
+            [[p[0], p[3], *p[4:]] for p in observations if p[2] == 1], float
+        ).reshape(-1, 6),
+        np.array([p["box"] for p in parent if p["class_id"] == 1], float).reshape(
+            -1, 4
+        ),
+        np.array(
+            [
+                p["box"]
+                for p in [*parent, *local]
+                if p["class_id"] == 0 and p["score"] >= 0.35
+            ],
+            float,
+        ).reshape(-1, 4),
+    )
+    return [
+        dict(class_id=1, box=d["box"], score=round(float(s), 6))
+        for d, s in zip(seeds, strength, strict=True)
+        if s
+    ]

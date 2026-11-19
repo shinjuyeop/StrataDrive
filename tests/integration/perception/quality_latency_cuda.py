@@ -79,9 +79,14 @@ class CropInput(GpuBuffers):
         self.axes = {}
 
     def frame(self, image):
-        if image.size != (2560, 1536) or image.mode != "RGB":
-            raise ValueError("expected 2560x1536 RGB")
         rgb = np.asarray(image)
+        if (
+            getattr(image, "mode", "RGB") != "RGB"
+            or rgb.shape != (1536, 2560, 3)
+            or rgb.dtype != np.uint8
+            or not rgb.flags.c_contiguous
+        ):
+            raise ValueError("expected 2560x1536 RGB")
         self.upload(self.pixels, rgb)
         return rgb
 

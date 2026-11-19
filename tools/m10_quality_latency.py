@@ -38,6 +38,7 @@ def run(args):
                         "quality_latency.py",
                         "quality_latency_cuda.py",
                         "quality_views.py",
+                        "quality_vehicle_windows.py",
                     )
                 ],
             ]
@@ -61,6 +62,10 @@ def run(args):
                 library_sha256=current.sha(args.library),
                 tensorrt=tensorrt.__version__,
             )
+            if args.mode == "targeted":
+                import cv2
+
+                cv2.setNumThreads(1)
             crops = stack.enter_context(CropInput(args.library))
             engine = stack.enter_context(Engine(args.engine))
             detector = Detector(crops, args.mode, engine)
@@ -90,8 +95,8 @@ if __name__ == "__main__":
     parser.add_argument("output", type=Path)
     parser.add_argument(
         "--mode",
-        choices=("reference", "lite", "focus", "guided", "native"),
-        default="guided",
+        choices=("reference", "lite", "focus", "guided", "native", "targeted"),
+        default="targeted",
     )
     parser.add_argument("--library", type=Path)
     parser.add_argument("--engine", type=Path)
