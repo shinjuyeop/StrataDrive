@@ -38,7 +38,8 @@ def audit(run, work, evidence, name):
             raise ValueError("paired RGB")
         if row["detections"][: len(row["base"])] != row["base"]:
             raise ValueError("parent prediction missing")
-    parent, _ = score_run(run, rows, {str(c): 1.01 for c in TARGET})
+    parent_rows = [dict(r, base=r.get("original_parent", r["base"])) for r in rows]
+    parent, _ = score_run(run, parent_rows, {str(c): 1.01 for c in TARGET})
     baseline, _ = score_run(
         run,
         [dict(rgb=r["rgb_sha256"], base=r["detections"], new={}) for r in pred],
@@ -66,7 +67,13 @@ def audit(run, work, evidence, name):
     retain = []
     for row in rows:
         counts.update(str(x["class_id"]) for x in row["detections"][len(row["base"]) :])
-        retain.append({k: row[k] for k in ("rgb", "base", "detections", "elapsed_s")})
+        retain.append(
+            {
+                k: row[k]
+                for k in ("rgb", "original_parent", "base", "detections", "elapsed_s")
+                if k in row
+            }
+        )
     result = dict(
         passed=selected["passed"],
         parent=parent["card"],
