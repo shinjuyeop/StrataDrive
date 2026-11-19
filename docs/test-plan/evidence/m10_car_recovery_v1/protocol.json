@@ -1,0 +1,5 @@
+{
+  "model": "Keep all prior predictions. Add an unmatched full-frame passenger-car proposal from pretrained YOLOX-S using separately cropped D-FINE decoder heads, YOLOX-S and the learned crop type verifier to confirm. Do not add a car duplicate at IoU >=0.5. Use native RGB only.",
+  "selection": "Use 699 archived validation frames and the same four development roads totaling 324 frames. Require the original absolute and paired relative gates per native road and both archive group floors. Select most additional true positives, then fewest additional false positives, then higher support threshold. No threshold selection on previously evaluated roads.",
+  "evaluation": "Model-free preparation followed by preregistration and one prospective 81-frame Town07 road-58 evaluation. Compare against standalone pretrained YOLOX-S on identical RGB. Replay the final candidate against all five earlier evaluation sets. Scores refer to Host offline six-class perception quality."
+}
