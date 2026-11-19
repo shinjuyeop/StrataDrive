@@ -22,7 +22,7 @@ from physical_ai.perception.camera_resolution_v1 import unpack
 from cycle_transfer_plan import WORK, EVIDENCE, ROOT
 
 PARENT = ROOT / "build/m10-multiview-v1"
-FIX = read(PARENT / "selection.json")
+FIX = read(ROOT / "docs/test-plan/evidence/m10_multiview_v1/selection.json")
 OFF = {str(c): 1.01 for c in TARGET}
 DEV = {
     "dev90": DEV90 / "runs/evaluation-development-01",
@@ -33,6 +33,20 @@ DEV = {
 
 def fused_metrics(base, new):
     return combine(base, new, FIX["thresholds"])
+
+
+def resolve_vehicle_conflicts(detections):
+    """Remove a motorcycle duplicate of a much stronger, nearly identical car box."""
+    cars = [d for d in detections if d["class_id"] == 2 and d["score"] >= 0.9]
+    return [
+        d
+        for d in detections
+        if d["class_id"] != 3
+        or not any(
+            car["score"] - d["score"] >= 0.20 and iou(car["box"], d["box"]) >= 0.80
+            for car in cars
+        )
+    ]
 
 
 def alignment(b, r):
@@ -252,6 +266,9 @@ def select():
             if r["rgb"] in seen:
                 raise ValueError("split overlap")
             seen.add(r["rgb"])
+    for group in (*native.values(), ds):
+        for r in group:
+            r["base"] = resolve_vehicle_conflicts(r["base"])
     best = None
     options = []
     for t in [1.01, *np.linspace(0.9, 0.15, 16).round(2)]:
@@ -306,11 +323,13 @@ def evaluate(run, name, selected):
         image = Image.frombytes("RGB", (2560, 1536), rgb)
         start = time.perf_counter()
         fixed, sug = expand(model, image, *predict_raw(model, image))
-        det = combine(fixed, {"1": sug}, policy(selected["threshold"]))
+        resolved = resolve_vehicle_conflicts(fixed)
+        det = combine(resolved, {"1": sug}, policy(selected["threshold"]))
         rows.append(
             dict(
                 rgb=f["rgb_sha256"],
-                base=fixed,
+                base=resolved,
+                original_parent=fixed,
                 new={"1": sug},
                 detections=det,
                 elapsed_s=time.perf_counter() - start,

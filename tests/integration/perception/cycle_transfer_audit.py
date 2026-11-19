@@ -3,7 +3,15 @@
 import argparse
 from pathlib import Path
 
-from cycle_transfer import WORK, EVIDENCE, ROOT, evaluate, read
+from cycle_transfer import (
+    WORK,
+    EVIDENCE,
+    ROOT,
+    evaluate,
+    read,
+    records,
+    resolve_vehicle_conflicts,
+)
 from multiview_audit import audit
 
 
@@ -15,6 +23,11 @@ def verify(name, run):
         if not (EVIDENCE / "nomination.json").is_file():
             raise ValueError("candidate registration required")
         evaluate(run, name, selection)
+    if any(
+        resolve_vehicle_conflicts(row["original_parent"]) != row["base"]
+        for row in records(WORK / (name + "-verified.jsonl.gz"))
+    ):
+        raise ValueError("vehicle duplicate decision changed")
     result = audit(run, WORK, EVIDENCE, name)
     if (
         name in source

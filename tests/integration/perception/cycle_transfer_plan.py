@@ -125,6 +125,11 @@ def plans():
             alignment_ticks=35,
             readback_ticks=3,
         )
+        if plan["phase"] == "preparation":
+            # The interrupted first development capture used the original +5 cm camera.
+            # Register a distinct preparation exposure before collecting the next attempt.
+            plan["partitions"]["development"]["camera_pose"]["location"]["z"] += 0.05
+            plan["preparation_offsets"]["development_camera_world_z_m"] = 0.10
         del plan["selected_capture_tick"], plan["created_date"]
         result[plan["phase"]] = plan
     return result
