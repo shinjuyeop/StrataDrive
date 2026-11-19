@@ -14,7 +14,14 @@ if __name__ == "__main__":
         "--town", choices=("Town01_Opt", "Town02_Opt", "Town05_Opt"), required=True
     )
     p.add_argument("--port", type=int, default=2460)
+    p.add_argument("--exclude-plan", type=Path)
     a = p.parse_args()
     collect(
-        a.root / a.town, a.town, a.port, client_script=TESTS / "person_pair_capture.py"
+        a.root / a.town,
+        a.town,
+        a.port,
+        client_script=TESTS / "person_pair_capture.py",
+        client_args=("--exclude-plan", a.exclude_plan.resolve())
+        if a.exclude_plan
+        else (),
     )

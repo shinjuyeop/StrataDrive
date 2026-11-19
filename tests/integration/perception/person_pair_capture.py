@@ -18,7 +18,7 @@ def pose(tr):
     )
 
 
-def plan(world, town):
+def plan(world, town, exclude=None):
     road = world.get_map()
     if road.name.rsplit("/", 1)[-1] != town:
         raise ValueError("unexpected town")
@@ -44,6 +44,18 @@ def plan(world, town):
         origins = [
             tuple(s["camera"]["location"][k] for k in "xyz") for s in old["scenes"]
         ]
+    if exclude is not None:
+        prior = read(exclude)
+        if (
+            prior["map"] != road.name
+            or prior["xodr_sha256"]
+            != hashlib.sha256(road.to_opendrive().encode()).hexdigest()
+        ):
+            raise ValueError("supplemental exclusion map")
+        used_roads.update(r for s in prior["scenes"] for r in s["roads"])
+        origins.extend(
+            tuple(s["camera"]["location"][k] for k in "xyz") for s in prior["scenes"]
+        )
     candidates = [road.get_waypoint(tr.location) for tr in road.get_spawn_points()]
     if split == "validation":
         candidates += sorted(
@@ -147,7 +159,12 @@ if __name__ == "__main__":
     p.add_argument("out", type=Path)
     p.add_argument("--parking-map", choices=TOWNS, required=True)
     p.add_argument("--port", type=int, required=True)
+    p.add_argument("--exclude-plan", type=Path)
     a = p.parse_args()
     capture(
-        a.out, a.port, parking_map=a.parking_map, plan_factory=plan, size=(2560, 1536)
+        a.out,
+        a.port,
+        parking_map=a.parking_map,
+        plan_factory=lambda world, town: plan(world, town, a.exclude_plan),
+        size=(2560, 1536),
     )

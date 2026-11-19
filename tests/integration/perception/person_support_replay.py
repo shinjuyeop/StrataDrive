@@ -151,7 +151,7 @@ def infer(im, sess, spec, minimum):
     )
 
 
-def six_class(out, run, minimum):
+def six_class(out, run, minimum, detector=infer):
     from fresh_quality_2k_review import rgb_bytes
     from fresh_quality_2k_score import PROTOCOL
     from physical_ai.perception.camera_resolution_v1 import unpack
@@ -178,7 +178,7 @@ def six_class(out, run, minimum):
             or not f["scene"] == scene["scene"] == gt["scene"]
         ):
             raise ValueError("image association")
-        pred, views = infer(
+        pred, views = detector(
             Image.frombytes("RGB", (2560, 1536), rgb), sess, spec, minimum
         )
         scores.append((scene, gt, pred, True, False, None))

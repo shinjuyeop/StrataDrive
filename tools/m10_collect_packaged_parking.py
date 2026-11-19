@@ -21,7 +21,7 @@ from m10_collect_occlusion_transfer import (
 from carla_readiness_v1 import wait_ready
 
 
-def collect(output, town, port, *, client_script=None):
+def collect(output, town, port, *, client_script=None, client_args=()):
     import carla
 
     output = output.resolve()
@@ -96,6 +96,7 @@ def collect(output, town, port, *, client_script=None):
                             str(port),
                             "--parking-map",
                             town,
+                            *client_args,
                         ],
                         env=env,
                         stdout=client_log,
