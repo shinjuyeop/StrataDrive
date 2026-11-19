@@ -25,7 +25,7 @@ inline bool QualityBarrier(UCarlaEpisode& Episode,const std::string& Input,bool 
   FString ExpectedMap=TEXT("Town04_Opt");
   FParse::Value(FCommandLine::Get(),TEXT("StrataM10QualityMap="),ExpectedMap);
   const bool SupportedMap=ExpectedMap==TEXT("Town04_Opt") || ExpectedMap==TEXT("Town10HD_Opt") ||
-      ExpectedMap==TEXT("Town02_Opt") || ExpectedMap==TEXT("Town06_Opt");
+      ExpectedMap==TEXT("Town02_Opt") || ExpectedMap==TEXT("Town06_Opt") || ExpectedMap==TEXT("Town07_Opt");
   if (!IsInGameThread() || Locked || Key.Len()!=64 || !J->TryGetStringField(TEXT("key"),Presented) ||
       Key!=Presented || !World || !SupportedMap || !World->GetMapName().EndsWith(ExpectedMap) ||
       !Episode.GetSettings().bSynchronousMode || !GDistanceFieldAsyncQueue || !GShaderCompilingManager) {

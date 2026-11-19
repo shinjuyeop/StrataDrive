@@ -27,7 +27,13 @@ def prepare(output, module=None, plan=None):
         / "docs/test-plan/evidence/m10_fresh_quality_2k_v1/plan/preparation.json"
     )
     map_name = json.loads(plan.read_text())["map"]
-    if map_name not in ("Town04_Opt", "Town10HD_Opt", "Town02_Opt", "Town06_Opt"):
+    if map_name not in (
+        "Town04_Opt",
+        "Town10HD_Opt",
+        "Town02_Opt",
+        "Town06_Opt",
+        "Town07_Opt",
+    ):
         raise ValueError("unsupported preparation map")
     config = json.loads((SERIES / "preparation-argv.json").read_text())["renderer"]
     files = json.loads((SERIES / "pre-install.json").read_text())["files"]
