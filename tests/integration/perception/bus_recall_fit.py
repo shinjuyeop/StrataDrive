@@ -36,6 +36,8 @@ def recover(base, raw, policy):
             or min(p["old5"], p["adapted5"]) < policy["support"]
         ):
             continue
+        if p["adapted7"] >= policy.get("truck_max", 2.0):
+            continue
         if p["score"] < policy["ratio"] * max(p["adapted7"], p["old7"]):
             continue
         if any(iou(p["box"], d["box"]) >= 0.45 for d in accepted):
@@ -150,6 +152,57 @@ def fit(work):
     )
 
 
+def calibrate(work):
+    """Retain a training-qualified candidate only if it also rejects known negative scenes."""
+    train = load_rows(work, "train")
+    negatives = [r for r in load_rows(work, "validation") if not r["truth"]]
+    before = evaluate(train, None)
+    active = [r for r in train if r["proposals"]]
+    constant = evaluate([r for r in train if not r["proposals"]], None)
+    negative_active = [r for r in negatives if r["proposals"]]
+    winners = []
+    for truck, s, support, ratio in product(
+        (0.25, 0.3, 0.35, 0.4, 0.5, 0.65),
+        (0.4, 0.5, 0.6, 0.7),
+        (0.15, 0.25, 0.35),
+        (0.6, 1, 1.25),
+    ):
+        policy = dict(score=s, support=support, ratio=ratio, truck_max=truck)
+        if any(
+            len(recover(r["base"], r["proposals"], policy)) != len(r["base"])
+            for r in negative_active
+        ):
+            continue
+        after = evaluate(active, policy)
+        for k, v in constant.items():
+            after.setdefault(k, Counter()).update(v)
+        if passes(before, after):
+            rank = (
+                sum(v["tp"] for v in after.values()),
+                -sum(v["fp"] for v in after.values()),
+                -truck,
+                s,
+                support,
+                ratio,
+            )
+            winners.append((rank, policy, after))
+    if not winners:
+        raise ValueError("no hard-negative qualified candidate")
+    _, policy, after = max(winners, key=lambda x: x[0])
+    write(
+        work / "selection.json",
+        dict(
+            passed=True,
+            policy=policy,
+            qualified=len(winners),
+            before=before,
+            after=after,
+            negative_calibration_frames=len(negatives),
+            added_negative_detections=0,
+        ),
+    )
+
+
 def validate(work):
     rows = load_rows(work, "validation")
     if {r["rgb"] for r in rows} & {r["rgb"] for r in load_rows(work, "train")}:
@@ -197,7 +250,7 @@ def infer(image, session, spec, policy):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("work", type=Path)
-    p.add_argument("action", choices=("fit", "validate", "development"))
+    p.add_argument("action", choices=("fit", "calibrate", "validate", "development"))
     a = p.parse_args()
     if a.action == "development":
         from person_support_replay import six_class
@@ -210,4 +263,4 @@ if __name__ == "__main__":
             detector=infer,
         )
     else:
-        {"fit": fit, "validate": validate}[a.action](a.work)
+        {"fit": fit, "calibrate": calibrate, "validate": validate}[a.action](a.work)
