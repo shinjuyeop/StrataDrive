@@ -88,6 +88,24 @@ def main(a):
             report['cuda_resize']=dict(library=str(path),sha256=digest)
         elif any(key in common for key in ('STRATADRIVE_M10_CUDA_RESIZE_LIBRARY','STRATADRIVE_M10_CUDA_RESIZE_SHA256')):
             raise ValueError('undeclared CUDA resize environment')
+        indices=getattr(a,'quality_views',None)
+        fitted=getattr(a,'fitted_views',False)
+        if fitted and indices is None:
+            raise ValueError('fitted verifier requires explicit view schedule')
+        if 'STRATADRIVE_M10_QUALITY_VIEWS' in common or 'STRATADRIVE_M10_FITTED_VIEWS' in common:
+            raise ValueError('undeclared renderer view schedule environment')
+        if indices is not None and not getattr(a,'quality_shadow',False):
+            raise ValueError('renderer views require quality shadow')
+        if getattr(a,'quality_shadow',False):
+            candidate=json.loads(a.freeze.read_text())['candidate']
+            if candidate.get('view_indices')!=indices or ('view_verifier_sha256' in candidate)!=fitted:
+                raise ValueError('renderer view schedule must match the frozen candidate')
+        if fitted:
+            common['STRATADRIVE_M10_FITTED_VIEWS']='1'
+            report['fitted_views']=True
+        if indices is not None:
+            common['STRATADRIVE_M10_QUALITY_VIEWS']=json.dumps(indices)
+            report['quality_views']=indices
         if getattr(a,'quality_shadow',False):
             if a.endurance_seconds!=30 or a.condition!='normal' or not a.raw_recording:
                 raise ValueError('quality shadow requires the recorded 30s normal case')
@@ -345,6 +363,8 @@ if __name__=='__main__':
     p.add_argument('--native-service-us',type=int,choices=(500,1000),default=1000)
     p.add_argument('--cuda-resize-library',type=Path)
     p.add_argument('--quality-shadow',action='store_true')
+    p.add_argument('--quality-views',nargs='+',type=int)
+    p.add_argument('--fitted-views',action='store_true')
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-no-visual-tags',action='store_true')

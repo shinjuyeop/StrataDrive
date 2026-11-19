@@ -133,6 +133,8 @@ def audit(root):
     quality=server.get('quality_shadow',False)
     require(quality==('quality_binding' in renderer),'declared renderer model identity')
     if quality:
+        require(server.get('quality_views')==renderer['quality_binding'].get('view_indices'),'declared view schedule')
+        require(server.get('fitted_views',False)==('view_verifier_sha256' in renderer['quality_binding']),'declared fitted verifier')
         from quality_shadow_v1 import replay_boxes
         replay_boxes(folder,renderer,images)
     for call in renderer['inference']:

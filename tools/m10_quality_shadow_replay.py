@@ -39,7 +39,16 @@ def compare(run, output):
         if set(os.sched_getaffinity(0)) != set(cpus):
             raise ValueError("worker CPU affinity")
         try:
-            with lease(output), detector() as (model, spec):
+            with (
+                lease(output),
+                detector(
+                    renderer["quality_binding"].get("view_indices"),
+                    "view_verifier_sha256" in renderer["quality_binding"],
+                ) as (
+                    model,
+                    spec,
+                ),
+            ):
                 if renderer["quality_binding"] != spec:
                     raise ValueError("changed model")
                 warm = np.empty((1536, 2560, 4), np.uint8)

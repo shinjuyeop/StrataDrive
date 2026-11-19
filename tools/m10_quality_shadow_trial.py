@@ -88,13 +88,17 @@ def cap():
     return Path("/sys/devices/system/cpu/intel_pstate/max_perf_pct").read_text().strip()
 
 
-def freeze(work):
-    spec = binding()
+def freeze(work, indices=None, fitted=False):
+    spec = binding(indices, fitted)
     original = json.loads((BASE / "sources.json").read_text())
     names = set(original["files"])
     for folder in (TESTS, ROOT / "physical_ai/perception", ROOT / "tools"):
         names.update(str(p.relative_to(ROOT)) for p in folder.glob("*.py"))
     names.add(str(REFERENCE.relative_to(ROOT)))
+    if fitted:
+        from quality_shadow_v1 import VIEW_REGISTRATION, fitted_verifier
+
+        names.add(str(VIEW_REGISTRATION.relative_to(ROOT)))
     files = {
         n: dict(bytes=(ROOT / n).stat().st_size, sha256=sha(ROOT / n))
         for n in sorted(names)
@@ -111,6 +115,8 @@ def freeze(work):
     ):
         path = ROOT / "build" / asset
         external[str(path)] = sha(path)
+    if fitted:
+        external[str(fitted_verifier(indices))] = spec["view_verifier_sha256"]
     external[str(ENGINE)] = spec["engine_sha256"]
     external[str(LIBRARY)] = spec["library_sha256"]
     save(
@@ -124,7 +130,7 @@ def freeze(work):
     )
 
 
-def launch(work):
+def launch(work, indices=None, fitted=False):
     work.mkdir(parents=True, exist_ok=False)
     spool = Path("/tmp") / ("stratadrive-" + work.name)
     if spool.exists():
@@ -139,11 +145,15 @@ def launch(work):
     shutil.copyfile(BASE / "pre-install.json", work / "pre-install.json")
     for name in ("pre-install.json", "preparation-argv.json", "runtime_restore.py"):
         shutil.copyfile(BASE / name, metadata / name)
-    freeze(work)
+    freeze(work, indices, fitted)
     argv = json.loads((BASE / "normal-30s-01/case.json").read_text())["argv"]
     argv[argv.index("--freeze") + 1] = str(work / "freeze.json")
     argv[argv.index("--output") + 1] = str(spool)
     argv += ["--quality-shadow"]
+    if indices is not None:
+        argv += ["--quality-views", *map(str, indices)]
+    if fitted:
+        argv += ["--fitted-views"]
     env = dict(
         os.environ,
         PYTHONPATH=os.pathsep.join(map(str, (TESTS, ROOT / "tools", ROOT))),
@@ -249,7 +259,10 @@ def launch(work):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("name", help="new attempt name under build/")
-    name = p.parse_args().name
+    p.add_argument("--quality-views", nargs="+", type=int)
+    p.add_argument("--fitted-views", action="store_true")
+    args = p.parse_args()
+    name = args.name
     if not name.startswith("m10-quality-shadow-") or Path(name).name != name:
         p.error("use a new m10-quality-shadow-* name")
-    launch(ROOT / "build" / name)
+    launch(ROOT / "build" / name, args.quality_views, args.fitted_views)
