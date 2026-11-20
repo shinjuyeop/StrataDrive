@@ -29,7 +29,7 @@ def fitted_verifier(indices):
     return path
 
 
-def binding(indices=None, fitted=False):
+def binding(indices=None, fitted=False, reuse_outputs=False):
     import sys
 
     sys.path.insert(0, str(ROOT / "tools"))
@@ -72,17 +72,23 @@ def binding(indices=None, fitted=False):
             view_verifier_sha256=digest(path),
             view_registration_sha256=digest(VIEW_REGISTRATION),
         )
+    if reuse_outputs:
+        if indices is None:
+            raise ValueError("crop reuse requires a declared view schedule")
+        reference["crop_reuse_sha256"] = digest(
+            Path(__file__).with_name("quality_cached_views.py")
+        )
     return reference
 
 
 @contextmanager
-def detector(indices=None, fitted=False):
+def detector(indices=None, fitted=False, reuse_outputs=False):
     import cv2
     import tensorrt
     from quality_latency import Detector
     from quality_latency_cuda import CropInput, Engine
 
-    spec = binding(indices, fitted)
+    spec = binding(indices, fitted, reuse_outputs)
     if tensorrt.__version__ != spec["tensorrt"]:
         raise ValueError("TensorRT version changed")
     cv2.setNumThreads(1)
@@ -97,7 +103,12 @@ def detector(indices=None, fitted=False):
                 from multiview_detector import load_verifier
 
                 model.model.bundle = load_verifier(fitted_verifier(indices).parent)
-            model.views = ScheduledViews(model, indices)
+            if reuse_outputs:
+                from quality_cached_views import CachedFrameViews
+
+                model.views = CachedFrameViews(model, indices)
+            else:
+                model.views = ScheduledViews(model, indices)
         # Model setup can configure OpenCV. Apply the worker's explicit CPU setting.
         cv2.setNumThreads(1)
         yield model, spec
@@ -120,6 +131,7 @@ def replay_boxes(folder, renderer, images):
         with detector(
             renderer["quality_binding"].get("view_indices"),
             "view_verifier_sha256" in renderer["quality_binding"],
+            "crop_reuse_sha256" in renderer["quality_binding"],
         ) as (model, spec):
             if renderer.get("quality_binding") != spec:
                 raise ValueError("renderer used another quality candidate")

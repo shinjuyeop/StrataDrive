@@ -44,6 +44,7 @@ def compare(run, output):
                 detector(
                     renderer["quality_binding"].get("view_indices"),
                     "view_verifier_sha256" in renderer["quality_binding"],
+                    "crop_reuse_sha256" in renderer["quality_binding"],
                 ) as (
                     model,
                     spec,

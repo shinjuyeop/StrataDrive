@@ -88,8 +88,8 @@ def cap():
     return Path("/sys/devices/system/cpu/intel_pstate/max_perf_pct").read_text().strip()
 
 
-def freeze(work, indices=None, fitted=False):
-    spec = binding(indices, fitted)
+def freeze(work, indices=None, fitted=False, reuse_outputs=False):
+    spec = binding(indices, fitted, reuse_outputs)
     original = json.loads((BASE / "sources.json").read_text())
     names = set(original["files"])
     for folder in (TESTS, ROOT / "physical_ai/perception", ROOT / "tools"):
@@ -130,7 +130,9 @@ def freeze(work, indices=None, fitted=False):
     )
 
 
-def launch(work, indices=None, fitted=False):
+def launch(
+    work, indices=None, fitted=False, renderer_max_fps=None, reuse_outputs=False
+):
     work.mkdir(parents=True, exist_ok=False)
     spool = Path("/tmp") / ("stratadrive-" + work.name)
     if spool.exists():
@@ -145,10 +147,14 @@ def launch(work, indices=None, fitted=False):
     shutil.copyfile(BASE / "pre-install.json", work / "pre-install.json")
     for name in ("pre-install.json", "preparation-argv.json", "runtime_restore.py"):
         shutil.copyfile(BASE / name, metadata / name)
-    freeze(work, indices, fitted)
+    freeze(work, indices, fitted, reuse_outputs)
     argv = json.loads((BASE / "normal-30s-01/case.json").read_text())["argv"]
     argv[argv.index("--freeze") + 1] = str(work / "freeze.json")
     argv[argv.index("--output") + 1] = str(spool)
+    if reuse_outputs:
+        argv += ["--reuse-view-outputs"]
+    if renderer_max_fps is not None:
+        argv[argv.index("--renderer-max-fps") + 1] = str(renderer_max_fps)
     argv += ["--quality-shadow"]
     if indices is not None:
         argv += ["--quality-views", *map(str, indices)]
@@ -261,8 +267,16 @@ if __name__ == "__main__":
     p.add_argument("name", help="new attempt name under build/")
     p.add_argument("--quality-views", nargs="+", type=int)
     p.add_argument("--fitted-views", action="store_true")
+    p.add_argument("--reuse-view-outputs", action="store_true")
+    p.add_argument("--renderer-max-fps", type=int, choices=(60, 120))
     args = p.parse_args()
     name = args.name
     if not name.startswith("m10-quality-shadow-") or Path(name).name != name:
         p.error("use a new m10-quality-shadow-* name")
-    launch(ROOT / "build" / name, args.quality_views, args.fitted_views)
+    launch(
+        ROOT / "build" / name,
+        args.quality_views,
+        args.fitted_views,
+        args.renderer_max_fps,
+        args.reuse_view_outputs,
+    )

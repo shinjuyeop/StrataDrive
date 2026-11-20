@@ -55,7 +55,8 @@ class DiagnosticInference:
             if os.environ.get('STRATADRIVE_M10_QUALITY_SHADOW')=='1':
                 from quality_shadow_v1 import detector,predict
                 indices=json.loads(os.environ.get('STRATADRIVE_M10_QUALITY_VIEWS','null'))
-                with detector(indices,os.environ.get("STRATADRIVE_M10_FITTED_VIEWS")=="1") as (model,spec):
+                with detector(indices,os.environ.get("STRATADRIVE_M10_FITTED_VIEWS")=="1",
+                              os.environ.get("STRATADRIVE_M10_REUSE_VIEW_OUTPUTS")=="1") as (model,spec):
                     self.report['quality_binding']=spec
                     warm=np.empty((1536,2560,4),np.uint8)
                     warm[:,:,:3]=(np.arange(2560,dtype=np.uint16)%256)[None,:,None];warm[:,:,3]=255

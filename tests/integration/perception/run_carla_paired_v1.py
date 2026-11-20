@@ -90,6 +90,9 @@ def main(a):
             raise ValueError('undeclared CUDA resize environment')
         indices=getattr(a,'quality_views',None)
         fitted=getattr(a,'fitted_views',False)
+        reuse=getattr(a,'reuse_view_outputs',False)
+        if 'STRATADRIVE_M10_REUSE_VIEW_OUTPUTS' in common or (reuse and indices is None):
+            raise ValueError('crop reuse requires a declared schedule and clean environment')
         if fitted and indices is None:
             raise ValueError('fitted verifier requires explicit view schedule')
         if 'STRATADRIVE_M10_QUALITY_VIEWS' in common or 'STRATADRIVE_M10_FITTED_VIEWS' in common:
@@ -98,8 +101,13 @@ def main(a):
             raise ValueError('renderer views require quality shadow')
         if getattr(a,'quality_shadow',False):
             candidate=json.loads(a.freeze.read_text())['candidate']
+            if ('crop_reuse_sha256' in candidate)!=reuse:
+                raise ValueError('renderer crop reuse must match the frozen candidate')
             if candidate.get('view_indices')!=indices or ('view_verifier_sha256' in candidate)!=fitted:
                 raise ValueError('renderer view schedule must match the frozen candidate')
+        if reuse:
+            common['STRATADRIVE_M10_REUSE_VIEW_OUTPUTS']='1'
+            report['reuse_view_outputs']=True
         if fitted:
             common['STRATADRIVE_M10_FITTED_VIEWS']='1'
             report['fitted_views']=True
@@ -365,6 +373,7 @@ if __name__=='__main__':
     p.add_argument('--quality-shadow',action='store_true')
     p.add_argument('--quality-views',nargs='+',type=int)
     p.add_argument('--fitted-views',action='store_true')
+    p.add_argument('--reuse-view-outputs',action='store_true')
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-no-visual-tags',action='store_true')
@@ -372,7 +381,7 @@ if __name__=='__main__':
     p.add_argument('--owner-purge-slice',action='store_true')
     p.add_argument('--owner-recovery-preview',action='store_true')
     p.add_argument('--prefetch-inference-libraries',action='store_true')
-    p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
+    p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60,120),default=0)
     p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
     p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)
     raise SystemExit(main(p.parse_args()))

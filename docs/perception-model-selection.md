@@ -7,7 +7,7 @@
 ## 현재 판단
 
 기본 실행 모델은 YOLOX-S/640이며 최종 Reference 모델은 미채택이다.
-D-FINE-M/960과 YOLOX-S를 사용하는 6개 영역 후보가 2K 평가 영상 891장의 장소별 6개 클래스 품질 기준을 모두 통과했다. 정밀도는 94.00%, 재현율은 96.06%다. RTX 3090 단독 재생의 BGRA → 검출 p95는 두 번 각각 75.1ms와 74.4ms였다. CARLA와 동시에 작동할 때는 장면 취득부터 최종 검출까지 100ms 미만이 63/278장이었고 첫 제어기 조회까지 p95는 134.4ms였다. 실제 Host 제어 수용과 두 Jetson의 개별 배포 성능이 남아 있다. [품질·동시 실행 결과](test-plan/evidence/m10_quality_views_v3/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
+D-FINE-M/960과 YOLOX-S를 사용하는 6개 영역 후보가 2K 평가 영상 891장의 장소별 6개 클래스 품질 기준을 모두 통과했다. 정밀도 94.00%, 재현율 96.06%다. 한 영상 안에서 동일 영역의 추론 결과를 재사용해 개발·평가 영상 1,215장의 검출을 정확히 재현했다. 평가 891장의 단독 재생 p95는 원래 방식 73.2ms, 재사용 73.5ms였다. CARLA 동시 실행에서는 재사용 후보의 장면 취득부터 최종 검출까지 100ms 미만이 127/279장이었고, 첫 제어기 조회까지 p95는 129.4ms였다. 실제 Host 제어 수용과 두 Jetson의 개별 배포 성능이 남아 있다. [품질과 동시 실행 비교](test-plan/evidence/m10_quality_pipeline_v4/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
 
 ## 기준 모델과 개발 비교 V1
 

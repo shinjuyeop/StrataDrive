@@ -1,0 +1,178 @@
+{
+  "raw_images": 282,
+  "mapped_images": 278,
+  "pending_replaced": 0,
+  "completed_boxes": 278,
+  "callbacks_per_second": 9.4,
+  "detector_box_coordinate_size": [
+    640,
+    384
+  ],
+  "camera_size": [
+    2560,
+    1536
+  ],
+  "statistics": {
+    "acquisition_to_export": {
+      "count": 278,
+      "median_ms": 3.030732,
+      "p95_ms": 4.549283,
+      "max_ms": 5.020029,
+      "below_100ms": 278
+    },
+    "export_to_apply": {
+      "count": 278,
+      "median_ms": 0.730061,
+      "p95_ms": 5.181554,
+      "max_ms": 39.529632,
+      "below_100ms": 278
+    },
+    "apply_to_tick": {
+      "count": 278,
+      "median_ms": 0.708731,
+      "p95_ms": 0.995927,
+      "max_ms": 7.198371,
+      "below_100ms": 278
+    },
+    "tick_to_callback": {
+      "count": 278,
+      "median_ms": 33.1416625,
+      "p95_ms": 36.531339,
+      "max_ms": 115.715077,
+      "below_100ms": 277
+    },
+    "callback_to_offer": {
+      "count": 278,
+      "median_ms": 1.2964145,
+      "p95_ms": 7.085254,
+      "max_ms": 8.738631,
+      "below_100ms": 278
+    },
+    "offer_to_worker": {
+      "count": 278,
+      "median_ms": 0.077809,
+      "p95_ms": 0.22724,
+      "max_ms": 3.489101,
+      "below_100ms": 278
+    },
+    "acquisition_to_callback": {
+      "count": 278,
+      "median_ms": 37.6270315,
+      "p95_ms": 46.026238,
+      "max_ms": 120.918902,
+      "below_100ms": 277
+    },
+    "callback_to_worker": {
+      "count": 278,
+      "median_ms": 1.3686895,
+      "p95_ms": 7.158353,
+      "max_ms": 11.395876,
+      "below_100ms": 278
+    },
+    "worker_to_boxes": {
+      "count": 278,
+      "median_ms": 67.312186,
+      "p95_ms": 76.375186,
+      "max_ms": 103.934743,
+      "below_100ms": 277
+    },
+    "callback_to_boxes": {
+      "count": 278,
+      "median_ms": 68.862518,
+      "p95_ms": 78.390637,
+      "max_ms": 111.605962,
+      "below_100ms": 277
+    },
+    "acquisition_to_boxes": {
+      "count": 278,
+      "median_ms": 106.001358,
+      "p95_ms": 122.553816,
+      "max_ms": 199.838718,
+      "below_100ms": 90
+    },
+    "boxes_to_first_native_read": {
+      "count": 277,
+      "median_ms": 10.064916,
+      "p95_ms": 18.643564,
+      "max_ms": 19.918255,
+      "below_100ms": 277
+    },
+    "acquisition_to_first_native_read": {
+      "count": 277,
+      "median_ms": 114.413692,
+      "p95_ms": 134.36604,
+      "max_ms": 218.943087,
+      "below_100ms": 27
+    }
+  },
+  "detector_stages": {
+    "full_and_multiview": {
+      "count": 278,
+      "median_ms": 40.9404385,
+      "p95_ms": 46.572029,
+      "max_ms": 63.560076
+    },
+    "rider_crops": {
+      "count": 278,
+      "median_ms": 4.922539,
+      "p95_ms": 8.541241,
+      "max_ms": 22.658623
+    },
+    "vehicle_conflicts": {
+      "count": 278,
+      "median_ms": 0.006398,
+      "p95_ms": 0.008519,
+      "max_ms": 0.012118
+    },
+    "car_recovery": {
+      "count": 278,
+      "median_ms": 7.2858045,
+      "p95_ms": 8.725598,
+      "max_ms": 20.472613
+    },
+    "small_car_crops": {
+      "count": 278,
+      "median_ms": 13.1466995,
+      "p95_ms": 14.104738,
+      "max_ms": 22.497873
+    },
+    "bus_recovery": {
+      "count": 278,
+      "median_ms": 0.0042225,
+      "p95_ms": 0.007032,
+      "max_ms": 0.008565
+    },
+    "bgra_decode": {
+      "count": 278,
+      "median_ms": 2.042789,
+      "p95_ms": 2.622478,
+      "max_ms": 12.685879
+    }
+  },
+  "native": {
+    "schema": "m10-native-read-freshness-v1",
+    "start_wall_ns": 2184046378899449,
+    "stop_wall_ns": 2184076378899449,
+    "native_observations": 1500,
+    "eligible_observations": 27,
+    "eligible_sample_fraction": 0.018,
+    "unique_eligible_results": 27,
+    "successful_inferences": 278,
+    "timing_outcomes": {
+      "native_session_unavailable": 12,
+      "no_completed_result": 1,
+      "before_enable": 4,
+      "scene_wall_expired": 1456,
+      "time_eligible": 27
+    },
+    "actual_reported_accepted_results": 0,
+    "scope": "Original native observations with latest completed result. Assumes immediate transport. Timing eligibility only; full scene, delivery and ECU acceptance are separate.",
+    "inputs": {
+      "capture/paired/renderer/result.json": "fb674a4a0ca1452d80ac530b9f1553351a0955cb3aa95c3796881b31047d89a4",
+      "capture/native-perception.jsonl": "79194b2fe14c8735661c72f765e8d58554e4726b3d66b443bc4048853380a79c",
+      "capture/native.json": "9dfffe91620bdc3e89ff04fdc755037e7f80c315e02f082ebeec42fb7e132d9d"
+    }
+  },
+  "scope": "Native reads are measured. The join assumes zero transport time. No result was published or admitted.",
+  "percentile_method": "nearest rank"
+}
