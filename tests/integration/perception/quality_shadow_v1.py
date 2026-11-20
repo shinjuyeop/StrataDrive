@@ -29,7 +29,23 @@ def fitted_verifier(indices):
     return path
 
 
-def binding(indices=None, fitted=False, reuse_outputs=False):
+BATCH_REGISTRATION = (
+    ROOT / "docs/test-plan/evidence/m10_quality_pipeline_v4/batch-model.json"
+)
+
+
+def batch_assets():
+    entries = json.loads(BATCH_REGISTRATION.read_bytes())
+    paths = {}
+    for key in ("engine", "library"):
+        path = ROOT / entries[key]["path"]
+        if digest(path) != entries[key]["sha256"]:
+            raise ValueError(f"batch {key} changed")
+        paths[key] = path
+    return paths
+
+
+def binding(indices=None, fitted=False, reuse_outputs=False, batch=False):
     import sys
 
     sys.path.insert(0, str(ROOT / "tools"))
@@ -78,17 +94,27 @@ def binding(indices=None, fitted=False, reuse_outputs=False):
         reference["crop_reuse_sha256"] = digest(
             Path(__file__).with_name("quality_cached_views.py")
         )
+    if batch:
+        if not (reuse_outputs and fitted and list(indices) == [0, 1, 3, 5, 7, 9]):
+            raise ValueError(
+                "batch engine requires the registered cached six-view candidate"
+            )
+        batch_assets()
+        reference["batch_registration_sha256"] = digest(BATCH_REGISTRATION)
+        reference["batch_implementation_sha256"] = digest(
+            Path(__file__).with_name("quality_batch_views.py")
+        )
     return reference
 
 
 @contextmanager
-def detector(indices=None, fitted=False, reuse_outputs=False):
+def detector(indices=None, fitted=False, reuse_outputs=False, batch=False):
     import cv2
     import tensorrt
     from quality_latency import Detector
     from quality_latency_cuda import CropInput, Engine
 
-    spec = binding(indices, fitted, reuse_outputs)
+    spec = binding(indices, fitted, reuse_outputs, batch)
     if tensorrt.__version__ != spec["tensorrt"]:
         raise ValueError("TensorRT version changed")
     cv2.setNumThreads(1)
@@ -103,7 +129,17 @@ def detector(indices=None, fitted=False, reuse_outputs=False):
                 from multiview_detector import load_verifier
 
                 model.model.bundle = load_verifier(fitted_verifier(indices).parent)
-            if reuse_outputs:
+            if batch:
+                from quality_batch_views import BatchEngine, BatchViews
+
+                paths = batch_assets()
+                backend = stack.enter_context(
+                    BatchEngine(
+                        paths["engine"], paths["library"], model.model.spec["outputs"]
+                    )
+                )
+                model.views = BatchViews(model, indices, backend)
+            elif reuse_outputs:
                 from quality_cached_views import CachedFrameViews
 
                 model.views = CachedFrameViews(model, indices)
@@ -132,6 +168,7 @@ def replay_boxes(folder, renderer, images):
             renderer["quality_binding"].get("view_indices"),
             "view_verifier_sha256" in renderer["quality_binding"],
             "crop_reuse_sha256" in renderer["quality_binding"],
+            "batch_registration_sha256" in renderer["quality_binding"],
         ) as (model, spec):
             if renderer.get("quality_binding") != spec:
                 raise ValueError("renderer used another quality candidate")

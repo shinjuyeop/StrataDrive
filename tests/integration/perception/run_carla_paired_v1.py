@@ -93,6 +93,9 @@ def main(a):
         reuse=getattr(a,'reuse_view_outputs',False)
         if 'STRATADRIVE_M10_REUSE_VIEW_OUTPUTS' in common or (reuse and indices is None):
             raise ValueError('crop reuse requires a declared schedule and clean environment')
+        batch=getattr(a,'batch_views',False)
+        if 'STRATADRIVE_M10_BATCH_VIEWS' in common or (batch and not (reuse and fitted)):
+            raise ValueError('batched views require registered cached inference and clean environment')
         if fitted and indices is None:
             raise ValueError('fitted verifier requires explicit view schedule')
         if 'STRATADRIVE_M10_QUALITY_VIEWS' in common or 'STRATADRIVE_M10_FITTED_VIEWS' in common:
@@ -101,10 +104,15 @@ def main(a):
             raise ValueError('renderer views require quality shadow')
         if getattr(a,'quality_shadow',False):
             candidate=json.loads(a.freeze.read_text())['candidate']
+            if ('batch_registration_sha256' in candidate)!=batch:
+                raise ValueError('renderer batch must match frozen candidate')
             if ('crop_reuse_sha256' in candidate)!=reuse:
                 raise ValueError('renderer crop reuse must match the frozen candidate')
             if candidate.get('view_indices')!=indices or ('view_verifier_sha256' in candidate)!=fitted:
                 raise ValueError('renderer view schedule must match the frozen candidate')
+        if batch:
+            common['STRATADRIVE_M10_BATCH_VIEWS']='1'
+            report['batch_views']=True
         if reuse:
             common['STRATADRIVE_M10_REUSE_VIEW_OUTPUTS']='1'
             report['reuse_view_outputs']=True
@@ -374,6 +382,7 @@ if __name__=='__main__':
     p.add_argument('--quality-views',nargs='+',type=int)
     p.add_argument('--fitted-views',action='store_true')
     p.add_argument('--reuse-view-outputs',action='store_true')
+    p.add_argument('--batch-views',action='store_true')
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-no-visual-tags',action='store_true')

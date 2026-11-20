@@ -16,15 +16,15 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **30초·5분 동시 실행 및 6개 클래스 보류 인지 품질 PASS · 실시간 수용 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [6개 영역 재사용과 동시 실행 시간](test-plan/evidence/m10_quality_pipeline_v4/README.md) |
+| M10 | **30초·5분 동시 실행 및 6개 클래스 보류 인지 품질 PASS · 실시간 수용 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [6개 영역 배치와 동시 실행 시간](test-plan/evidence/m10_quality_pipeline_v4/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
 
-2K 카메라와 RTX 3090을 사용한 30초 동시 실행에서, 100ms 미만에 검출한 영상은 기존 63/278장, 렌더러 상한만 60→120으로 올린 경우 90/278장, 같은 상한에서 한 영상의 중복 영역 추론을 제거한 경우 127/279장이었다. 마지막 실행의 장면 취득부터 검출까지 중앙값은 102.3ms, p95는 116.8ms였다. 실제 제어기 조회 1,500회 중 전송시간을 0으로 가정해 기한에 든 조회는 각각 14회, 27회, 55회였다. 마지막 실행의 첫 조회까지 p95는 129.4ms다. 두 비교 시험은 관측 모드였고 인지 결과 발행과 실제 제어기 수용은 모두 0회였다. [조건별 동시 실행](test-plan/evidence/m10_quality_pipeline_v4/README.md)
+2K 카메라와 RTX 3090을 사용한 30초 동시 실행에서, 장면 취득부터 최종 검출까지 100ms 미만인 영상은 기존 63/278장, 렌더러 상한 120에서 90/278장, 같은 상한에서 중복 영역 재사용을 적용하면 127/279장, 6개 영역 배치 엔진까지 적용하면 144/278장이었다. 배치 실행의 중앙값은 99.2ms, p95는 108.4ms였다. 실제 조회 시각에 전송 지연을 0으로 가정한 유효 조회는 각각 14, 27, 55, 69회(각 1,500회)였다. 배치의 첫 조회까지 p95는 119.5ms다. 세 비교 시험 모두 관측 모드였고 인지 결과 발행과 실제 제어기 수용은 0회였다. [조건별 동시 실행](test-plan/evidence/m10_quality_pipeline_v4/README.md)
 
-전체 화면과 확대 영역을 10개에서 6개로 줄이고, 기존 학습 영상 1,128장으로 제안 판별기를 다시 학습했다. 기존 평가 장소 11곳의 891장에서 정밀도 94.00%, 재현율 96.06%로 장소별 기준을 모두 통과했다. Town06 도로 13의 버스는 15/15였다. RTX 3090 단독 재생에서 BGRA 입력부터 최종 검출까지 p95가 94.5ms에서 75.1ms와 74.4ms로 줄었고, 두 번 모두 891장 전체가 100ms 안에 완료됐다. [영역별 검증과 반복 측정](test-plan/evidence/m10_quality_views_v3/README.md) · [최초 보류 품질 평가](test-plan/evidence/m10_bus_support_v1/README.md)
+기존 평가 장소 11곳의 891장에서 6개 영역 배치 후보는 정검출 1,879건, 오검출 117건, 미검출 77건이었다. 정밀도 94.14%, 재현율 96.06%로 모든 장소의 기준을 통과했다. Town06 도로 13의 버스는 15/15였다. 단일 입력 6개 영역 후보와 비교해 정검출 수는 같고 오검출은 3건 적었다. [배치 후보 품질](test-plan/evidence/m10_quality_pipeline_v4/batch-quality.json) · [기존 6개 영역 평가](test-plan/evidence/m10_quality_views_v3/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
 
 **M10은 아직 OPEN이다.** [0.5ms 통신 처리 후보](test-plan/evidence/m10_service_half_v1/README.md)가
 30초·5분의 실제 동시 실행, 원본 전체 검증, 추가 감사기 8개 재현을 통과했다.
@@ -141,7 +141,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 6개 영역 검출 시간을 줄일 후보를 비교한다. 마지막 30초 실행에서 검출 시작부터 마지막 유효 제어기 조회까지 남은 시간은 중앙값 51.2ms, 하위 5%는 40.3ms였다. 891장의 품질 기준을 유지하고 장면 취득부터 첫 조회까지 p95(현재 129.4ms), 유효한 고유 영상 수(현재 55/279장)를 같은 조건에서 판정한다. [영상별 시간 예산](test-plan/evidence/m10_quality_pipeline_v4/compute-budget/summary.json)
+1. 렌더 틱 응답 이후 카메라 콜백까지 걸리는 약 31ms를 GPU 영상 읽기와 호스트 전달로 나눠 계측한다. 배치 후보에서 장면 취득부터 첫 조회까지 p95는 119.5ms이고 기한 내 조회된 영상은 69/278장이다. 100ms 기한과 같은 891장 품질 기준을 유지해 개선 후보를 비교한다. [배치 실행과 남은 시간 예산](test-plan/evidence/m10_quality_pipeline_v4/README.md)
 2. 물리 서버와 영상 서버의 프레임 일치를 확인하고 실제 영상 결과의 native 수용·만료·중단·재가입과 100ms 제어 지연을 검증한다. [물리·렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 

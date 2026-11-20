@@ -7,7 +7,7 @@
 ## 현재 판단
 
 기본 실행 모델은 YOLOX-S/640이며 최종 Reference 모델은 미채택이다.
-D-FINE-M/960과 YOLOX-S를 사용하는 6개 영역 후보가 2K 평가 영상 891장의 장소별 6개 클래스 품질 기준을 모두 통과했다. 정밀도 94.00%, 재현율 96.06%다. 한 영상 안에서 동일 영역의 추론 결과를 재사용해 개발·평가 영상 1,215장의 검출을 정확히 재현했다. 평가 891장의 단독 재생 p95는 원래 방식 73.2ms, 재사용 73.5ms였다. CARLA 동시 실행에서는 재사용 후보의 장면 취득부터 최종 검출까지 100ms 미만이 127/279장이었고, 첫 제어기 조회까지 p95는 129.4ms였다. 실제 Host 제어 수용과 두 Jetson의 개별 배포 성능이 남아 있다. [품질과 동시 실행 비교](test-plan/evidence/m10_quality_pipeline_v4/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
+D-FINE-M/960의 6개 영역을 한 배치로 처리하고 YOLOX-S와 기존 후속 검사를 사용하는 후보가 2K 평가 영상 891장의 장소별 품질 기준을 모두 통과했다. 정밀도는 94.14%, 재현율은 96.06%다. CARLA 동시 실행에서는 장면 취득 후 100ms 미만에 끝난 검출이 144/278장이었고 첫 제어기 조회까지 p95는 119.5ms였다. 실제 Host 제어 수용과 두 Jetson의 개별 배포 성능이 남아 있다. [단일 입력·배치 품질과 동시 실행 비교](test-plan/evidence/m10_quality_pipeline_v4/README.md) · [최초 보류 평가](test-plan/evidence/m10_bus_support_v1/README.md)
 
 ## 기준 모델과 개발 비교 V1
 

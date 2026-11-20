@@ -44,6 +44,29 @@
 
 이 276장에서 필요한 추가 시간 단축은 프레임별 중앙값 9.0ms, p95 25.9ms였다. 카메라 도착과 검출 시작을 원래 시각에 고정하고 전송 지연을 0으로 둔 계산이다. 새 후보가 실제 제어기에 도달하는 시간은 동시 실행에서 다시 측정해야 한다. [계산 요약](compute-budget/summary.json) · [영상별 시간 예산](compute-budget/budgets.json.gz)
 
+## 여섯 영역을 한 배치로 처리
+
+기본 6개 영역의 960×960 RGB 텐서를 연속 버퍼에 준비하고, TensorRT FP16 엔진을 한 번 실행해 영역별 출력을 되받았다. 고정된 영역 밖의 추가 검사는 기존 단일 입력 엔진을 사용한다. 첫 시제품은 차량 박스·로짓·인접 차량 보정값 출력을 빠뜨려 첫 영상에서 중단했다. 이를 추가해 기존과 같은 출력 9개를 갖춘 엔진으로 비교했다. [엔진 및 라이브러리 식별값](batch-model.json) · [비교 코드와 원기록](batch-probe.zip)
+
+동일한 주행 영상 70장에서 두 방식의 실행 순서를 번갈아 바꿨다. 준비 4장을 제외한 66장의 BGRA → 최종 박스 중앙값은 단일 입력 재사용 53.65ms, 배치 50.42ms였고 p95는 55.74ms와 52.48ms였다. 66장 중 5장만 모든 박스와 점수가 이전 엔진과 정확히 일치해, 개발 324장과 기존 평가 891장의 품질을 모두 다시 채점했다.
+
+평가 891장 중 원래 단일 입력 엔진과 모든 박스·점수가 일치한 영상은 60장이었다. 등록된 정답으로 채점한 결과는 정검출 1,879건, 오검출 117건, 미검출 77건으로 정밀도 94.14%, 재현율 96.06%였다. 단일 입력 후보에 비해 정검출 수가 같고 오검출은 3건 적었다. 11개 평가 장소 모두 기존 절대·상대 기준을 통과했고 Town06 도로 13의 버스는 15/15였다. [장소별 품질과 두 방식의 비교](batch-quality.json) · [프레임별 검출 결과](batch-quality-frames.json.gz)
+
+### 배치 엔진의 30초 동시 실행
+
+배포 경로와 같은 검출기로 개발·평가 1,215장을 다시 처리해 배치 후보의 품질 평가 결과를 프레임마다 재현했다. 같은 2K·상한 120·70% 조건의 30초 동시 실행에서 검출 278장 중 144장이 100ms 미만이었고, 전송시간을 0으로 가정한 제어기 조회 1,500회 중 유효한 조회는 69회(고유 영상 69장)였다. 실제 인지 결과 발행과 수용은 0회였다. [등록 경로 재생](registered-batch.json) · [배치 동시 시간](batch/timing.json) · [조회별 대조](batch/native-reads.json.gz)
+
+| 구간 중앙값 / p95 | 단일 입력 재사용 | 배치 + 재사용 |
+| --- | ---: | ---: |
+| 렌더 틱 → 콜백 | 33.5 / 37.3ms | 33.4 / 36.4ms |
+| 검출 시작 → 박스 | 59.1 / 70.9ms | 57.2 / 67.5ms |
+| 장면 취득 → 박스 | 102.3 / 116.8ms | 99.2 / 108.4ms |
+| 장면 취득 → 첫 조회 | 109.4 / 129.4ms | 109.0 / 119.5ms |
+
+물리 기록 6,000개와 native 호출 60,010개를 정확히 재생했다. 물리 보호 진입과 물리 중 입력 만료는 0회였다. 배치 실행의 검출 278장도 원본에서 모두 재현했다. 시험 뒤 엔진 자산 13,947개와 전원 상한 100%를 복원했다. [물리 및 인지 감사](batch/paired-audit.json) · [물리 기록 재생](batch/physical-replay.json) · [원본 보관과 복원](batch/retention.json)
+
+배치 실행에서 마지막 유효 조회까지 계산 시간이 남아 있던 영상은 276/278장이었다. 이 영상들에서 추가로 줄여야 하는 시간의 중앙값은 5.3ms, p95는 19.8ms였다. [프레임별 시간 예산](batch-compute-budget/summary.json)
+
 ## 재현
 
 기존 RTX 3090 전용 엔진과 2K 원본을 사용한다. 출력 디렉터리는 실행마다 새 이름을 지정한다.
@@ -58,3 +81,5 @@ py=build/m10-perception/cuda-venv/bin/python
 ```
 
 동시 실행의 카메라 목표는 10Hz, 렌더러 상태 조회는 20Hz다. `--renderer-max-fps`는 렌더링 엔진이 허용하는 최대 FPS다. 각 실행의 실제 적용값은 렌더러 로그에서 확인한다. 프레임별 지연은 `tools/m10_quality_shadow_timing.py RUN OUTPUT`으로 원본 시각에서 다시 계산한다. 물리 및 영상 무결성은 `tests/integration/perception/audit_paired_v1.py RUN --output FILE`로 확인한다.
+
+등록 배치 엔진은 같은 시험 명령에 `--batch-views`를 추가하면 실행된다. 원본 모델 가중치와 학습 가상환경에서 `tests/integration/perception/export_quality_batch_views.py OUTPUT.onnx`로 내보낸 후 `trtexec --onnx=OUTPUT.onnx --fp16 --saveEngine=OUTPUT.plan --builderOptimizationLevel=3 --skipInference`로 빌드한다. 배치용 CUDA 전처리는 nvcc로 `tests/integration/perception/quality_batch_crop.cu`를 `-O3 -arch=sm_86 -shared -Xcompiler=-fPIC`로 컴파일한다. 저장소의 내보내기 코드로 ONNX를 다시 생성해 첫 내보내기와 바이트 단위로 일치함을 확인했다. Host 실행 시 등록된 엔진과 라이브러리의 SHA-256을 검사한다. [ONNX 재현 기록](batch-reproduction.json)
